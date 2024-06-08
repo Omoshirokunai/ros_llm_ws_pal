@@ -1,0 +1,10 @@
+<launch>
+    <!-- Include the Gazebo empty world launch file -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <!-- Path to your custom world file -->
+        <arg name="world_name" value="$(find ros_llm_ws)/worlds/myworld.world"/>
+    </include>
+
+    <!-- Launch any other nodes or configurations you need for your simulation -->
+      <param name="rosconsole-stderr-level" value="debug"/>
+</launch>

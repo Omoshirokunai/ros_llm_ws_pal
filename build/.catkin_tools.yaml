@@ -1,0 +1,6 @@
+devel_space: /home/gerald/ros_llm_ws/devel
+install: false
+install_space: /home/gerald/ros_llm_ws/install
+profile: default
+source_space: /home/gerald/ros_llm_ws/src
+workspace: /home/gerald/ros_llm_ws
