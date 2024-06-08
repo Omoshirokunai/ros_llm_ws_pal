@@ -40,11 +40,46 @@
             margin: 5px;
         }
     </style>
+
+    <script>
+        // Function to update the camera feed
+        function updateCameraFeed() {
+            var img = document.getElementById('live_video');
+            img.src = "{{ url_for('video_feed') }}" + "?t=" + new Date().getTime();
+        }
+    
+        // Update the camera feed every 100 milliseconds
+        setInterval(updateCameraFeed, 100);
+    
+        // Function to handle form submission
+        function handleFormSubmit(event) {
+            event.preventDefault(); // Prevent the default form submission
+    
+            var form = event.target;
+            var formData = new FormData(form);
+    
+            // Send the POST request with the form data
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            }).then(function(response) {
+                // You can handle the response here if needed
+            }).catch(function(error) {
+                console.error('Error:', error);
+            });
+        }
+    
+        // Attach the form submission handler to each form
+        document.querySelectorAll('.controls form').forEach(function(form) {
+            form.addEventListener('submit', handleFormSubmit);
+        });
+    </script>
+    
 </head>
 <body>
     <div class="container">
         <div class="camera">
-            <img src="{{ url_for('video_feed') }}" width="640" height="480" alt="camera feed">
+            <iframe src="{{ url_for('video_feed') }}" width="640" height="480" frameborder="0"></iframe>
         </div>
         <div class="text2">
             <textarea id="text2" rows="10" cols="30"></textarea>
