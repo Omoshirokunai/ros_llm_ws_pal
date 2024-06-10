@@ -12,6 +12,7 @@
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
+            background-color: #fff9db;
         }
         .container {
             display: grid;
@@ -23,21 +24,53 @@
         }
         .camera {
             grid-area: camera;
+            background-color: #000;
+            padding: 8px;
         }
         .text2 {
             grid-area: text2;
+            background-color: #ede8e6;
+            padding: 4px;
         }
         .textbox {
             grid-area: textbox;
         }
         .controls {
             grid-area: controls;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-areas: 
+                ". forward ."
+                "left . right"
+                ". backward .";
+            grid-gap: 5px;
+            justify-items: center;
             align-items: center;
+            padding: 10px;
         }
         .controls form {
-            margin: 5px;
+            margin: 0px;
+        }
+        .controls button {
+            width: 60px;
+            height: 60px;
+            font-size: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .controls .forward {
+            grid-area: forward;
+        }
+        .controls .left {
+            grid-area: left;
+        }
+        .controls .right {
+            grid-area: right;
+        }
+        .controls .backward {
+            grid-area: backward;
         }
     </style>
 
@@ -49,7 +82,7 @@
         }
     
         // Update the camera feed every 100 milliseconds
-        setInterval(updateCameraFeed, 100);
+        setInterval(updateCameraFeed, 1000);
     
         // Function to handle form submission
         function handleFormSubmit(event) {
@@ -88,21 +121,21 @@
             <textarea id="textbox" rows="4" cols="80"></textarea>
         </div>
         <div class="controls">
-            <form action="/move" method="post">
+            <form action="/move" method="post", class="forward">
                 <input type="hidden" name="direction" value="forward">
                 <button type="submit">Forward</button>
             </form>
-            <form action="/move" method="post">
+            <form action="/move" method="post", class="left">
                 <input type="hidden" name="direction" value="left">
                 <button type="submit">Left</button>
             </form>
-            <form action="/move" method="post">
+            <form action="/move" method="post", class="right">
                 <input type="hidden" name="direction" value="right">
                 <button type="submit">Right</button>
             </form>
-            <form action="/move" method="post">
+            <form action="/move" method="post", class="backward">
                 <input type="hidden" name="direction" value="backward">
-                <button type="submit">Back</button>
+                <button type="submit">Backward</button>
             </form>
         </div>
     </div>
