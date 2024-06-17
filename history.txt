@@ -1,0 +1,6 @@
+2024-06-17 15:02:56 user: what is the next command to get to the cables/switches?
+2024-06-17 15:02:56 gemini: 1. forward x 10
+2. right when wall in front
+3. forward x 13
+end. success!! 
+
