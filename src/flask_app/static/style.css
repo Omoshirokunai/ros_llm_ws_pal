@@ -1,0 +1,68 @@
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #fff9db;
+}
+.container {
+    display: grid;
+    grid-template-areas: 
+        "camera camera text2"
+        "camera camera controls"
+        "textbox textbox controls";
+    grid-gap: 10px;
+}
+.camera {
+    grid-area: camera;
+    background-color: #000;
+    padding: 8px;
+}
+.text2 {
+    grid-area: text2;
+    background-color: #ede8e6;
+    padding: 4px;
+}
+.textbox {
+    grid-area: textbox;
+}
+.controls {
+    grid-area: controls;
+    display: grid;
+    grid-template-areas: 
+        ". forward ."
+        "left . right"
+        ". backward .";
+    grid-gap: 5px;
+    justify-items: center;
+    align-items: center;
+    padding: 10px;
+}
+.controls form {
+    margin: 0px;
+}
+.controls button {
+    width: 60px;
+    height: 60px;
+    font-size: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.controls .forward {
+    grid-area: forward;
+}
+.controls .left {
+    grid-area: left;
+}
+.controls .right {
+    grid-area: right;
+}
+.controls .backward {
+    grid-area: backward;
+}

@@ -8,3 +8,6 @@ src/flask_app/__pycache__/safe.cpython-38.pyc
 *.pyc
 .vscode
 /myflaskenv
+src/flask_app/sacred-archway-425919-b3-1a28319757a8.json
+run_flask.sh
+src/flask_app/ros-thesis-b80bfc37ec75.json
