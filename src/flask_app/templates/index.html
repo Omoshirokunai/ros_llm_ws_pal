@@ -38,37 +38,95 @@
             form.addEventListener('submit', handleFormSubmit);
         });
     </script>
-    
 </head>
 <body>
+    <div class="intro">
+        <h1>TIAGo Robot Controller</h1>
+    </div>
     <div class="container">
+        
+        <div class="intro2">
+            <h2></h2>
+        </div>
+        
         <div class="camera">
-            <iframe src="{{ url_for('video_feed') }}" width="640" height="480" frameborder="0"></iframe>
+            <iframe src="{{ url_for('video_feed') }}" width="640" height="480" frameborder="0" title="live-feed-iframe"></iframe>
         </div>
-        <div class="text2">
-            <textarea id="text2" rows="10" cols="30"></textarea>
+        
+        <div class="png-image">
+            <img src="{{ url_for('static', filename='TIAGo-mobile.png') }}" alt="PNG Image" width="100" height="200">
         </div>
-        <div class="textbox">
-            <textarea id="textbox" rows="4" cols="80"></textarea>
+
+        <div class="text-area2">
+            <textarea id="text2" rows="7" cols="10" readonly title="gemini-response" disabled></textarea>
         </div>
         <div class="controls">
-            <form action="/move" method="post", class="forward">
-                <input type="hidden" name="direction" value="forward">
-                <button type="submit">Forward</button>
-            </form>
-            <form action="/move" method="post", class="left">
-                <input type="hidden" name="direction" value="left">
-                <button type="submit">Left</button>
-            </form>
-            <form action="/move" method="post", class="right">
-                <input type="hidden" name="direction" value="right">
-                <button type="submit">Right</button>
-            </form>
-            <form action="/move" method="post", class="backward">
-                <input type="hidden" name="direction" value="backward">
-                <button type="submit">Backward</button>
-            </form>
+            <div class="directional-pad">
+                <form action="/move" method="post" class="forward">
+                    <input type="hidden" name="direction" value="forward">
+                    <button type="submit">↑</button>
+                </form>
+                <form action="/move" method="post" class="left">
+                    <input type="hidden" name="direction" value="left">
+                    <button type="submit">←</button>
+                </form>
+                <form action="/move" method="post" class="right">
+                    <input type="hidden" name="direction" value="right">
+                    <button type="submit">→</button>
+                </form>
+                <form action="/move" method="post" class="backward">
+                    <input type="hidden" name="direction" value="backward">
+                    <button type="submit">↓</button>
+                </form>
+            </div>
         </div>
+            <div class="text-area">
+                <label for="text-area">Enter your command:</label>
+                <textarea id="text-area" rows="5" cols="60" title="user-prompt"></textarea>
+                <button type="button" id="send">Send</button>
+            </div>
+
+            <div class="sliders">
+                <div class="dropdown">
+                    <button>Torso</button>
+                    <div class="dropdown-content">
+                        <form action="/update_torso" method="post">
+                            <input type="range" id="torso" name="torso" min="0" max="100">
+                            <label for="torso"> Torso</label><br>
+                            <button type="submit">Submit</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button>Head</button>
+                    <div class="dropdown-content">
+                        <form action="/update_head" method="post">
+                            <input type="range" id="head" name="head" min="0" max="100">
+                            <label for="head"> Head</label><br>
+                            <button type="submit">Submit</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button>Arm</button>
+                    <div class="dropdown-content">
+                        <form action="/update_arm" method="post">
+                            <input type="range" id="arm" name="arm" min="0" max="100">
+                            <label for="arm"> Arm</label><br>
+                            <button type="submit">Submit</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button>Gripper</button>
+                    <div class="dropdown-content">
+                        <form action="/update_gripper" method="post">
+                            <input type="range" id="gripper" name="gripper" min="0" max="100">
+                            <label for="gripper"> Gripper</label><br>
+                            <button type="submit">Submit</button>
+                        </form>
+                    </div>
+            </div>
     </div>
 
 </body>

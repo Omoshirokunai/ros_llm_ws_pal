@@ -11,7 +11,7 @@ from datetime import datetime
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = CREDENTIALS
 
 vertexai.init(project=PROJECT_ID, location=REGIONEU)
-image = Image.load_from_file("/home/hameed/ros_llm_ws_pal/src/images/image.png")
+image = Image.load_from_file("/home/hameed/ros_llm_ws_pal/src/images/image2.png")
 
 # load past chat history
 # try:
@@ -25,7 +25,7 @@ MAX_FILE_SIZE_MB = 5
 def load_history():
     if os.path.exists(FILENAME):
         with open(FILENAME, "r", encoding="utf-8") as file:
-            history = [line.strip() for line in file.readlines()]
+            history = [line.strip().replace('\\n', '\n')for line in file.readlines()]
     else:
         history = []
     return history
@@ -48,16 +48,16 @@ def format_history_for_model(history):
     for message in history:
         timestamp, role_text = message.split(" ", 1)
         role, text = role_text.split(": ", 1)
-        formatted_history.append(generative_models.Content(role=role, parts=text))
+        formatted_history.append(generative_models.Content(role=role, parts=[Part.from_text(text)]))
     return formatted_history
 
-def multiturn_generate_content(chat_history, system_prompt, message="", image=None, generation_config=None, safety_settings=None):
+def multiturn_generate_content(system_prompt, message="", image=None, generation_config=None, safety_settings=None):
     model = GenerativeModel(
     "gemini-1.5-flash-001",
     system_instruction=[system_prompt]
     )
-    formatted_history = format_history_for_model(chat_history)
-    chat = model.start_chat(history=formatted_history)
+    # formatted_history = format_history_for_model(chat_history)
+    chat = model.start_chat()
     api_repsonse = chat.send_message([image,message], generation_config=generation_config, safety_settings=safety_settings)
     
     
@@ -79,7 +79,9 @@ generative_models.HarmCategory.HARM_CATEGORY_HARASSMENT: generative_models.HarmB
 }
 system_prompt = """
 you are a two wheeled robot the image is a picture of the maze you are in; your goal will be provided by the user.
-you can only respond with an ordered list of robot commands X number of times to execute command you are not allowed to execute the same command in a row end with success!! if task is complete
+you can only respond with an ordered list of robot commands X number of times to execute command
+you are not allowed to execute the same command in a row
+end with success!! if task is complete
 available commands :
 \"forward\",
 \"left\",
@@ -92,20 +94,25 @@ example:
 1.forward x 10
 2.right when wall in front
 3.forward x 13
-end. sucess"""
+end. success!!
+
+be short and coincise"""
 
 import google.api_core.exceptions
 
-prompt = "what are the updated command to get to the cables/switches?"
-history = load_history()
+prompt = "what are the commands to get to the cables/switches on the far left side?"
+
+# prompt = "what are the commands to get to get out of this maze"
+
+
 try:
     # response = multiturn_generate_content(history, system_prompt,prompt, image, generation_config=generation_config, safety_settings=safety_settings)
     # print(response.candidates[0].text)
-    response, updated_history = multiturn_generate_content(history, system_prompt, prompt, image, generation_config=generation_config, safety_settings=safety_settings)
+    response, updated_history = multiturn_generate_content(system_prompt, prompt, image, generation_config=generation_config, safety_settings=safety_settings)
     response_text = response.candidates[0].text
-    add_message(history, "user", prompt)
-    add_message(history, "gemini", response_text)
-    save_to_file(history)
+    # add_message(history, "user", prompt)
+    # add_message(history, "gemini", response_text)
+    # save_to_file(history)
     print(response_text)
 except google.api_core.exceptions.ResourceExhausted:
     print("ResourceExhausted")
@@ -113,6 +120,6 @@ except vertexai.generative_models._generative_models.ResponseValidationError:
     print("ResponseValidationError")
 
 #print history
-print(history)
+# print(history)
 #print history
-print("\n".join(history))
+# print("\n".join(history))

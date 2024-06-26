@@ -1,68 +1,201 @@
-
+@font-face {
+    font-family: 'chubbo';
+    src: url('Chubbo-Extralight.ttf');
+    font-weight: 10px;
+}
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #fff9db;
+    margin: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #000;
+    min-width: max-content;
+    overflow: hidden;
+    color: #fff;
 }
 .container {
     display: grid;
     grid-template-areas: 
-        "camera camera text2"
-        "camera camera controls"
-        "textbox textbox controls";
+        "png-image camera text-area2"
+        "intro2 camera  text-area2"
+        "controls text-area sliders";
     grid-gap: 10px;
+    padding:20px;
 }
+.intro{
+    grid-area: intro;
+}
+h1{
+    color: #FFFFFF;
+    font-weight: lighter;
+    margin-left: 30%;
+}
+button{
+    background-color: #000;
+    color: white;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #fff;
+    color: #000;
+}
+/* ** robot feed ** */
 .camera {
     grid-area: camera;
     background-color: #000;
-    padding: 8px;
+    width: 100%;
 }
-.text2 {
-    grid-area: text2;
-    background-color: #ede8e6;
-    padding: 4px;
+.camera iframe{
+    border: 1px solid #FFFFFF;
+
 }
-.textbox {
-    grid-area: textbox;
+/* ** robot png image ** */
+.png-image{
+    grid-area: png-image;
+    width: 100%;
+    height: 10%;
+    margin-left: 30%;
+    /* padding-left: 30px; */
 }
+
+/* ** user prompt ** */
+.text-area {
+    grid-area: text-area;
+    /* display: flex;
+    align-items: center; */
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    flex-direction: column;
+    justify-content: space-around;
+}
+.text-area textarea {
+    /* allow resize vertical to a certain height */
+    width: 70%;
+    height: 70%;
+    resize: none;
+    background-color: #000000;
+    border: 0.4px dashed #ffffff;
+    color: #FFFFFF;
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: small;
+
+
+}
+
+.text-area textarea:focus {
+    outline: none;
+}
+.text-area button {
+    margin-left: 10px;
+}
+
+/* ** Gemini responses ** */
+.text-area2 {
+    grid-area: text-area2;
+    margin-bottom: 10px;
+}
+.text-area2 textarea {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    background-color: #000;
+    border: 2px solid #555555;
+    color: #FFFFFF;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: medium;
+    resize: none;
+
+}
+.text-area2 textarea:focus {
+    outline: none;
+    
+}
+/* ** robot controls ** */
 .controls {
-    grid-area: controls;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.directional-pad {
+    grid-area: directional-pad;
     display: grid;
     grid-template-areas: 
         ". forward ."
         "left . right"
         ". backward .";
     grid-gap: 5px;
-    justify-items: center;
-    align-items: center;
-    padding: 10px;
+    align-items: center;}
+/* .controls .directional-pad button:hover {
+    background-color: #45a049;
+} */
+
+
+.directional-pad form {
+    margin: 5px;
 }
-.controls form {
-    margin: 0px;
+
+.directional-pad button {
+    width: 50px;
+    height: 50px;
 }
-.controls button {
-    width: 60px;
-    height: 60px;
-    font-size: 12px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
-.controls .forward {
+ .directional-pad .forward {
     grid-area: forward;
 }
-.controls .left {
+ .directional-pad .left {
     grid-area: left;
 }
-.controls .right {
+ .directional-pad .right {
     grid-area: right;
 }
-.controls .backward {
+.directional-pad .backward {
     grid-area: backward;
 }
+
+/* robot body control */
+.sliders {
+    grid-area: sliders;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    padding: 10px;
+}
+
+.dropdown-content input,
+.dropdown-content button {
+    margin: 5px 0;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* .dropdown button {
+    
+} */
+

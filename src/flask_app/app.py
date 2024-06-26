@@ -6,8 +6,8 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 import threading
 import vertexai
-from vertexai.preview.generative_models import GenerativeModel, Image
-from safe import PROJECT_ID, REGION, CREDENTIALS
+# from vertexai.preview.generative_models import GenerativeModel, Image
+# from safe import PROJECT_ID, REGIONNA, CREDENTIALS
 import os
 
 
@@ -22,27 +22,27 @@ latest_frame = None
 lidar_data = None
 frame_lock = threading.Lock()
 lidar_lock = threading.Lock()
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = CREDENTIALS
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = CREDENTIALS
 
-vertexai.init(project=PROJECT_ID, location=REGION)
-generative_multimodal_model = GenerativeModel("gemini-1.5-pro")
+# vertexai.init(project=PROJECT_ID, location=REGIONNA)
+# generative_multimodal_model = GenerativeModel("gemini-1.5-pro")
 #* Home
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/send_prompt', methods=['POST'])
-def send_prompt():
-    system_prompt = "you are tiago Pal robot in a room with a camera. You can move around and interact with the environment. "
-    user_prompt = request.form.get('prompt')
+# @app.route('/send_prompt', methods=['POST'])
+# def send_prompt():
+#     system_prompt = "you are tiago Pal robot in a room with a camera. You can move around and interact with the environment. "
+#     user_prompt = request.form.get('prompt')
     
-    if system_prompt:
-        prompt = f"{system_prompt}\n\n{user_prompt}"
-    else:
-        prompt = user_prompt
+#     if system_prompt:
+#         prompt = f"{system_prompt}\n\n{user_prompt}"
+#     else:
+#         prompt = user_prompt
 
-    response = generative_multimodal_model.generate_content(prompt)
-    return response.candidates[0].text
+#     response = generative_multimodal_model.generate_content(prompt)
+#     return response.candidates[0].text
 
 #* Camera
 def image_callback(msg):
