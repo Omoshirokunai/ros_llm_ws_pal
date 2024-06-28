@@ -59,7 +59,7 @@
 
         <div class="text-area2">
             <textarea id="text2" rows="7" cols="10" readonly title="gemini-response" disabled>
-                
+                gemini: {{ response }}
             </textarea>
         </div>
 
@@ -86,8 +86,10 @@
 
             <div class="text-area">
                 <label for="text-area">Enter your command:</label>
-                <textarea id="text-area" rows="5" cols="60" title="user-prompt"></textarea>
-                <button type="button" id="send">Send</button>
+                <form action="/send_prompt" method="post" id="send-form" >
+                    <textarea id="text-area" rows="5" cols="60" title="user-prompt" name="prompt"></textarea>
+                <button type="submit" id="send">Send</button>
+                </form>
             </div>
 
             <div class="sliders">

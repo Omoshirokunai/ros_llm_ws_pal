@@ -99,6 +99,7 @@ button:hover {
 }
 
 /* ** Gemini responses ** */
+/* TODO: fix alignment */
 .text-area2 {
     grid-area: text-area2;
     margin-bottom: 10px;

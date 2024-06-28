@@ -9,6 +9,7 @@ import vertexai
 from vertexai.preview.generative_models import GenerativeModel 
 from vertexai.preview.generative_models import Image as GeminiImage #!! IMAGE name conflict with ROS
 from safe import PROJECT_ID, REGIONEU, CREDENTIALS
+from gemini_config import generation_config, safety_settings, system_prompt
 import os
 
 
@@ -25,25 +26,37 @@ lidar_data = None
 frame_lock = threading.Lock()
 lidar_lock = threading.Lock()
 
+# * gemini
 vertexai.init(project=PROJECT_ID, location=REGIONEU)
-# generative_multimodal_model = GenerativeModel("gemini-1.5-pro")
+generative_multimodal_model = GenerativeModel("gemini-1.5-pro")
+gemini_response = None
+
+@app.route('/send_prompt', methods=['POST'])
+def send_prompt():
+    global gemini_response
+    user_prompt = request.form.get('prompt')
+    # print(user_prompt)
+
+    if system_prompt:
+        prompt = f"{system_prompt}\n\n{user_prompt}"
+    else:
+        prompt = user_prompt
+
+    response = generative_multimodal_model.generate_content(prompt)
+    gemini_response = response.candidates[0].text
+
+    return Response(gemini_response, mimetype='text/plain')
+
+
 #* Home
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if gemini_response:
+        return render_template('index.html', response = gemini_response)
+    else:
+        return render_template('index.html', response="hello")
 
-# @app.route('/send_prompt', methods=['POST'])
-# def send_prompt():
-#     system_prompt = "you are tiago Pal robot in a room with a camera. You can move around and interact with the environment. "
-#     user_prompt = request.form.get('prompt')
-    
-#     if system_prompt:
-#         prompt = f"{system_prompt}\n\n{user_prompt}"
-#     else:
-#         prompt = user_prompt
 
-#     response = generative_multimodal_model.generate_content(prompt)
-#     return response.candidates[0].text
 
 #* Camera
 def image_callback(msg):
