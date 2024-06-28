@@ -6,12 +6,14 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 import threading
 import vertexai
-# from vertexai.preview.generative_models import GenerativeModel, Image
-# from safe import PROJECT_ID, REGIONNA, CREDENTIALS
+from vertexai.preview.generative_models import GenerativeModel 
+from vertexai.preview.generative_models import Image as GeminiImage #!! IMAGE name conflict with ROS
+from safe import PROJECT_ID, REGIONEU, CREDENTIALS
 import os
 
 
 #* Flask and ROS config
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = CREDENTIALS
 app = Flask(__name__)
 
 rospy.init_node('flask_controller', anonymous=True)
@@ -22,9 +24,8 @@ latest_frame = None
 lidar_data = None
 frame_lock = threading.Lock()
 lidar_lock = threading.Lock()
-# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = CREDENTIALS
 
-# vertexai.init(project=PROJECT_ID, location=REGIONNA)
+vertexai.init(project=PROJECT_ID, location=REGIONEU)
 # generative_multimodal_model = GenerativeModel("gemini-1.5-pro")
 #* Home
 @app.route('/')

@@ -9,7 +9,7 @@ body {
     font-family: 'Courier New', Courier, monospace;
     background-color: #000;
     min-width: max-content;
-    overflow: hidden;
+    /* overflow: hidden; */
     color: #fff;
 }
 .container {
@@ -108,11 +108,12 @@ button:hover {
     height: 100%;
     resize: none;
     background-color: #000;
-    border: 2px solid #555555;
+    border: 1px solid #ffffff;
     color: #FFFFFF;
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: medium;
     resize: none;
+    padding: 10px;
 
 }
 .text-area2 textarea:focus {
