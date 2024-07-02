@@ -1,7 +1,7 @@
 # region Imports
-import rospy
-from geometry_msgs.msg import Twist
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+import rospy # type: ignore
+from geometry_msgs.msg import Twist # type: ignore
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # type: ignore
 # endregion Imports
 
 
