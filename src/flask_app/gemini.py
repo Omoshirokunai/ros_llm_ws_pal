@@ -90,6 +90,7 @@ available commands :
 \"right when wall in front\",
 \"left when wall in front\"
 
+
 example:
 1.forward x 10
 2.right when wall in front

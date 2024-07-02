@@ -73,7 +73,7 @@ button:hover {
     flex-direction: column;
     justify-content: space-around;
 }
-.text-area textarea {
+.text-area form textarea {
     /* allow resize vertical to a certain height */
     width: 70%;
     height: 70%;
