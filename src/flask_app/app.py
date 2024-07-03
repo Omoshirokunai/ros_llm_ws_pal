@@ -65,6 +65,8 @@ def multiturn_generate_content(system_prompt, message="", image=None, generation
         return api_response
     except google.api_core.exceptions.ResourceExhausted:
         print("ResourceExhausted")
+        # sleep for a while and try again
+        # rospy.sleep(5)
         return None
     except vertexai.generative_models._generative_models.ResponseValidationError:
         print("ResponseValidationError")
@@ -87,7 +89,7 @@ def gemini_control_loop(prompt):
 
                 if gemini_response.startswith("move"):
                     direction = gemini_response.split(" ")[1]
-                    print(direction)
+
                     move_robot(direction)
                 elif gemini_response.startswith("update_arm"):
                     position_name = gemini_response.split(" ")[1]
@@ -97,62 +99,8 @@ def gemini_control_loop(prompt):
                 if "done" in gemini_response.lower():
                     stop_gemini = True
 
-        rospy.sleep(2)
-# region hide
-# def gemini_control_loop(user_prompt):
-#     global stop_gemini
-#     stop_gemini = False
-#     while not stop_gemini:
-#         image_str = get_camera_image()
-#         if image_str is None:
-#             continue
+        rospy.sleep(1)
 
-#         prompt = f"{system_prompt}\n\n{user_prompt}" if system_prompt else user_prompt
-#         response = generative_multimodal_model.generate_content(prompt, images=[GeminiImage(image_str)])
-#         with gemini_response_lock:
-#             gemini_response = response.candidates[0].text
-
-#         if gemini_response.startswith("move"):
-#             direction = gemini_response.split(" ")[1]
-#             move_robot(direction)
-#         elif gemini_response.startswith("update_arm"):
-#             position_name = gemini_response.split(" ")[1]
-#             if position_name in ARM_POSITIONS:
-#                 update_arm(ARM_POSITIONS[position_name])
-#         else:
-#             stop_gemini = True
-
-#         if "done" in gemini_response.lower():
-#             stop_gemini = True
-
-#         rospy.sleep(2)
-
-# @app.route('/send_prompt', methods=['POST'])
-# def send_prompt():
-
-#     global gemini_response
-#     user_prompt = request.form.get('prompt')
-#     # print(user_prompt)
-
-#     if system_prompt and user_prompt != " ":
-#         prompt = f"{system_prompt}\n\n{user_prompt}"
-#     else:
-#         prompt = user_prompt
-
-#     response = generative_multimodal_model.generate_content(prompt)
-#     gemini_response = response.candidates[0].text
-
-#     return render_template('index.html', response = gemini_response)
-# endregion hide
-# @app.route('/send_prompt', methods=['POST'])
-# def send_prompt():
-#     global gemini_response
-#     user_prompt = request.form.get('prompt')
-
-#     gemini_thread = threading.Thread(target=gemini_control_loop, args=(user_prompt,))
-#     gemini_thread.start()
-
-#     return render_template('index.html', response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
 @app.route('/send_prompt', methods=['POST'])
 def send_prompt():
     global gemini_response

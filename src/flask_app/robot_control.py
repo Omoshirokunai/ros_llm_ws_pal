@@ -19,16 +19,17 @@ def move_robot(direction):
     Move the robot in the specified direction.
     """
     twist = Twist()
-    print("executing move")
-    if direction == 'forward':
-        twist.linear.x = 3
+    print(f"moving {direction}")
+    if direction == 'forward' or direction.startswith('f') or direction == 'move forward':
+        twist.linear.x = 5
     elif direction == 'backward':
-        twist.linear.x = -3
+        twist.linear.x = -5
     elif direction == 'left':
-        twist.angular.z = 3
+        twist.angular.z = 5
     elif direction == 'right':
-        twist.angular.z = -3
+        twist.angular.z = -5
 
+    # rospy.sleep(4)
     cmd_vel_publisher.publish(twist)
 # endregion Movement
 
