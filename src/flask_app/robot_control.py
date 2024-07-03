@@ -19,15 +19,15 @@ def move_robot(direction):
     Move the robot in the specified direction.
     """
     twist = Twist()
-
+    print("executing move")
     if direction == 'forward':
-        twist.linear.x = 1
+        twist.linear.x = 3
     elif direction == 'backward':
-        twist.linear.x = -1
+        twist.linear.x = -3
     elif direction == 'left':
-        twist.angular.z = 1
+        twist.angular.z = 3
     elif direction == 'right':
-        twist.angular.z = -1
+        twist.angular.z = -3
 
     cmd_vel_publisher.publish(twist)
 # endregion Movement

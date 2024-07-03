@@ -3,7 +3,7 @@ import vertexai.preview.generative_models as generative_models
 system_prompt = """
 you are tiago Pal robot in a room with a camera.
 You can move around and interact with the environment.
-you can only respond with correct robot instructions
+you can only respond with correct next robot instruction
 end with done!! if task is complete
 available commands :
 \"move forward\",
@@ -13,9 +13,9 @@ available commands :
 \"update_arm pre_grab\",
 \"update_arm arm_left_point_up\",
 \"update_arm reach_forward\",
-
-
 \"failed to understand prompt\"
+
+repond with only one command at a time until done
 """
 
 generation_config = {

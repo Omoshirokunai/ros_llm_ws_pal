@@ -12,6 +12,8 @@ from safe import PROJECT_ID, REGIONEU, CREDENTIALS
 from gemini_config import generation_config, safety_settings, system_prompt
 import os
 from robot_control import move_robot, update_torso, update_arm
+import google.api_core.exceptions
+
 # endregion Imports
 
 # region Flask and ROS config
@@ -45,7 +47,6 @@ def index():
 # region Gemini
 # region Gemini_init
 vertexai.init(project=PROJECT_ID, location=REGIONEU)
-generative_multimodal_model = GenerativeModel("gemini-1.5-pro")
 # endregion gemini_init
 
 def get_camera_image():
@@ -57,31 +58,47 @@ def get_camera_image():
             return image_str
     return None
 def multiturn_generate_content(system_prompt, message="", image=None, generation_config=None, safety_settings=None):
+    generative_multimodal_model = GenerativeModel("gemini-1.5-pro", system_instruction=[system_prompt])
     try:
-        chat = generative_model.start_chat(system_instruction=[system_prompt])
+        chat = generative_multimodal_model.start_chat()
         api_response = chat.send_message([image, message], generation_config=generation_config, safety_settings=safety_settings)
-        return api_response, chat.updated_history
+        return api_response
     except google.api_core.exceptions.ResourceExhausted:
         print("ResourceExhausted")
-        return None, None
+        return None
     except vertexai.generative_models._generative_models.ResponseValidationError:
         print("ResponseValidationError")
-        return None, None
+        return None
 
-def gemini_control_loop(prompt, image):
+def gemini_control_loop(prompt):
     global gemini_response, stop_gemini
     stop_gemini = False
     while not stop_gemini:
-        with lock:
-            current_image = latest_camera_image
-        if current_image is not None:
-            response, _ = multiturn_generate_content(prompt, image=current_image)
-            if response and response.candidates:
-                with lock:
-                    gemini_response = response.candidates[0].text
-                    if "done" in gemini_response.lower():
-                        stop_gemini = True
-            rospy.sleep(2)
+        image_str = get_camera_image()
+        if image_str is None:
+            continue
+
+        image = GeminiImage.from_bytes(image_str)
+        response = multiturn_generate_content(system_prompt, message=prompt, image=image, generation_config=generation_config, safety_settings=safety_settings)
+
+        if response and response.candidates:
+            with gemini_response_lock:
+                gemini_response = response.candidates[0].text
+
+                if gemini_response.startswith("move"):
+                    direction = gemini_response.split(" ")[1]
+                    print(direction)
+                    move_robot(direction)
+                elif gemini_response.startswith("update_arm"):
+                    position_name = gemini_response.split(" ")[1]
+                    if position_name in ARM_POSITIONS:
+                        update_arm(ARM_POSITIONS[position_name])
+
+                if "done" in gemini_response.lower():
+                    stop_gemini = True
+
+        rospy.sleep(2)
+# region hide
 # def gemini_control_loop(user_prompt):
 #     global stop_gemini
 #     stop_gemini = False
@@ -126,6 +143,16 @@ def gemini_control_loop(prompt, image):
 #     gemini_response = response.candidates[0].text
 
 #     return render_template('index.html', response = gemini_response)
+# endregion hide
+# @app.route('/send_prompt', methods=['POST'])
+# def send_prompt():
+#     global gemini_response
+#     user_prompt = request.form.get('prompt')
+
+#     gemini_thread = threading.Thread(target=gemini_control_loop, args=(user_prompt,))
+#     gemini_thread.start()
+
+#     return render_template('index.html', response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
 @app.route('/send_prompt', methods=['POST'])
 def send_prompt():
     global gemini_response
