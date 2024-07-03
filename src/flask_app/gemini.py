@@ -3,7 +3,7 @@ import base64
 from vertexai.generative_models import GenerativeModel, Part, Image
 import vertexai.preview.generative_models as generative_models
 from safe import PROJECT_ID, REGIONEU, CREDENTIALS
-from IPython.display import display, Markdown 
+from IPython.display import display, Markdown
 import os
 # import joblib
 from datetime import datetime
@@ -56,14 +56,13 @@ def multiturn_generate_content(system_prompt, message="", image=None, generation
     "gemini-1.5-flash-001",
     system_instruction=[system_prompt]
     )
-    # formatted_history = format_history_for_model(chat_history)
     chat = model.start_chat()
     api_repsonse = chat.send_message([image,message], generation_config=generation_config, safety_settings=safety_settings)
-    
-    
+
+
     #update history.txt
     return api_repsonse, chat.history
-    
+
 
 generation_config = {
 "max_output_tokens": 8192,
@@ -107,13 +106,8 @@ prompt = "what are the commands to get to the cables/switches on the far left si
 
 
 try:
-    # response = multiturn_generate_content(history, system_prompt,prompt, image, generation_config=generation_config, safety_settings=safety_settings)
-    # print(response.candidates[0].text)
     response, updated_history = multiturn_generate_content(system_prompt, prompt, image, generation_config=generation_config, safety_settings=safety_settings)
     response_text = response.candidates[0].text
-    # add_message(history, "user", prompt)
-    # add_message(history, "gemini", response_text)
-    # save_to_file(history)
     print(response_text)
 except google.api_core.exceptions.ResourceExhausted:
     print("ResourceExhausted")

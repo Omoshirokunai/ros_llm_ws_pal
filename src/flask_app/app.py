@@ -1,7 +1,7 @@
 # region Imports
 from flask import Flask, jsonify, request, Response, render_template, redirect, url_for
 import rospy # type: ignore #* ROS Python client library
-from sensor_msgs.msg import Image, LaserScan # type: ignore #* camera and lidar data
+from sensor_msgs.msg import Image, LaserScan, JointState# type: ignore #* camera and lidar data
 import cv2
 from cv_bridge import CvBridge, CvBridgeError # type: ignore #* convert ROS messages to OpenCV images
 import threading
@@ -23,8 +23,14 @@ bridge = CvBridge()
 #* Global variables to store latest camera frame and lidar data
 latest_frame = None
 lidar_data = None
+current_arm_position = None
+gemini_response = None
+stop_gemini = False
 frame_lock = threading.Lock() # protect process from being accessed by multiple threads at the same time
 lidar_lock = threading.Lock()
+arm_position_lock = threading.Lock()
+gemini_response_lock = threading.Lock()
+
 
 # endregion
 
@@ -33,35 +39,108 @@ lidar_lock = threading.Lock()
 @app.route('/')
 def index():
     return render_template('index.html', response="", arm_positions=ARM_POSITIONS, current_position=current_position)
-# @app.route('/')
-# def index():
-#     return render_template('index.html', response=" ")
+
 # endregion
 
 # region Gemini
 # region Gemini_init
 vertexai.init(project=PROJECT_ID, location=REGIONEU)
 generative_multimodal_model = GenerativeModel("gemini-1.5-pro")
-gemini_response = None
 # endregion gemini_init
 
+def get_camera_image():
+    global latest_frame
+    with frame_lock:
+        if latest_frame is not None:
+            _, buffer = cv2.imencode('.jpg', latest_frame)
+            image_str = buffer.tobytes()
+            return image_str
+    return None
+def multiturn_generate_content(system_prompt, message="", image=None, generation_config=None, safety_settings=None):
+    try:
+        chat = generative_model.start_chat(system_instruction=[system_prompt])
+        api_response = chat.send_message([image, message], generation_config=generation_config, safety_settings=safety_settings)
+        return api_response, chat.updated_history
+    except google.api_core.exceptions.ResourceExhausted:
+        print("ResourceExhausted")
+        return None, None
+    except vertexai.generative_models._generative_models.ResponseValidationError:
+        print("ResponseValidationError")
+        return None, None
+
+def gemini_control_loop(prompt, image):
+    global gemini_response, stop_gemini
+    stop_gemini = False
+    while not stop_gemini:
+        with lock:
+            current_image = latest_camera_image
+        if current_image is not None:
+            response, _ = multiturn_generate_content(prompt, image=current_image)
+            if response and response.candidates:
+                with lock:
+                    gemini_response = response.candidates[0].text
+                    if "done" in gemini_response.lower():
+                        stop_gemini = True
+            rospy.sleep(2)
+# def gemini_control_loop(user_prompt):
+#     global stop_gemini
+#     stop_gemini = False
+#     while not stop_gemini:
+#         image_str = get_camera_image()
+#         if image_str is None:
+#             continue
+
+#         prompt = f"{system_prompt}\n\n{user_prompt}" if system_prompt else user_prompt
+#         response = generative_multimodal_model.generate_content(prompt, images=[GeminiImage(image_str)])
+#         with gemini_response_lock:
+#             gemini_response = response.candidates[0].text
+
+#         if gemini_response.startswith("move"):
+#             direction = gemini_response.split(" ")[1]
+#             move_robot(direction)
+#         elif gemini_response.startswith("update_arm"):
+#             position_name = gemini_response.split(" ")[1]
+#             if position_name in ARM_POSITIONS:
+#                 update_arm(ARM_POSITIONS[position_name])
+#         else:
+#             stop_gemini = True
+
+#         if "done" in gemini_response.lower():
+#             stop_gemini = True
+
+#         rospy.sleep(2)
+
+# @app.route('/send_prompt', methods=['POST'])
+# def send_prompt():
+
+#     global gemini_response
+#     user_prompt = request.form.get('prompt')
+#     # print(user_prompt)
+
+#     if system_prompt and user_prompt != " ":
+#         prompt = f"{system_prompt}\n\n{user_prompt}"
+#     else:
+#         prompt = user_prompt
+
+#     response = generative_multimodal_model.generate_content(prompt)
+#     gemini_response = response.candidates[0].text
+
+#     return render_template('index.html', response = gemini_response)
 @app.route('/send_prompt', methods=['POST'])
 def send_prompt():
-
     global gemini_response
     user_prompt = request.form.get('prompt')
-    # print(user_prompt)
 
-    if system_prompt and user_prompt != " ":
-        prompt = f"{system_prompt}\n\n{user_prompt}"
-    else:
-        prompt = user_prompt
+    gemini_thread = threading.Thread(target=gemini_control_loop, args=(user_prompt,))
+    gemini_thread.start()
 
-    response = generative_multimodal_model.generate_content(prompt)
-    gemini_response = response.candidates[0].text
+    return render_template('index.html', response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
 
-    return render_template('index.html', response = gemini_response)
-    # return redirect(url_for('index', response=gemini_response , _anchor='response'))
+@app.route('/stop_gemini', methods=['POST'])
+def stop_gemini_control():
+    global stop_gemini
+    stop_gemini = True
+    return redirect(url_for('index'))
 # endregion Gemini
 
 # region Sensors
@@ -150,18 +229,48 @@ def handle_update_torso():
 # endregion torso
 
 # region arm
+# [arm_1_joint = base joint
+# arm_2_joint= sholder joint
+# , arm_3_joint= rotate whole arm
+# , arm_4_joint= elbow
+# , arm_5_joint= rotate wrist
+# , arm_6_joint= wrist move forward and backward
+# , arm_7_joint = rotate wrsit ]
 ARM_POSITIONS = {
-    'home': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    'reach_low': [0.0, -0.8, 0.0, 1.5, 0.0, -0.8, 0.0],
-    'reach_low_forward': [1.5, -0.8, 0.0, 1.5, 0.0, -0.8, 1.5],
-    'reach_high': [0.0, 0.8, 0.0, -1.5, 0.0, 0.8, 0.0],
-    'reach_high_forward': [1.5, 0.8, 0.0, -1.5, 0.0, 0.8, 1.5],
-    'wave': [0.0, -0.3, 0.0, 1.0, 0.0, -0.7, 0.0],
+    # Grabbing positions
+    'arm_left_point_up': [0.08, 0.07, -3.0, 1.5, -1.57, 0.2, 0.0],
+    'pre_grab': [0.08, 0.8, -1.7, 1.5, 0.0, 0.2, 0.0],
     'reach_forward': [1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.5],
-    'tuck': [0.0, 1.3, 0.0, 2.0, 0.0, 0.5, 0.0]
 }
+#function to move arm_3_joint forward by adding to the current position
+def move_arm_3_joint_forward():
+    global current_arm_position
+    if current_arm_position is None:
+        return
+    current_arm_position[2] += 0.1
+    update_arm(current_arm_position)
 
-current_position = 'home'
+def joint_state_callback(msg):
+    global current_arm_position
+    arm_joints = ['arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 'arm_5_joint', 'arm_6_joint', 'arm_7_joint']
+    new_position = [msg.position[msg.name.index(joint)] for joint in arm_joints]
+
+    with arm_position_lock:
+        current_arm_position = new_position
+# Subscribe to joint states
+rospy.Subscriber('/joint_states', JointState, joint_state_callback)
+
+def get_current_arm_position_name(current_arm_position):
+    with arm_position_lock:
+        if current_arm_position is None:
+            return "Unknown"
+        for name, positions in ARM_POSITIONS.items():
+            if all(abs(a - b) < 0.1 for a, b in zip(current_arm_position, positions)):
+                return name
+    return "Custom"
+
+current_position = get_current_arm_position_name(current_arm_position)
+
 @app.route('/update_arm', methods=['POST'])
 def handle_update_arm():
     global current_position
@@ -171,14 +280,6 @@ def handle_update_arm():
         current_position = position_name
     return redirect(url_for('index'))
 
-# @app.route('/update_arm', methods=['POST'])
-# def handle_update_arm():
-#     joint_positions = []
-#     for i in range(1, 8):
-#         joint_name = f'arm_joint_{i}'
-#         joint_positions.append(float(request.form[joint_name]) / 100.0)
-#     update_arm(joint_positions)
-#     return '', 204
 # endregion arm
 # endregion Robot Control
 

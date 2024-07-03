@@ -2,6 +2,7 @@
 import rospy # type: ignore
 from geometry_msgs.msg import Twist # type: ignore
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # type: ignore
+# from sensor_msgs.msg import JointState # type: ignore
 # endregion Imports
 
 
@@ -47,6 +48,8 @@ def update_torso(position):
 # endregion Torso
 
 # region arm
+
+
 def update_arm(positions):
     traj = JointTrajectory()
     traj.joint_names = ['arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 'arm_5_joint', 'arm_6_joint', 'arm_7_joint']
