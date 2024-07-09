@@ -1,4 +1,4 @@
-/run_flask_app.sh
+/run_flask.sh
 /run_sim.sh
 /run_sim_and_flask.sh
 src/s.py

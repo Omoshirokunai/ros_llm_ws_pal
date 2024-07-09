@@ -13,6 +13,7 @@ from gemini_config import generation_config, safety_settings, system_prompt
 import os
 from robot_control import move_robot, update_torso, update_arm
 import google.api_core.exceptions
+from rich import print as rprint
 
 # endregion Imports
 
@@ -65,8 +66,6 @@ def multiturn_generate_content(system_prompt, message="", image=None, generation
         return api_response
     except google.api_core.exceptions.ResourceExhausted:
         print("ResourceExhausted")
-        # sleep for a while and try again
-        # rospy.sleep(5)
         return None
     except vertexai.generative_models._generative_models.ResponseValidationError:
         print("ResponseValidationError")
@@ -144,7 +143,7 @@ def generate_frames():
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        rospy.sleep(0)
+        rospy.sleep(1)
 
 @app.route('/video_feed')
 def video_feed():
