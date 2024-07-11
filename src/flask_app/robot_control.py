@@ -21,15 +21,15 @@ def move_robot(direction):
     twist = Twist()
     print(f"moving {direction}")
     if direction == 'forward' or direction.startswith('f') or direction == 'move forward':
-        twist.linear.x = 5
+        twist.linear.x = 1.5
     elif direction == 'backward':
-        twist.linear.x = -5
+        twist.linear.x = -0.5
     elif direction == 'left':
-        twist.angular.z = 5
+        twist.angular.z = 1.5
     elif direction == 'right':
-        twist.angular.z = -5
+        twist.angular.z = -1.5
 
-    # rospy.sleep(4)
+    # rospy.sleep(1)
     cmd_vel_publisher.publish(twist)
 # endregion Movement
 

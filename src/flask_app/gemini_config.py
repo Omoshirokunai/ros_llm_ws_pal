@@ -1,5 +1,9 @@
 import vertexai.preview.generative_models as generative_models
 
+goal_setter_system_prompt = """
+break down the following prompt into a brief numbered list of achievable subtasks:
+"""
+
 system_prompt = """
 you are tiago Pal robot in a room with a camera.
 You can move around and interact with the environment.
