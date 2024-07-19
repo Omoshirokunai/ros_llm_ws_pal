@@ -8,13 +8,13 @@ import threading
 import vertexai
 from vertexai.preview.generative_models import GenerativeModel
 from vertexai.preview.generative_models import Image as GeminiImage
-from safe import PROJECT_ID, REGIONEU, CREDENTIALS
+from safe import PROJECT_ID, REGIONNA, CREDENTIALS
 from gemini_config import generation_config, safety_settings, system_prompt, goal_setter_system_prompt
 import os
 from robot_control import move_robot, update_torso, update_arm
 import google.api_core.exceptions
 import time
-
+import ollama
 # endregion Imports
 
 # region Flask and ROS config
@@ -46,13 +46,19 @@ def index():
 # endregion
 
 # region Gemini
-# region Gemini_init
-vertexai.init(project=PROJECT_ID, location=REGIONEU)
-MAX_REQUESTS_PER_MINUTE = 10
+# region Gemini_init_varaibles
+vertexai.init(project=PROJECT_ID, location=REGIONNA)
+MAX_REQUESTS_PER_MINUTE = 4
+WAIT_TIME = 10
+
+request_count = 0
+last_request_time = 0
 requests_times = []
-# endregion gemini_init
+gemini_response_history = []
 
+# endregion Gemini_init_varaibles
 
+# region get_camera_image
 def get_camera_image():
     global latest_frame
     with frame_lock:
@@ -61,28 +67,28 @@ def get_camera_image():
             image_str = buffer.tobytes()
             return image_str
     return None
+# endregion get_camera_image
 
-# TODO: Multi agent control
-
-goal_setter = GenerativeModel("gemini-1.5-pro", system_instruction=[goal_setter_system_prompt])
-control_model = GenerativeModel("gemini-1.5-pro", system_instruction=[system_prompt])
+# region models
+goal_setter = GenerativeModel("gemini-1.0-pro", system_instruction=[goal_setter_system_prompt])
+control_model = GenerativeModel("gemini-1.5-flash", system_instruction=[system_prompt])
 # verifier = GenerativeModel("gemini-1.5-pro", system_instruction=["Verify the goal"])
+# endregion models
 
+# region multiturn_generate_content
 def multiturn_generate_content(model, message=[], generation_config=None, safety_settings=None):
     generative_multimodal_model = model
     try:
         chat = generative_multimodal_model.start_chat()
         # api_response = chat.send_message([image, message], generation_config=generation_config, safety_settings=safety_settings)
         api_response = chat.send_message(message, generation_config=generation_config, safety_settings=safety_settings)
-
         return api_response
-    except google.api_core.exceptions.ResourceExhausted:
-        print("ResourceExhausted")
+    except (google.api_core.exceptions.ResourceExhausted,vertexai.generative_models._generative_models.ResponseValidationError) as e :
+        print(f"Error in multiturn_generate_content: {e}")
         return None
-    except vertexai.generative_models._generative_models.ResponseValidationError:
-        print("ResponseValidationError")
-        return None
+# endregion multiturn_generate_content
 
+# region generate_subgoals
 def generate_subgoals(prompt):
     """
     gemini model takes user input and generates a set of subgoals to cahive the given prompt
@@ -94,35 +100,45 @@ def generate_subgoals(prompt):
 
             # return subgoals
     except google.api_core.exceptions.ResourceExhausted:
-        print("ResourceExhausted")
+        print("ResourceExhausted in generating subgoals")
         # return None
     except vertexai.generative_models._generative_models.ResponseValidationError:
-        print("ResponseValidationError")
+        print("ResponseValidationError in generating subgoals")
     return None
 
+# endregion generate_subgoals
+
+# region gemini_control_loop
 def gemini_control_loop(prompt):
-    global gemini_response, stop_gemini, requests_times
+    # global gemini_response, stop_gemini, requests_times, gemini_response_history
+    global gemini_response, stop_gemini, request_count, last_request_time, gemini_response_history
     stop_gemini = False
+
     while not stop_gemini:
         current_time = time.time()
-        requests_times = [time for time in requests_times if time > current_time - 60]
 
-        if len(requests_times) > MAX_REQUESTS_PER_MINUTE:
-            rospy.sleep(10)
+        if request_count >= MAX_REQUESTS_PER_MINUTE and current_time - last_request_time < WAIT_TIME:
+            wait_time = WAIT_TIME - (current_time - last_request_time)
+            print(f"Rate limit reached. Waiting for {wait_time} seconds")
+            rospy.sleep(wait_time)
+            request_count = 0
             continue
 
         image_str = get_camera_image()
         if image_str is None:
+            print("No image")
             continue
 
         image = GeminiImage.from_bytes(image_str)
+
         response = multiturn_generate_content(control_model, message=[image, prompt], generation_config=generation_config, safety_settings=safety_settings)
 
-        requests_times.append(time.time())
+        # requests_times.append(time.time())
 
         if response and response.candidates:
             with gemini_response_lock:
                 gemini_response = response.candidates[0].text
+                gemini_response_history.append(gemini_response)
 
                 if gemini_response.startswith("move"):
                     direction = gemini_response.split(" ")[1]
@@ -137,8 +153,18 @@ def gemini_control_loop(prompt):
                     stop_gemini = True
                     print("done")
 
-        rospy.sleep(1)
+        request_count += 1
+        last_request_time = time.time()
 
+        if request_count >= MAX_REQUESTS_PER_MINUTE:
+            print("Rate limit reached. Waiting for 60 seconds")
+            rospy.sleep(WAIT_TIME)
+            request_count = 0
+
+        rospy.sleep(2)
+# endregion gemini_control_loop
+
+# region Gemini_flask
 @app.route('/send_prompt', methods=['POST'])
 def send_prompt():
     global gemini_response
@@ -151,13 +177,15 @@ def send_prompt():
         args=(user_prompt,))
     gemini_thread.start()
 
-    return render_template('index.html', response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
-
+    # return render_template('index.html', response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
+    return render_template('index.html', goal_setter_response=subgoals, control_model_response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
 @app.route('/stop_gemini', methods=['POST'])
 def stop_gemini_control():
     global stop_gemini
     stop_gemini = True
+    print("gemini stop")
     return redirect(url_for('index'))
+# endregion Gemini_flask
 # endregion Gemini
 
 # region Sensors

@@ -58,7 +58,14 @@
         </div>
 
         <div class="text-area2">
-            <textarea id="text2" rows="7" cols="10" readonly title="gemini-response" disabled name="gemini-response"> gemini: {{ response }}
+            <h3>Goal Setter Response:</h3>
+            <textarea id="goal-setter-response" rows="5" cols="60" readonly title="goal-setter-response" disabled>
+                {{ goal_setter_response }}
+            </textarea>
+
+            <h3>Control Model Response:</h3>
+            <textarea id="control-model-response" rows="5" cols="60" readonly title="control-model-response" disabled>
+                {{ control_model_response }}
             </textarea>
         </div>
 

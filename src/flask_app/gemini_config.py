@@ -1,7 +1,11 @@
 import vertexai.preview.generative_models as generative_models
 
-goal_setter_system_prompt = """
-break down the following prompt into a brief numbered list of achievable subtasks:
+goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera.
+your job is to only break down the following prompt into a numbered list of achievable subtasks
+subtasks are "scan for", "move to", "grab", "place", "give":
+example: "scan for the object", "move to the object", "grab the object", "place the object", "give the object to human"
+
+prompt:
 """
 
 system_prompt = """
@@ -19,7 +23,7 @@ available commands :
 \"update_arm reach_forward\",
 \"failed to understand prompt\"
 
-repond with only one command at a time until done
+respond with only one command at a time until done
 """
 
 generation_config = {
