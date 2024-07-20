@@ -51,11 +51,13 @@ vertexai.init(project=PROJECT_ID, location=REGIONNA)
 MAX_REQUESTS_PER_MINUTE = 4
 WAIT_TIME = 10
 
-request_count = 0
-last_request_time = 0
-requests_times = []
+# request_count = 0
+# last_request_time = 0
+# requests_times = []
 gemini_response_history = []
-
+llava_response = None
+subgoals = []
+current_subgoal_index = 0
 # endregion Gemini_init_varaibles
 
 # region get_camera_image
@@ -71,8 +73,8 @@ def get_camera_image():
 
 # region models
 goal_setter = GenerativeModel("gemini-1.0-pro", system_instruction=[goal_setter_system_prompt])
-control_model = GenerativeModel("gemini-1.5-flash", system_instruction=[system_prompt])
-# verifier = GenerativeModel("gemini-1.5-pro", system_instruction=["Verify the goal"])
+# control_model = GenerativeModel("gemini-1.5-flash", system_instruction=[system_prompt])
+# verifier =
 # endregion models
 
 # region multiturn_generate_content
@@ -96,9 +98,8 @@ def generate_subgoals(prompt):
     try:
         goal_setter_response = multiturn_generate_content(goal_setter, message=prompt, generation_config=generation_config, safety_settings=safety_settings)
         if goal_setter_response and goal_setter_response.candidates:
-            return goal_setter_response.candidates[0].text
-
-            # return subgoals
+            subgoals = goal_setter_response.candidates[0].text.split('\n')
+            return goal_setter_response.candidates[0]
     except google.api_core.exceptions.ResourceExhausted:
         print("ResourceExhausted in generating subgoals")
         # return None
@@ -107,61 +108,123 @@ def generate_subgoals(prompt):
     return None
 
 # endregion generate_subgoals
+# region llava_control
+def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
+    """ take gemini response (subgoals) and generate executable action(s) using llava
 
-# region gemini_control_loop
-def gemini_control_loop(prompt):
-    # global gemini_response, stop_gemini, requests_times, gemini_response_history
-    global gemini_response, stop_gemini, request_count, last_request_time, gemini_response_history
+    Args:
+        prompt (str): user prompt + current subtask
+        image_str (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    try:
+        response = ollama.generate(
+            model='llava',
+            prompt=prompt,
+            system=llava_system_prompt,
+            images=[image_str],
+            stream=False
+        )
+        return response['response']
+    except Exception as e:
+        print(f"Error in llava_generate: {e}")
+        return None
+
+# endregion llava_control
+
+# region llava_control_loop
+def llava_control_loop(prompt):
+    global llava_response, stop_gemini, request_count, last_request_time, gemini_response_history, current_subgoal_index
     stop_gemini = False
 
-    while not stop_gemini:
-        current_time = time.time()
 
-        if request_count >= MAX_REQUESTS_PER_MINUTE and current_time - last_request_time < WAIT_TIME:
-            wait_time = WAIT_TIME - (current_time - last_request_time)
-            print(f"Rate limit reached. Waiting for {wait_time} seconds")
-            rospy.sleep(wait_time)
-            request_count = 0
-            continue
+
+    while not stop_gemini and current_subgoal_index < len(subgoals):
 
         image_str = get_camera_image()
         if image_str is None:
             print("No image")
             continue
 
-        image = GeminiImage.from_bytes(image_str)
+        current_subgoal = subgoals[current_subgoal_index]
+        response = llava_control(f"the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
 
-        response = multiturn_generate_content(control_model, message=[image, prompt], generation_config=generation_config, safety_settings=safety_settings)
-
-        # requests_times.append(time.time())
-
-        if response and response.candidates:
+        if response:
             with gemini_response_lock:
-                gemini_response = response.candidates[0].text
-                gemini_response_history.append(gemini_response)
+                llava_response = response
+                gemini_response_history.append(f"subgoal: {current_subgoal} \n {response}")
 
-                if gemini_response.startswith("move"):
-                    direction = gemini_response.split(" ")[1]
-
+                if response.startswith("move"):
+                    direction = response.split(" ")[1]
                     move_robot(direction)
-                elif gemini_response.startswith("update_arm"):
-                    position_name = gemini_response.split(" ")[1]
-                    if position_name in ARM_POSITIONS:
-                        update_arm(ARM_POSITIONS[position_name])
 
-                if "done" in gemini_response.lower():
-                    stop_gemini = True
-                    print("done")
+                if "done" in response.lower():
+                    current_subgoal_index += 1
+                    if current_subgoal_index >= len(subgoals):
+                        stop_gemini = True
+                        print("Job done")
+                    else:
+                        print("moving to next subgoal")
+                # rospy.sleep(2)
 
-        request_count += 1
-        last_request_time = time.time()
+# endregion llava_control_loop
 
-        if request_count >= MAX_REQUESTS_PER_MINUTE:
-            print("Rate limit reached. Waiting for 60 seconds")
-            rospy.sleep(WAIT_TIME)
-            request_count = 0
+# region gemini_control_loop
+# def gemini_control_loop(prompt):
+#     # global gemini_response, stop_gemini, requests_times, gemini_response_history
+#     global gemini_response, stop_gemini, request_count, last_request_time, gemini_response_history
+#     stop_gemini = False
 
-        rospy.sleep(2)
+#     while not stop_gemini:
+#         current_time = time.time()
+
+#         if request_count >= MAX_REQUESTS_PER_MINUTE and current_time - last_request_time < WAIT_TIME:
+#             wait_time = WAIT_TIME - (current_time - last_request_time)
+#             print(f"Rate limit reached. Waiting for {wait_time} seconds")
+#             rospy.sleep(wait_time)
+#             request_count = 0
+#             continue
+
+#         image_str = get_camera_image()
+#         if image_str is None:
+#             print("No image")
+#             continue
+
+#         image = GeminiImage.from_bytes(image_str)
+
+#         response = multiturn_generate_content(control_model, message=[image, prompt], generation_config=generation_config, safety_settings=safety_settings)
+
+#         # requests_times.append(time.time())
+
+#         if response and response.candidates:
+#             with gemini_response_lock:
+#                 gemini_response = response.candidates[0].text
+#                 gemini_response_history.append(gemini_response)
+
+#                 if gemini_response.startswith("move"):
+#                     direction = gemini_response.split(" ")[1]
+
+#                     move_robot(direction)
+#                 elif gemini_response.startswith("update_arm"):
+#                     position_name = gemini_response.split(" ")[1]
+#                     if position_name in ARM_POSITIONS:
+#                         update_arm(ARM_POSITIONS[position_name])
+
+#                 if "done" in gemini_response.lower():
+#                     stop_gemini = True
+#                     print("done")
+
+#         request_count += 1
+#         last_request_time = time.time()
+
+#         if request_count >= MAX_REQUESTS_PER_MINUTE:
+#             print("Rate limit reached. Waiting for 60 seconds")
+#             rospy.sleep(WAIT_TIME)
+#             request_count = 0
+
+#         rospy.sleep(2)
 # endregion gemini_control_loop
 
 # region Gemini_flask
@@ -170,14 +233,19 @@ def send_prompt():
     global gemini_response
     user_prompt = request.form.get('prompt')
 
-    subgoals = generate_subgoals(user_prompt)
-    print(subgoals)
-    gemini_thread = threading.Thread(
-        target=gemini_control_loop,
-        args=(user_prompt,))
-    gemini_thread.start()
+    gemini_response_history = [] #clearing history
+    gemini_response_history.append(f"user: {user_prompt}")
 
-    # return render_template('index.html', response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
+    subgoals_response = generate_subgoals(user_prompt)
+    if subgoals_response:
+        gemini_response_history.append(f"Gemini (subgoals): {subgoals_response}")
+
+    current_subgoal_index = 0 #reset index
+
+    llava_thread = threading.Thread(target=llava_control_loop, args=(user_prompt))
+    llava_thread.start()
+
+
     return render_template('index.html', goal_setter_response=subgoals, control_model_response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
 @app.route('/stop_gemini', methods=['POST'])
 def stop_gemini_control():
