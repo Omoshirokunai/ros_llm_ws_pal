@@ -2,8 +2,14 @@ import vertexai.preview.generative_models as generative_models
 
 goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera.
 your job is to only break down the following prompt into a numbered list of achievable subtasks
-subtasks are "scan for", "move to", "grab", "place", "give":
-example: "scan for the object", "move to the object", "grab the object", "place the object", "give the object to human"
+limit responses to subtasks like "scan for", "move to", "grab", "place", "give".
+
+example prompt:get bottle on your left
+example response:
+1 "scan for the bottle on left"
+2 "move close the bottle",
+3 "grab the bottle",
+
 
 prompt:
 """

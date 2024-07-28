@@ -58,14 +58,11 @@
         </div>
 
         <div class="text-area2">
-            <h3>Goal Setter Response:</h3>
+            <h3>AI Response:</h3>
             <textarea id="goal-setter-response" rows="5" cols="60" readonly title="goal-setter-response" disabled>
-                {{ goal_setter_response }}
-            </textarea>
-
-            <h3>Control Model Response:</h3>
-            <textarea id="control-model-response" rows="5" cols="60" readonly title="control-model-response" disabled>
-                {{ control_model_response }}
+                {% for response in responses %}
+                    {{ response }}
+                {% endfor %}
             </textarea>
         </div>
 
