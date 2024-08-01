@@ -13,8 +13,8 @@ from gemini_config import generation_config, safety_settings, system_prompt, goa
 import os
 from robot_control import move_robot, update_torso, update_arm
 import google.api_core.exceptions
-import time
 import ollama
+import asyncio
 # endregion Imports
 
 # region Flask and ROS config
@@ -46,6 +46,7 @@ def index():
 # endregion
 
 # region Gemini
+
 # region Gemini_init_varaibles
 vertexai.init(project=PROJECT_ID, location=REGIONNA)
 MAX_REQUESTS_PER_MINUTE = 4
@@ -70,7 +71,7 @@ def get_camera_image():
 
 # region models
 goal_setter = GenerativeModel("gemini-1.0-pro", system_instruction=[goal_setter_system_prompt])
-# control_model = GenerativeModel("gemini-1.5-flash", system_instruction=[system_prompt])
+control_model = GenerativeModel("gemini-1.5-flash", system_instruction=[system_prompt])
 # verifier =
 # endregion models
 
@@ -88,7 +89,7 @@ def multiturn_generate_content(model, message=[], generation_config=None, safety
 # endregion multiturn_generate_content
 
 # region generate_subgoals
-def generate_subgoals(prompt):
+def generate_subgoals(prompt:str) -> str:
     """
     gemini model takes user input and generates a set of subgoals to cahive the given prompt
     """
@@ -105,30 +106,26 @@ def generate_subgoals(prompt):
     return None
 
 # endregion generate_subgoals
+
 # region llava_control
 def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
     """ take gemini response (subgoals) and generate executable action(s) using llava
-
-    Args:
-        prompt (str): user prompt + current subtask
-        image_str (_type_): _description_
-
-    Returns:
-        _type_: _description_
     """
+    print("running llava_control")
+
     try:
         response = ollama.generate(
-            model='llava',
-            prompt=prompt,
-            system=llava_system_prompt,
+            model='llava:13b',
+            prompt= f"{llava_system_prompt} {prompt}",
+            # system=llava_system_prompt,
             images=[image_str],
             stream=False
         )
-        print(response['response']) #!! remove this
         return response['response']
     except Exception as e:
         print(f"Error in llava_generate: {e}")
         return None
+
 
 # endregion llava_control
 
@@ -149,33 +146,43 @@ def llava_control_loop(prompt, subgoals):
             continue
 
         current_subgoal = subgoals[current_subgoal_index]
-        response = llava_control(f"the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
-        print(response)
+        llava_control_response = llava_control(f"the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
 
-        if response:
+
+        if llava_control_response:
             with gemini_response_lock:
-                llava_response = response
-                gemini_response_history.append(f"subgoal: {current_subgoal} \n {response}")
+                llava_response = llava_control_response.strip()
+                #remove space from the start of the response
+                llava_response = llava_response.lstrip()
+                print(f"llava_response: {llava_response}")
+                gemini_response_history.append(f"subgoal: {current_subgoal} \n {llava_response}")
 
-                if response.startswith("move"):
-                    direction = response.split(" ")[1]
+                if llava_response.startswith("move"):
+                    print("moving robot")
+                    direction = llava_response.split(" ")[1]
                     move_robot(direction)
 
-                if "done" in response.lower():
+                if "done" in llava_response.lower():
                     current_subgoal_index += 1
                     if current_subgoal_index >= len(subgoals):
                         stop_gemini = True
                         print("Job done")
                     else:
                         print("moving to next subgoal")
-                # rospy.sleep(2)
+                else:
+                    # print what llava response startsd with
+                    print(f" first string is {llava_response.split(' ')[0]}")
+                    #tell the VLm that the response it gave is not
+
+        rospy.sleep(1)
+
 
 # endregion llava_control_loop
 
 
 # region Gemini_flask
 @app.route('/send_prompt', methods=['POST'])
-def send_prompt():
+async def send_prompt():
     global gemini_response, subgoals, current_subgoal_index
     user_prompt = request.form.get('prompt')
 
@@ -188,8 +195,10 @@ def send_prompt():
 
     current_subgoal_index = 0 # reset index
 
-    llava_thread = threading.Thread(target=llava_control_loop, args=(user_prompt, subgoals))
-    llava_thread.start()
+    # asyncio.create_task(llava_control_loop(user_prompt, subgoals))
+    await llava_control_loop(user_prompt, subgoals)
+    # llava_thread = threading.Thread(target=llava_control_loop, args=(user_prompt, subgoals))
+    # llava_thread.start()
 
     return render_template('index.html', goal_setter_response=subgoals, control_model_response=gemini_response, arm_positions=ARM_POSITIONS.keys(), current_position=get_current_arm_position_name(current_arm_position))
 
@@ -341,7 +350,6 @@ def handle_update_arm():
 
 # endregion arm
 # endregion Robot Control
-
 
 # region main
 if __name__ == '__main__':

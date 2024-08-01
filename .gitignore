@@ -13,3 +13,4 @@ run_flask.sh
 src/flask_app/ros-thesis-b80bfc37ec75.json
 src/flask_app/.ignore
 brain.excalidraw.json
+run_sim_headless.sh

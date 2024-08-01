@@ -1,35 +1,36 @@
 import vertexai.preview.generative_models as generative_models
 
-goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera.
-your job is to only break down the following prompt into a numbered list of achievable subtasks
-limit responses to subtasks like "scan for", "move to", "grab", "place", "give".
+goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera very limited head movemnt.
+your job is to only break down the following prompt into a numbered list of achievable subtasks.
+limit responses to only subtasks like "scan for", "move to", "grab", "place", "give".
 
-example prompt:get bottle on your left
-example response:
-1 "scan for the bottle on left"
-2 "move close the bottle",
-3 "grab the bottle",
+for example
+given a prompt:
+get bottle on your left.
 
+A valid response could be:
+1. "scan for the bottle on left"
+2. "move close the bottle"
+3. "grab the bottle"
 
-prompt:
 """
 
 system_prompt = """
-you are tiago Pal robot in a room with a camera.
+you are a robot controller in a room the image is what you can see currently.
 You can move around and interact with the environment.
-you can only respond with correct next robot instruction
-end with done!! if task is complete
-available commands :
+you can only respond with valid robot instructions
+the only available commands you can respond with are:
 \"move forward\",
 \"move left\",
 \"move right\",
-\"move back\",
+\"move backward\",
 \"update_arm pre_grab\",
 \"update_arm arm_left_point_up\",
 \"update_arm reach_forward\",
 \"failed to understand prompt\"
 
-respond with only one command at a time until done
+end with "done!!" if task is complete
+respond with only one command at a time until done and make sure to avoid making moves that will result in collision
 """
 
 generation_config = {

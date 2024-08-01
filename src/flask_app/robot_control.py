@@ -2,6 +2,7 @@
 import rospy # type: ignore
 from geometry_msgs.msg import Twist # type: ignore
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # type: ignore
+# import asyncio
 # from sensor_msgs.msg import JointState # type: ignore
 # endregion Imports
 
@@ -21,16 +22,17 @@ def move_robot(direction):
     twist = Twist()
     print(f"moving {direction}")
     if direction == 'forward' or direction.startswith('f') or direction == 'move forward':
-        twist.linear.x = 1.5
+        twist.linear.x = 2.5
     elif direction == 'backward':
-        twist.linear.x = -0.5
+        twist.linear.x = -2.0
     elif direction == 'left':
-        twist.angular.z = 1.5
+        twist.angular.z = 2.0
     elif direction == 'right':
-        twist.angular.z = -1.5
+        twist.angular.z = -2.0
 
     # rospy.sleep(1)
     cmd_vel_publisher.publish(twist)
+    rospy.sleep(1)
 # endregion Movement
 
 # region Torso
