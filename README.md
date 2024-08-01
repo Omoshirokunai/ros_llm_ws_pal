@@ -1,6 +1,6 @@
 # Gemini, LLMs for Robots *(Tiago Pal)*
 
-<iframe width="990" height="500" src="https://www.youtube.com/embed/oC8lpK0tnGA" title="How to Build a robot brain (probably)" frameborder="0" allowfullscreen></iframe>
+[![YouTube Video](https://img.youtube.com/vi/oC8lpK0tnGA/0.jpg)](https://www.youtube.com/watch?v=oC8lpK0tnGA "Gemini, LLMs for Robots")
 
 Using gemini AI to control a robot in simulation
 
