@@ -1,6 +1,22 @@
-# Gemini, LLMs for Robots *(Tiago Pal)*
+# Gemini + LLMs for Robots *(Tiago Pal)*
 
 [![YouTube Video](https://img.youtube.com/vi/oC8lpK0tnGA/0.jpg)](https://www.youtube.com/watch?v=oC8lpK0tnGA "Gemini, LLMs for Robots")
+
+## Table of Contents
+
+- [Gemini + LLMs for Robots *(Tiago Pal)*](#gemini--llms-for-robots-tiago-pal)
+  - [Table of Contents](#table-of-contents)
+  - [Problem Statement](#problem-statement)
+  - [Requirements](#requirements)
+  - [Architecture](#architecture)
+  - [Installation](#installation)
+    - [ROS](#ros)
+    - [Tiago and Simulation](#tiago-and-simulation)
+    - [Gemini](#gemini)
+    - [Ollama and LLaVA](#ollama-and-llava)
+  - [Usage](#usage)
+    - [Interacting with the Robot](#interacting-with-the-robot)
+      - [Example Commands](#example-commands)
 
 ## Problem Statement
 
@@ -116,6 +132,7 @@ The robot will execute the commands, providing feedback on each action.
 #### Example Commands
 
 - "Move forward"
+
 - "Pick up the object"
 - "Extend arm"
 - "Rotate head left"
