@@ -1,0 +1,4 @@
+flask
+google.api_core.exceptions
+ollama
+vertexai
