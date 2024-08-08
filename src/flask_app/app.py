@@ -1,4 +1,5 @@
 # region Imports
+import base64
 import string
 from flask import Flask, jsonify, request, Response, render_template, redirect, url_for
 import rospy # type: ignore #* ROS Python client library
@@ -114,17 +115,30 @@ def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
     """ take gemini response (subgoals) and generate executable action(s) using llava
     """
     print("running llava_control")
+    image_base64 = base64.b64encode(image_str).decode('utf-8')
 
+    # Combine the prompt and the image into a single multimodal message
+    message = [
+        {"role": "system", "content": llava_system_prompt},
+        {"role": "user", "content": image_base64, "is_image": True},
+        {"role": "user", "content": prompt},
+    ]
     try:
-        response = ollama.generate(
+        response = ollama.chat(
             model='llava-llama3',
-            prompt= prompt,
-            system=llava_system_prompt,
-            images=[image_str],
+            messages=message,
             stream=False,
-            options={'temperature': 0.4, 'top_p': 0.98, 'max_output_tokens': 4,}
+            options={'temperature': 0.2, 'top_p': 0.98,'num_predict':4,'max_tokens': 20,
+                'safety_settings': {
+                    'use_safety_model': True,
+                    'safety_model': 'openai/safetensors',
+                    'safety_threshold': 0.5,
+                    'safety_top_p': 0.95,
+                    'safety_temperature': 0.7
+                }}
         )
-        return response['response']
+        print(f"llava response: {response['message']}")
+        return response['message']['content']
     except Exception as e:
         print(f"Error in llava_generate: {e}")
         return None
