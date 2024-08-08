@@ -122,7 +122,7 @@ def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
             system=llava_system_prompt,
             images=[image_str],
             stream=False,
-            options={'max_tokens': 4, 'temperature': 0.4}
+            options={'temperature': 0.4, 'top_p': 0.98, 'max_output_tokens': 4,}
         )
         return response['response']
     except Exception as e:
