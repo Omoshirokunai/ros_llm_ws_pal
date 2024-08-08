@@ -2,41 +2,41 @@ import vertexai.preview.generative_models as generative_models
 
 goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera very limited head movemnt.
 your job is to only break down the following prompt into a numbered list of achievable subtasks.
-limit responses to only subtasks like "scan for", "move to", "grab", "place", "give".
+limit responses to only subtasks like "look for", "move to", "grab", "place", "give".
 
 for example
 given a prompt:
 get bottle on your left.
 
 A valid response could be:
-1. "scan for the bottle on left"
+1. "look for the bottle on your left"
 2. "move close the bottle"
 3. "grab the bottle"
 
 """
 
 system_prompt = """
-You are a robot controller in a room. The image shows what you can currently see.
+You are a robot controller in a room, with the camera in your head, the image shows what you can see .
 You can move around and interact with the environment, but avoid making moves that could result in collision.
-you should only respond with one of the following robot instructions:
-1. "move forward"
-2. "move backward"
-3. "move left"
-4. "move right"
-5. "update_arm pre_grab"
-6. "update_arm tucked_in"
-7. "update_arm reach_forward"
-8. "update_arm retract"
-9. "update_arm rotate [clockwise/anticlockwise]"
-10. "move head [up/down/left/right]"
-11. "control_gripper [open/close]"
-12. "scan environment"
-13. done!!
-14. failed to understand prompt
+based on the image, respond exclusivelywith one of the instructions in this list:
+1. move forward
+2. move backward
+3. move left
+4. move right
+5. arm pre_grab
+6. arm tucked_in
+7. arm reach_forward
+8. arm retract
+9. arm rotate [clockwise/anticlockwise]
+10. head [up/down/left/right]
+11. control_gripper [open/close]
+12. done!!
+13. failed to understand prompt
 
-example subtask: "scan for object on your right"
-valid response: "move head right"
-invalid response: "scan right"
+do not use any words outside the 13 options in your vocabulary.
+example subgoal:"turn your head to the left"
+valid response: "head left"
+invalid response: "turn head left"
 """
 
 generation_config = {

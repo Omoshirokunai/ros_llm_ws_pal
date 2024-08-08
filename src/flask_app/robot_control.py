@@ -16,7 +16,8 @@ cmd_vel_publisher = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist, qu
 torso_pub = rospy.Publisher('/torso_controller/command', JointTrajectory, queue_size=10)
 arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10)
 head_pub = rospy.Publisher('/head_controller/command', JointTrajectory, queue_size=10)
-gripper_pub = rospy.Publisher('/gripper_controller/command', Float64, queue_size=10)
+gripper_pub = rospy.Publisher('/gripper_controller/command',JointTrajectory, queue_size=10)
+VALID_DIRECTIONS = ['forward', 'backward', 'left', 'right']
 # endregion Initialize ROS node and publishers
 
 # region Movement
@@ -25,27 +26,31 @@ def move_robot(direction:str)->str:
     Move the robot in the specified direction.
     """
     twist = Twist()
-    assert direction in ['forward', 'backward', 'left', 'right'], "Invalid direction"
+    assert direction in VALID_DIRECTIONS, "Invalid direction"
     print(f"moving {direction}")
     if direction == 'forward':
-        twist.linear.x = 2.5
+        twist.linear.x = 0.5
+        twist.angular.z = 0
+
     elif direction == 'backward':
         twist.linear.x = -2.0
+        twist.angular.z = 0
+
     elif direction == 'left':
-        twist.angular.z = 2.0
+        twist.angular.z = 0.3
+        twist.linear.x = 0.5
     elif direction == 'right':
-        twist.angular.z = -2.0
+        twist.angular.z = -0.5
+        twist.linear.x = 0.5
 
     # rospy.sleep(1)
     cmd_vel_publisher.publish(twist)
-    rospy.sleep(1)
+    rospy.sleep(2.0)
     # return "Movement executed"
         # Add feedback
-    odom = rospy.wait_for_message('/odom', Odometry, timeout=3)
-    if odom:
-        return f"Moved {direction}. New position: x={odom.pose.pose.position.x:.2f}, y={odom.pose.pose.position.y:.2f}"
-    else:
-        return f"Moved {direction}, but couldn't get position feedback."
+
+    return f"Moved {direction}"
+
 # endregion Movement
 
 # region Torso
@@ -148,17 +153,30 @@ def move_head(direction: str)->str:
 
     point = JointTrajectoryPoint()
     point.positions = list(current_head_position.actual.positions)
-
-    if direction == 'up':
-        point.positions[1] = min(point.positions[1] + 0.1, 0.5)
-    elif direction == 'down':
-        point.positions[1] = max(point.positions[1] - 0.1, -0.5)
-    elif direction == 'left':
-        point.positions[0] = min(point.positions[0] + 0.1, 1.0)
-    elif direction == 'right':
-        point.positions[0] = max(point.positions[0] - 0.1, -1.0)
+    # if head at madxximum position, return head is at maximum tilt try move body instead
+    if point.positions[1] == 0.5 and direction == 'up':
+        return "Head is at maximum tilt. Try moving the body instead."
+    elif point.positions[1] == -0.5 and direction == 'down':
+        return "Head is at maximum tilt. Try moving the body instead."
+    elif point.positions[0] == 1.0 and direction == 'left':
+        # move body instead
+        move_robot('left')
+        return "Head is at maximum pan. Moved body instead."
+    elif point.positions[0] == -1.0 and direction == 'right':
+        # move body instead
+        move_robot('right')
+        return "Head is at maximum pan. Moved body instead."
     else:
-        return "Invalid direction"
+        if direction == 'up':
+            point.positions[1] = min(point.positions[1] + 0.1, 0.5)
+        elif direction == 'down':
+            point.positions[1] = max(point.positions[1] - 0.1, -0.5)
+        elif direction == 'left':
+            point.positions[0] = min(point.positions[0] + 0.1, 1.0)
+        elif direction == 'right':
+            point.positions[0] = max(point.positions[0] - 0.1, -1.0)
+        else:
+            return "Invalid direction"
 
     point.time_from_start = rospy.Duration(1.0)
     traj.points.append(point)
@@ -181,7 +199,7 @@ def control_gripper(open_close: str)->str:
     else:
         return "Invalid gripper command"
 
-    gripper_pub.publish(Float64(width))
+    gripper_pub.publish(width)
     rospy.sleep(1)
     return f"Gripper {open_close}ed to width: {width:.2f}m"
 

@@ -1,4 +1,5 @@
 # region Imports
+import string
 from flask import Flask, jsonify, request, Response, render_template, redirect, url_for
 import rospy # type: ignore #* ROS Python client library
 from sensor_msgs.msg import Image, LaserScan, JointState# type: ignore #* camera and lidar data
@@ -11,7 +12,7 @@ from vertexai.preview.generative_models import Image as GeminiImage
 from safe import PROJECT_ID, REGIONNA, CREDENTIALS
 from gemini_config import generation_config, safety_settings, system_prompt, goal_setter_system_prompt
 import os
-from robot_control import control_gripper, execute_with_feedback, extend_arm, move_head, move_robot, retract_arm, rotate_arm, set_pre_pick, set_tucked_in, update_torso, update_arm
+from robot_control import VALID_DIRECTIONS, control_gripper, execute_with_feedback, extend_arm, move_head, move_robot, retract_arm, rotate_arm, set_pre_pick, set_tucked_in, update_torso, update_arm
 import google.api_core.exceptions
 import ollama
 import asyncio
@@ -33,6 +34,7 @@ frame_lock:threading.Lock = threading.Lock() # protect process from being access
 lidar_lock:threading.Lock = threading.Lock()
 arm_position_lock:threading.Lock = threading.Lock()
 gemini_response_lock:threading.Lock = threading.Lock()
+VALID_INSTRUCTIONS = ["move forward", "move backward", "move left", "move right", "turn left", "turn right", "stop", "arm pre_grab", "arm tucked_in", "arm reach_forward", "arm retract", "arm rotate", "head left", "head right", "head up", "head down", "control_gripper open", "control_gripper close"]
 
 
 # endregion
@@ -115,11 +117,12 @@ def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
 
     try:
         response = ollama.generate(
-            model='llava:13b',
+            model='llava-llama3',
             prompt= prompt,
             system=llava_system_prompt,
             images=[image_str],
-            stream=False
+            stream=False,
+            options={'max_tokens': 4, 'temperature': 0.4}
         )
         return response['response']
     except Exception as e:
@@ -148,33 +151,51 @@ def llava_control_loop(prompt, subgoals):
         current_subgoal = subgoals[current_subgoal_index]
         llava_control_response = llava_control(f"the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
 
-
         if llava_control_response:
             with gemini_response_lock:
                 llava_response = llava_control_response.strip()
+                # remove all punctuation marks
+                llava_response = llava_response.translate(str.maketrans('', '', string.punctuation))
+
                 #remove space from the start of the response
-                llava_response = llava_response.lstrip()
+                llava_response = llava_response.lstrip().lower()
+                # remove number at start of response if ther is one
+                llava_response = llava_response.split(" ", 1)[1]
                 print(f"llava_response: {llava_response}")
+
+
+                # if lava response is longer than two words and isnt failed to understand prompt reprompt the llm
+                if len(llava_response.split(' ')) > 4 and "failed to understand prompt" not in llava_response:
+                    print("invalid llava_response: ", llava_response)
+                    llava_control_response = llava_control(f" the response '{llava_response}' is not in the list of 13 valid robot instructions, try again the goal is: {prompt} and your current task is to {current_subgoal} the image is provided",image_str )
+                else:
+                    print(f"llava_response: {llava_response}")
                 gemini_response_history.append(f"subgoal: {current_subgoal} \n {llava_response}")
 
                 feedback = ""
                 if llava_response.startswith("move"):
                     direction = llava_response.split(" ")[1]
-                    feedback = execute_with_feedback(move_robot, direction)
-                elif llava_response.startswith("update_arm pre_grab"):
+                    if direction in VALID_DIRECTIONS:
+                        feedback = execute_with_feedback(move_robot, direction)
+                    else:
+                        feedback = "Invalid direction. Please try again."
+                        llava_control_response = llava_control(f" '{llava_response}' is not a valid robot instruction listed, try again the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
+                elif llava_response in VALID_DIRECTIONS:
+                    feedback = execute_with_feedback(move_robot, llava_response)
+                elif llava_response.startswith("arm pre_grab"):
                     feedback = execute_with_feedback(set_pre_pick)
-                elif llava_response.startswith("update_arm tucked_in"):
+                elif llava_response.startswith("arm tucked_in"):
                     feedback = execute_with_feedback(set_tucked_in)
-                elif llava_response.startswith("update_arm reach_forward"):
+                elif llava_response.startswith("arm reach_forward"):
                     distance = float(llava_response.split(" ")[-1])
                     feedback = execute_with_feedback(extend_arm, distance)
-                elif llava_response.startswith("update_arm retract"):
+                elif llava_response.startswith("arm retract"):
                     distance = float(llava_response.split(" ")[-1])
                     feedback = execute_with_feedback(retract_arm, distance)
-                elif llava_response.startswith("update_arm rotate"):
+                elif llava_response.startswith("arm rotate"):
                     direction = llava_response.split(" ")[-1]
                     feedback = execute_with_feedback(rotate_arm, direction)
-                elif llava_response.startswith("move head"):
+                elif llava_response.startswith("head"):
                     direction = llava_response.split(" ")[-1]
                     feedback = execute_with_feedback(move_head, direction)
                 elif llava_response.startswith("control_gripper"):
