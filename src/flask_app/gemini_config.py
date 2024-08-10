@@ -1,17 +1,21 @@
 import vertexai.preview.generative_models as generative_models
 
-goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera very limited head movemnt.
+goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera limited head movemnt.
 your job is to only break down the following prompt into a numbered list of achievable subtasks.
-limit responses to only subtasks like "look for", "move to", "grab", "place", "give".
+responses must start with "look for [object]", "move to", "grab", "place", "give", "retrun to".
+make sure to specify the objective of each subgoal:
+example:
+taks: get the bottle on your left.
 
-for example
-given a prompt:
-get bottle on your left.
+response
+1. look for bottle on left
+2. move close to the bottle
+3. grab the bottle
 
-A valid response could be:
-1. "look for the bottle on your left"
-2. "move close the bottle"
-3. "grab the bottle"
+bad response:
+1. move to the left
+2. locate the bottle
+3. pick up the bottle
 
 """
 

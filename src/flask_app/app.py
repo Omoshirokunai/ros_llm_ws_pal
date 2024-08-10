@@ -74,7 +74,7 @@ def get_camera_image():
 
 # region models
 goal_setter = GenerativeModel("gemini-1.0-pro", system_instruction=[goal_setter_system_prompt])
-control_model = GenerativeModel("gemini-1.5-flash", system_instruction=[system_prompt])
+# control_model = GenerativeModel("gemini-1.5-flash", system_instruction=[system_prompt])
 # verifier =
 # endregion models
 
@@ -151,6 +151,7 @@ def llava_control(prompt, image_str, llava_system_prompt=system_prompt ):
 def llava_control_loop(prompt, subgoals):
     global llava_response, stop_gemini, gemini_response_history, current_subgoal_index
     stop_gemini = False
+    executed_actions=[]
 
     while not stop_gemini and current_subgoal_index < len(subgoals):
         image_str = get_camera_image()
@@ -159,8 +160,18 @@ def llava_control_loop(prompt, subgoals):
             continue
 
         current_subgoal = subgoals[current_subgoal_index]
-        llava_control_response = llava_control(f"the goal is: {prompt}. \nyou can do this by {subgoals}\nyour current task is to {current_subgoal} reply with 'done!!' to move to the next text; use the image as a guide", image_str)
 
+        actions_summary = "\n".join(executed_actions)
+
+        llava_prompt = f"""the goal is: {prompt}.
+        \nyou can do this by {subgoals}
+        \nyour current task is to {current_subgoal}
+        Actions executed: {actions_summary if actions_summary != "" else "None"}
+
+        reply with 'done!!' to move to the next text; use the image as a guide"""
+        # llava_control_response = llava_control(f"the goal is: {prompt}.\nyou can do this by {subgoals}\nyour current task is to {current_subgoal} reply with 'done!!' to move to the next text; use the image as a guide", image_str)
+
+        llava_control_response = llava_control(llava_prompt, image_str)
         if not llava_control_response:
             continue
 
@@ -185,6 +196,12 @@ def process_llava_response(response, current_subgoal, image_str):
     if not any(llava_response.startswith(instruction) for instruction in VALID_INSTRUCTIONS):
         llava_control(f"The response '{llava_response}' is not valid, try again to: {current_subgoal}", image_str)
         return "Invalid command. Please try again."
+
+    if llava_response == "failed to understand":
+        return "LLaVA failed to understand. Retrying..."
+
+    if llava_response == "done!!":
+        return "Subgoal completed."
 
     parts = llava_response.split()
     command = parts[0]
