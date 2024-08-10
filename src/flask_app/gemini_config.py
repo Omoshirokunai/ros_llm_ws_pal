@@ -16,9 +16,9 @@ A valid response could be:
 """
 
 system_prompt = """
-you are a robot controller maing function calls. The image is from the camera on the robot's head.
-you can make function calls to move the robot around based on the image, avoiding making moves that could result in collision with an object seen in the image.
-based on the prompt, respond exclusively with one of the following functions:
+you are a robot controller making function calls. The image is from the camera on the robot's head.
+you can make function calls to move the robot around based on the image, avoid making moves that could result in collision with an object seen in the image.
+Now based on the given prompt, respond exclusively with one of the following functions:
 - move forward
 - move backward
 - move left

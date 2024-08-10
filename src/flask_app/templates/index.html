@@ -13,7 +13,18 @@
         }
 
         // Update the camera feed every 100 milliseconds
-        setInterval(updateCameraFeed, 1000);
+        setInterval(updateCameraFeed, 100);
+
+        // Function to update the AI response area
+        function updateResponseArea() {
+            fetch('/get_responses')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('ai-responses').value = data.responses.join('\n');
+                });
+        }
+        setInterval(updateResponseArea, 1000);  // Update every second
+
 
         // Function to handle form submission
         function handleFormSubmit(event) {
@@ -48,22 +59,19 @@
         <div class="intro2">
             <h2></h2>
         </div>
-
         <div class="camera">
-            <iframe src="{{ url_for('video_feed') }}" width="640" height="480" frameborder="0" title="live-feed-iframe"></iframe>
+            <img src="{{ url_for('video_feed') }}" alt="Live Camera Feed">
         </div>
+
+
 
         <div class="png-image">
             <img src="{{ url_for('static', filename='TIAGo-mobile.png') }}" alt="PNG Image" width="100" height="200">
         </div>
 
         <div class="text-area2">
-            <h3>AI Response:</h3>
-            <textarea id="goal-setter-response" rows="5" cols="60" readonly title="goal-setter-response" disabled>
-                {% for response in responses %}
-                    {{ response }}
-                {% endfor %}
-            </textarea>
+            <h3>AI Responses:</h3>
+            <textarea id="ai-responses" rows="10" cols="60" readonly disabled></textarea>
         </div>
 
         <div class="controls">

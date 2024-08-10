@@ -29,25 +29,31 @@ def move_robot(direction:str)->str:
     assert direction in VALID_DIRECTIONS, "Invalid direction"
     print(f"moving {direction}")
     if direction == 'forward':
-        twist.linear.x = 0.5
+        twist.linear.x = 0.8
         twist.angular.z = 0
 
     elif direction == 'backward':
-        twist.linear.x = -2.0
+        twist.linear.x = -0.9
         twist.angular.z = 0
 
     elif direction == 'left':
-        twist.angular.z = 0.3
-        twist.linear.x = 0.5
+        twist.angular.z = 0.5
+        # twist.linear.x = 0.8
     elif direction == 'right':
         twist.angular.z = -0.5
-        twist.linear.x = 0.5
+        # twist.linear.x = 0.5
 
     # rospy.sleep(1)
+    # cmd_vel_publisher.publish(twist)
+    # rospy.sleep(3.0)
+    start_time = rospy.Time.now()
+    while (rospy.Time.now() - start_time).to_sec() < 0.9:
+        cmd_vel_publisher.publish(twist)
+        rospy.sleep(0.1)
+
+    twist.linear.x = 0
+    twist.angular.z = 0
     cmd_vel_publisher.publish(twist)
-    rospy.sleep(2.0)
-    # return "Movement executed"
-        # Add feedback
 
     return f"Moved {direction}"
 
@@ -121,14 +127,16 @@ def retract_arm(distance=0.1):
     return update_arm(new_positions)
 
 def rotate_arm(direction):
-    global current_arm_position
+    current_arm_position = rospy.wait_for_message('/arm_controller/state', JointTrajectoryControllerState, timeout=3)
     if current_arm_position is None:
         return "Current arm position unknown"
-
+    new_positions = list(current_arm_position.actual.positions)
     if direction == 'clockwise':
-        current_arm_position[2] -= 0.1
+        # current_arm_position[2] -= 0.1
+        new_positions[2] -= 0.1
     elif direction == 'anticlockwise':
-        current_arm_position[2] += 0.1
+        # current_arm_position[2] += 0.1
+        new_positions[2] += 0.1
 
     return update_arm(current_arm_position)
 
@@ -136,13 +144,13 @@ def rotate_arm(direction):
 
 # region Head Movement
 def move_head(direction: str)->str:
-    """moves robot head in the specified direction
+    """ Move the robot's head in the specified direction.
 
     Args:
-        direction (_type_):
+        direction (str): The direction to move the head ('up', 'down', 'left', 'right').
 
     Returns:
-        _type_: _description_
+        str: A message indicating the result of the head movement.
     """
     traj = JointTrajectory()
     traj.joint_names = ['head_1_joint', 'head_2_joint']
@@ -182,7 +190,7 @@ def move_head(direction: str)->str:
     traj.points.append(point)
 
     head_pub.publish(traj)
-    rospy.sleep(1)
+    rospy.sleep(2)
     return f"Head moved {direction}. New position: pan={point.positions[0]:.2f}, tilt={point.positions[1]:.2f}"
 # endregion Head Movement
 
@@ -200,7 +208,7 @@ def control_gripper(open_close: str)->str:
         return "Invalid gripper command"
 
     gripper_pub.publish(width)
-    rospy.sleep(1)
+    rospy.sleep(2)
     return f"Gripper {open_close}ed to width: {width:.2f}m"
 
 # endregion Gripper

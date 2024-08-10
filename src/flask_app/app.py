@@ -16,7 +16,7 @@ import os
 from robot_control import VALID_DIRECTIONS, control_gripper, execute_with_feedback, extend_arm, move_head, move_robot, retract_arm, rotate_arm, set_pre_pick, set_tucked_in, update_torso, update_arm
 import google.api_core.exceptions
 import ollama
-import asyncio
+import rich
 # endregion Imports
 
 # region Flask and ROS config
@@ -100,6 +100,7 @@ def generate_subgoals(prompt:str) -> str:
         goal_setter_response = multiturn_generate_content(goal_setter, message=prompt, generation_config=generation_config, safety_settings=safety_settings)
         if goal_setter_response and goal_setter_response.candidates:
             _subgoals = goal_setter_response.candidates[0].text.split('\n')
+            rich.print(f"[green]Gemini[green]: {_subgoals}")
             return _subgoals
     except google.api_core.exceptions.ResourceExhausted:
         print("ResourceExhausted in generating subgoals")
@@ -111,7 +112,7 @@ def generate_subgoals(prompt:str) -> str:
 # endregion generate_subgoals
 
 # region llava_control
-def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
+def llava_control(prompt, image_str, llava_system_prompt=system_prompt ):
     """ take gemini response (subgoals) and generate executable action(s) using llava
     """
     print("running llava_control")
@@ -123,6 +124,7 @@ def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
         {"role": "user", "content": image_base64, "is_image": True},
         {"role": "user", "content": prompt},
     ]
+    # print(message)
     try:
         response = ollama.chat(
             model='llava-llama3',
@@ -137,10 +139,9 @@ def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
                     'safety_temperature': 0.7
                 }}
         )
-        print(f"llava response: {response['message']}")
         return response['message']['content']
     except Exception as e:
-        print(f"Error in llava_generate: {e}")
+        rich.print(f"[red]Error in llava_generate[red]: {e}")
         return None
 
 
@@ -148,13 +149,8 @@ def llava_control(prompt,image_str, llava_system_prompt=system_prompt ):
 
 # region llava_control_loop
 def llava_control_loop(prompt, subgoals):
-    print("hello llava")
-    print(subgoals)
-    print(len(subgoals))
-    global llava_response, stop_gemini, request_count,  gemini_response_history, current_subgoal_index
+    global llava_response, stop_gemini, gemini_response_history, current_subgoal_index
     stop_gemini = False
-
-
 
     while not stop_gemini and current_subgoal_index < len(subgoals):
         image_str = get_camera_image()
@@ -163,86 +159,73 @@ def llava_control_loop(prompt, subgoals):
             continue
 
         current_subgoal = subgoals[current_subgoal_index]
-        llava_control_response = llava_control(f"the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
+        llava_control_response = llava_control(f"the goal is: {prompt}. \nyou can do this by {subgoals}\nyour current task is to {current_subgoal} reply with 'done!!' to move to the next text; use the image as a guide", image_str)
 
-        if llava_control_response:
-            with gemini_response_lock:
-                llava_response = llava_control_response.strip()
-                # remove all punctuation marks
-                llava_response = llava_response.translate(str.maketrans('', '', string.punctuation))
+        if not llava_control_response:
+            continue
 
-                #remove space from the start of the response
-                llava_response = llava_response.lstrip().lower()
-                # remove number at start of response if ther is one
-                llava_response = llava_response.split(" ", 1)[1]
-                print(f"llava_response: {llava_response}")
+        feedback = process_llava_response(llava_control_response, current_subgoal, image_str)
+        update_gemini_history(current_subgoal, llava_response, feedback)
+        # previous_responses = llava_response
 
+        if "done" in llava_response.lower():
+            current_subgoal_index += 1
+            if current_subgoal_index >= len(subgoals):
+                stop_gemini = True
+                print("All subgoals completed")
+            else:
+                print("Moving to next subgoal")
 
-                # if lava response is longer than two words and isnt failed to understand prompt reprompt the llm
-                if len(llava_response.split(' ')) > 4 and "failed to understand prompt" not in llava_response:
-                    print("invalid llava_response: ", llava_response)
-                    llava_control_response = llava_control(f" the response '{llava_response}' is not in the list of 13 valid robot instructions, try again the goal is: {prompt} and your current task is to {current_subgoal} the image is provided",image_str )
-                else:
-                    print(f"llava_response: {llava_response}")
-                gemini_response_history.append(f"subgoal: {current_subgoal} \n {llava_response}")
+        rospy.sleep(3)
 
-                feedback = ""
-                if llava_response.startswith("move"):
-                    direction = llava_response.split(" ")[1]
-                    if direction in VALID_DIRECTIONS:
-                        feedback = execute_with_feedback(move_robot, direction)
-                    else:
-                        feedback = "Invalid direction. Please try again."
-                        llava_control_response = llava_control(f" '{llava_response}' is not a valid robot instruction listed, try again the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
-                elif llava_response in VALID_DIRECTIONS:
-                    feedback = execute_with_feedback(move_robot, llava_response)
-                elif llava_response.startswith("arm pre_grab"):
-                    feedback = execute_with_feedback(set_pre_pick)
-                elif llava_response.startswith("arm tucked_in"):
-                    feedback = execute_with_feedback(set_tucked_in)
-                elif llava_response.startswith("arm reach_forward"):
-                    distance = float(llava_response.split(" ")[-1])
-                    feedback = execute_with_feedback(extend_arm, distance)
-                elif llava_response.startswith("arm retract"):
-                    distance = float(llava_response.split(" ")[-1])
-                    feedback = execute_with_feedback(retract_arm, distance)
-                elif llava_response.startswith("arm rotate"):
-                    direction = llava_response.split(" ")[-1]
-                    feedback = execute_with_feedback(rotate_arm, direction)
-                elif llava_response.startswith("head"):
-                    direction = llava_response.split(" ")[-1]
-                    feedback = execute_with_feedback(move_head, direction)
-                elif llava_response.startswith("control_gripper"):
-                    action = llava_response.split(" ")[-1]
-                    feedback = execute_with_feedback(control_gripper, action)
-                else:
-                    feedback = "Invalid command. Please try again."
-                    llava_control_response = llava_control(f" '{llava_response}' is not a valid robot instruction listed, try again the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
+def process_llava_response(response, current_subgoal, image_str):
+    global llava_response
+    llava_response = response.strip().lower()
 
-                gemini_response_history.append(f"Feedback: {feedback}")
+    if not any(llava_response.startswith(instruction) for instruction in VALID_INSTRUCTIONS):
+        llava_control(f"The response '{llava_response}' is not valid, try again to: {current_subgoal}", image_str)
+        return "Invalid command. Please try again."
 
-                if "done" in llava_response.lower():
-                    current_subgoal_index += 1
-                    if current_subgoal_index >= len(subgoals):
-                        stop_gemini = True
-                        print("All subgoals completed")
-                    else:
-                        print("moving to next subgoal")
-                # else:
-                #     # print what llava response startsd with
-                #     print(f" first string is {llava_response.split(' ')[0]}")
-                #     #tell the VLm that the response it gave is not
-                #     llava_control_response = llava_control(f" '{llava_response}' is not a valid robot instruction listed, try again the goal is: {prompt} and your current task is to {current_subgoal}",image_str )
+    parts = llava_response.split()
+    command = parts[0]
+    params = parts[1:] if len(parts) > 1 else []
 
-        rospy.sleep(1)
+    if command == "move":
+        return execute_with_feedback(move_robot, params[0])
+    elif command == "arm":
+        return execute_arm_command(params)
+    elif command == "head":
+        return execute_with_feedback(move_head, params[0])
+    elif command == "control_gripper":
+        return execute_with_feedback(control_gripper, params[0])
+    else:
+        return "Command recognized but not implemented."
 
+def execute_arm_command(params):
+    if params[0] == "pre_grab":
+        return execute_with_feedback(set_pre_pick)
+    elif params[0] == "tucked_in":
+        return execute_with_feedback(set_tucked_in)
+    elif params[0] == "reach_forward":
+        return execute_with_feedback(extend_arm, float(params[1]))
+    elif params[0] == "retract":
+        return execute_with_feedback(retract_arm, float(params[1]))
+    elif params[0] == "rotate":
+        return execute_with_feedback(rotate_arm, params[1])
+    else:
+        return "Invalid arm command."
+
+def update_gemini_history(current_subgoal, llava_response, feedback):
+    with gemini_response_lock:
+        gemini_response_history.append(f"subgoal: {current_subgoal} \n {llava_response}")
+        gemini_response_history.append(f"Feedback: {feedback}")
 
 # endregion llava_control_loop
 
 
 # region Gemini_flask
 @app.route('/send_prompt', methods=['POST'])
-async def send_prompt():
+def send_prompt():
     global gemini_response, subgoals, current_subgoal_index
     user_prompt = request.form.get('prompt')
 
@@ -256,15 +239,20 @@ async def send_prompt():
     current_subgoal_index = 0 # reset index
 
     # asyncio.create_task(llava_control_loop(user_prompt, subgoals))
-    await llava_control_loop(user_prompt, subgoals)
-    # llava_thread = threading.Thread(target=llava_control_loop, args=(user_prompt, subgoals))
-    # llava_thread.start()
+    # await llava_control_loop(user_prompt, subgoals)
+    llava_thread = threading.Thread(target=llava_control_loop, args=(user_prompt, subgoals))
+    llava_thread.start()
 
     return render_template('index.html',
                            goal_setter_response=subgoals,
                            control_model_response=gemini_response,
                            arm_positions=ARM_POSITIONS.keys(),
                            current_position=get_current_arm_position_name(current_arm_position))
+
+@app.route('/get_responses')
+def get_responses():
+    global gemini_response_history
+    return jsonify({'responses': gemini_response_history})
 
 @app.route('/stop_gemini', methods=['POST'])
 def stop_gemini_control():
@@ -301,7 +289,7 @@ def generate_frames():
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        rospy.sleep(1)
+        rospy.sleep(0.1)
 
 @app.route('/video_feed')
 def video_feed():
