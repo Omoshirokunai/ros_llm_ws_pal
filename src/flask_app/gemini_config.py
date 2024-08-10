@@ -38,7 +38,7 @@ Now based on the given prompt, respond exclusively with one of the following fun
 - failed to understand
 
 
-do not use any words outside these thirteen options.
+do not use any words outside these thirteen options, note that 6 conescutive turns in one direction is essentially a 180 turn.
 """
 
 generation_config = {

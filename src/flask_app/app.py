@@ -172,11 +172,18 @@ def llava_control_loop(prompt, subgoals):
         # llava_control_response = llava_control(f"the goal is: {prompt}.\nyou can do this by {subgoals}\nyour current task is to {current_subgoal} reply with 'done!!' to move to the next text; use the image as a guide", image_str)
 
         llava_control_response = llava_control(llava_prompt, image_str)
+
+
+
         if not llava_control_response:
             continue
 
         feedback = process_llava_response(llava_control_response, current_subgoal, image_str)
-        update_gemini_history(current_subgoal, llava_response, feedback)
+        if feedback == "invalid instruction":
+            llava_control_response = llava_control(f"The response you gave '{llava_response}' is not valid. try again\n{llava_prompt}", image_str)
+            feedback = process_llava_response(llava_control_response, current_subgoal, image_str)
+        else:
+            update_gemini_history(current_subgoal, llava_response, feedback)
         # previous_responses = llava_response
 
         if "done" in llava_response.lower():
@@ -194,8 +201,7 @@ def process_llava_response(response, current_subgoal, image_str):
     llava_response = response.strip().lower()
 
     if not any(llava_response.startswith(instruction) for instruction in VALID_INSTRUCTIONS):
-        llava_control(f"The response '{llava_response}' is not valid, try again to: {current_subgoal}", image_str)
-        return "Invalid command. Please try again."
+        return "invalid instruction"
 
     if llava_response == "failed to understand":
         return "LLaVA failed to understand. Retrying..."
