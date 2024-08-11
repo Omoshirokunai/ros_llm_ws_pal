@@ -98,10 +98,10 @@ Install the necessary Python packages:
 pip install ollama
 ```
 
-This project uses only llava:13b *(but in theory you can swap in another capable VLM)* to install that version:
+This project uses only llava-llama3 *(but in theory you can swap in another capable VLM)* to install that version ~code for using gemini 1.5 as a vlm has been removed temporarily~:
 
 ```sh
-ollama run llava:13b
+ollama run llava-llama3
 ```
 
 ## Usage
