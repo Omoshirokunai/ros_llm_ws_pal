@@ -110,6 +110,8 @@ Running the Simulation and Flask App
     Launch the ROS simulation:
 
 ```sh
+cd ~/tiago_public_ws
+source devel/setup.bash
 roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true
 ```
 
