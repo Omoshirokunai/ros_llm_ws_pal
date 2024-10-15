@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Control</title>
+</head>
+<body>
+    <h1>Robot Control Interface</h1>
+    <button onclick="sendCommand('/move_forward')">Move Forward</button>
+    <button onclick="sendCommand('/move_right')">Move Right</button>
+    <button onclick="sendCommand('/move_left')">Move Left</button>
+    <button onclick="sendCommand('/torso_up')">Torso Up</button>
+    <button onclick="sendCommand('/torso_down')">Torso Down</button>
+
+    <script>
+        function sendCommand(endpoint) {
+            fetch(endpoint, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
