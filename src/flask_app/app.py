@@ -1,26 +1,53 @@
 # region Imports
 import base64
-import string
-from flask import Flask, jsonify, request, Response, render_template, redirect, url_for
-import rospy # type: ignore #* ROS Python client library
-from sensor_msgs.msg import Image, LaserScan, JointState# type: ignore #* camera and lidar data
-import cv2
-from cv_bridge import CvBridge, CvBridgeError # type: ignore #* convert ROS messages to OpenCV images
-import threading
-import vertexai
-from vertexai.preview.generative_models import GenerativeModel
-from vertexai.preview.generative_models import Image as GeminiImage
-from safe import PROJECT_ID, REGIONNA, CREDENTIALS
-from gemini_config import generation_config, safety_settings, system_prompt, goal_setter_system_prompt
 import os
-from robot_control import VALID_DIRECTIONS, control_gripper, execute_with_feedback, extend_arm, move_head, move_robot, retract_arm, rotate_arm, set_pre_pick, set_tucked_in, update_torso, update_arm
+import string
+import threading
+
+import cv2
 import google.api_core.exceptions
 import ollama
 import rich
+import rospy  # type: ignore #* ROS Python client library
+import vertexai
+from cv_bridge import (  # type: ignore #* convert ROS messages to OpenCV images
+    CvBridge,
+    CvBridgeError,
+)
+from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
+from gemini_config import (
+    generation_config,
+    goal_setter_system_prompt,
+    safety_settings,
+    system_prompt,
+)
+from robot_control import (
+    VALID_DIRECTIONS,
+    control_gripper,
+    execute_with_feedback,
+    extend_arm,
+    move_head,
+    move_robot,
+    retract_arm,
+    rotate_arm,
+    set_pre_pick,
+    set_tucked_in,
+    update_arm,
+    update_torso,
+)
+from safe import CREDENTIALS, PROJECT_ID, REGIONNA
+from sensor_msgs.msg import (  # type: ignore #* camera and lidar data
+    Image,
+    JointState,
+    LaserScan,
+)
+from vertexai.preview.generative_models import GenerativeModel
+from vertexai.preview.generative_models import Image as GeminiImage
+
 # endregion Imports
 
 # region Flask and ROS config
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = CREDENTIALS
+os.environ["GOOGLE_APPLICATIssh pal@tiago-hub -p100ON_CREDENTIALS"] = CREDENTIALS
 app = Flask(__name__)
 
 bridge = CvBridge()
@@ -69,8 +96,7 @@ def get_camera_image():
             _, buffer = cv2.imencode('.jpg', latest_frame)
             image_str = buffer.tobytes()
             return image_str
-    return None
-# endregion get_camera_image
+        new_positions[2] += 0.1
 
 # region models
 goal_setter = GenerativeModel("gemini-1.0-pro", system_instruction=[goal_setter_system_prompt])

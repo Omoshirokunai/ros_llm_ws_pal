@@ -2,4 +2,5 @@ flask
 google-cloud-aiplatform
 ollama
 vertexai
+roslibpy
 rich
