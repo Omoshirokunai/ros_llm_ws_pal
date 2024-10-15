@@ -8,6 +8,10 @@ robot_control = RobotControl()
 def index():
     return render_template('irl_index.html')
 
+@app.route('/video-feed'):
+def video_feed():
+    pass
+
 @app.route('/move_forward', methods=['POST'])
 def move_forward():
     robot_control.move_forward()
