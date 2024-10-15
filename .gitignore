@@ -4,6 +4,7 @@ src/s.py
 src/safe.py
 src/flask_app/safe.py
 src/flask_app/__pycache__/safe.cpython-38.pyc
+*.env
 *.pyc
 .vscode
 /myflaskenv
