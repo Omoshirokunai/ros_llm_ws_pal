@@ -44,8 +44,12 @@ class PersistentSSHClient:
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.ssh_client.connect(self.SSH_HOST, username=self.SSH_USER, port=self.SSH_PORT, password=self.PASS)
 
+    # def execute_command(self, command, using_play_motion=False):
+        # if not play_motion:
     def execute_command(self, command):
         ssh_stdin, ssh_stdout, ssh_stderr = self.ssh_client.exec_command(f"{self.ROS_SETUP_CMD} && {command}")
+        # else:
+            # ssh_stdin, ssh_stdout, ssh_stderr = self.ssh_client.exec_command(f"{command}")
         return ssh_stdout.read().decode(), ssh_stderr.read().decode()
 
     def close(self):
