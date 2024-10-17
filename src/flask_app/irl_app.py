@@ -30,22 +30,6 @@ def generate_video_feed():
 def camera_feed():
     return Response(generate_video_feed(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
-    # try:
-    #     robot_sensors = RobotSensors()
-    #     image_data = robot_sensors.get_camera_data()
-    #     print(type(image_data))
-    #     if image_data is not None:
-    #         img = bytearray(image_data)
-    #         img = Image.open(BytesIO(image_data))
-    #         img_byte_arr = BytesIO()
-    #         img.save(img_byte_arr, format='JPEG')
-    #         img_byte_arr.seek(0)
-    #         return Response(img_byte_arr, mimetype='image/jpeg')
-    #     return "No image data available", 404
-    # except Exception as e:
-    #     return str(e), 500
-
-
 
 @app.route('/robot_set_home',  methods=['POST'])
 def robot_set_home():
