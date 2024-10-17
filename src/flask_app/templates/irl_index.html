@@ -20,12 +20,28 @@
 
 
     <br/>
-    <button onclick="sendCommand('/move_forward')">Move Forward</button>
+    <div>
+        <button onclick="sendCommand('/move_forward')">Move Forward</button>
     <button onclick="sendCommand('/turn_right')">Turn Right</button>
     <button onclick="sendCommand('/turn_left')">Turn Left</button>
     <button onclick="sendCommand('/pre_grasp')">pre grasp</button>
     <button onclick="sendCommand('/head_up')">Heads up</button>
     <button onclick="sendCommand('/robot_set_home')">robot_set_home</button>
+    </div>
+
+
+    <br/>
+
+    <div class="text-area">
+        <label for="text-area">Enter your command:</label>
+        <form action="/" method="post" id="send-form" >
+            <textarea id="text-area" rows="5" cols="60" title="user-prompt" name="prompt"></textarea>
+        <button type="submit" id="send">Send</button>
+        </form>
+        <form action="/robot_set_home" method="post">
+            <button type="submit">Stop LLM Control</button>
+        </form>
+    </div>
 
     <script>
         function sendCommand(endpoint) {
