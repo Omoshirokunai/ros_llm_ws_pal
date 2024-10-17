@@ -15,20 +15,12 @@ robot_sensors = RobotSensors()
 @app.route('/')
 def index():
     return render_template('irl_index.html')
-def generate_video_feed():
-    while True:
-        frame = robot_sensors.get_camera_data()
-        if frame is not None:
-            # Convert the frame to JPEG format
-            ret, jpeg = cv2.imencode('.jpg', frame)
 
-            # Yield the frame in byte format for Flask streaming
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
 
 @app.route('/camera_feed')
 def camera_feed():
-    return Response(generate_video_feed(),
+    frame = robot_sensors.get_camera_data()
+    return Response(frame,
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/robot_set_home',  methods=['POST'])

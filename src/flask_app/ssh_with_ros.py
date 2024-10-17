@@ -29,7 +29,7 @@ class SingleCommandSSHClient:
             full_command = f"{self.ROS_SETUP_CMD} && {command}"
         else:
             full_command = command
-            ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
         output = ssh_stdout.read().decode()
         ssh_client.close()
         return output
