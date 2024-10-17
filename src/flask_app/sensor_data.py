@@ -20,26 +20,7 @@ class RobotSensors:
         # Extract base64 encoded image data from the stdout
         data_line = next((line for line in stdout.split('\n') if 'data:' in line), None)
 
-        # if data_line:
-        #     # Extract the base64 image data after 'data: '
-        #     image_data_base64 = data_line.split('data: ')[1].strip()
 
-        #     # Fix missing padding in base64 string if necessary
-        #     missing_padding = len(image_data_base64) % 4
-        #     if missing_padding:
-        #         image_data_base64 += '=' * (4 - missing_padding)
-
-        #     # Decode base64 to get binary image data
-        #     try:
-        #         image_data_bytes = base64.b64decode(image_data_base64)
-
-        #         # Convert the binary data to an image using PIL
-        #         image = Image.open(BytesIO(image_data_bytes))
-
-        #         # Convert image to a numpy array (useful for video streaming)
-        #         image_array = np.array(image)
-
-        #         return image_array  # Return as numpy array to stream via Flask
         if data_line:
             # Extract the base64 image data after 'data: '
             image_data_base64 = data_line.split('data: ')[1].strip()
@@ -52,9 +33,16 @@ class RobotSensors:
             if missing_padding:
                 image_data_base64 += '=' * (4 - missing_padding)
 
-            # Decode base64 to get binary image data
+                        # Decode base64 to get binary image data
             try:
                 image_data_bytes = base64.b64decode(image_data_base64)
+
+                # Debug: Print the first few bytes of the decoded data
+                print(f"Decoded image data (first 50 bytes): {image_data_bytes[:50]}")
+
+                # Debug: Try writing the image data to a file to check if it's valid
+                with open('debug_image_output.jpg', 'wb') as f:
+                    f.write(image_data_bytes)
 
                 # Convert the binary data to an image using PIL
                 image = Image.open(BytesIO(image_data_bytes))
@@ -62,12 +50,8 @@ class RobotSensors:
                 # Convert image to a numpy array (useful for video streaming)
                 image_array = np.array(image)
 
-                # Check if the image array has the correct format (3 channels for RGB)
-                if len(image_array.shape) == 3:
-                    return image_array  # Return as numpy array to stream via Flask
-                else:
-                    print(f"Unexpected image shape: {image_array.shape}")
-                    return None
+                return image_array  # Return as numpy array to stream via Flask
+
 
             except Exception as e:
                 print(f"Failed to decode image data: {e}")
