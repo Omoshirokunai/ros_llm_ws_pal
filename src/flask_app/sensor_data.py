@@ -18,8 +18,16 @@ class RobotSensors:
         if stderr:
             print(f"Error: {stderr}")
             return None
+        if len(stdout) == 0:
+            print("No data received from SSH")
 
         image_data_base64 = stdout.strip()
+         # Debug: Check if any data is received
+        print(f"Received base64 data (first 100 characters): {image_data_base64[:100]}")
+
+        if not image_data_base64:
+            print("No image data received")
+            return None
 
         # Decode the base64 data into image bytes in Python 3
         image_data_bytes = base64.b64decode(image_data_base64)
