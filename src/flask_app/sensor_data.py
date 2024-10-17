@@ -11,32 +11,52 @@ class RobotSensors:
     def __init__(self):
         self.ssh_client = PersistentSSHClient()
     def get_camera_data(self):
-        # Run the remote script that reads the image data
-        command = "python3 remote_camera_reader.py"
+        # Execute the Python 2 ROS node over SSH
+        command = "python2 ros_camera_subscriber.py"
         stdout, stderr = self.ssh_client.execute_command(command)
 
         if stderr:
             print(f"Error: {stderr}")
             return None
 
-        # Get the base64-encoded image data from stdout
         image_data_base64 = stdout.strip()
 
-        try:
-            # Decode the base64-encoded image
-            image_data_bytes = base64.b64decode(image_data_base64)
+        # Decode the base64 data into image bytes in Python 3
+        image_data_bytes = base64.b64decode(image_data_base64)
 
-            # Convert the binary data to an image using PIL
-            image = Image.open(BytesIO(image_data_bytes))
+        # Convert the binary data to an image using PIL or OpenCV
+        image = Image.open(BytesIO(image_data_bytes))
+        image_array = np.array(image)
 
-            # Convert image to a numpy array (useful for video streaming)
-            image_array = np.array(image)
+        return image_array
+    # def get_camera_data(self):
+    #     # Run the remote script that reads the image data
+    #     command = "python3 remote_camera_reader.py"
+    #     stdout, stderr = self.ssh_client.execute_command(command)
 
-            return image_array  # Return as numpy array to stream via Flask
+    #     if stderr:
+    #         print(f"Error: {stderr}")
+    #         return None
 
-        except Exception as e:
-            print(f"Failed to decode image data: {e}")
-            return None
+    #     # Get the base64-encoded image data from stdout
+    #     image_data_base64 = stdout.strip()
+
+    #     try:
+    #         # Decode the base64-encoded image
+    #         image_data_bytes = base64.b64decode(image_data_base64)
+
+    #         # Convert the binary data to an image using PIL
+    #         image = Image.open(BytesIO(image_data_bytes))
+
+    #         # Convert image to a numpy array (useful for video streaming)
+    #         image_array = np.array(image)
+
+    #         return image_array  # Return as numpy array to stream via Flask
+
+    #     except Exception as e:
+    #         print(f"Failed to decode image data: {e}")
+    #         return None
+
     # def get_camera_data(self):
     #     command = "rostopic echo /xtion/rgb/image_raw/compressed -n 1"
     #     stdout, stderr = self.ssh_client.execute_command(command)
