@@ -4,6 +4,7 @@ from ssh_with_ros import SingleCommandSSHClient
 class RobotControl:
     def __init__(self):
         self.ssh_client = SingleCommandSSHClient()
+        self.head_pose = 0.0
         # self.current_torso_height = 0.0
     def robot_set_home(self, duration=3000):
         command = "rosrun play_motion run_motion home"
@@ -23,8 +24,10 @@ class RobotControl:
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.5]' '[0.0, 0.0, 0.4]'"
         self._execute_command_for_duration(command, duration)
 
-    def head_up(self, duration=4000):
-        command = "rosrun play_motion move_joint head_2_joint -0.1 2.0"
+    def head_up(self, increment=0.3):
+        self.head_pose = min(self.head_pose + increment, -1)
+        self.head_pose = max(self.head_pose, 0.7)
+        command = f"rosrun play_motion move_joint head_2_joint {self.head_pose} 2.0"
         self.ssh_client.execute_command(command)
 
     def pre_grasp(self, duration=2):
