@@ -41,6 +41,9 @@ Now based on the given prompt, respond exclusively with one of the following fun
 do not use any words outside these thirteen options, note that 6 conescutive turns in one direction is essentially a 180 turn.
 """
 
+verification_system_prompt = """you are a verification system for a robot controller.
+The image is from the camera on the robot's head. the first image is the initial state of the robot, the second image is the state of the robot after the function call."""
+#! cange max token
 generation_config = {
 "max_output_tokens": 2000,
 "temperature": 0.2,

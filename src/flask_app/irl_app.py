@@ -10,27 +10,40 @@ from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 robot_control = RobotControl()
+robot_sensors = RobotSensors()
 
 @app.route('/')
 def index():
     return render_template('irl_index.html')
+def generate_video_feed():
+    while True:
+        frame = robot_sensors.get_camera_data()
+        if frame is not None:
+            # Convert the frame to JPEG format
+            ret, jpeg = cv2.imencode('.jpg', frame)
+
+            # Yield the frame in byte format for Flask streaming
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
 
 @app.route('/camera_feed')
 def camera_feed():
-    try:
-        robot_sensors = RobotSensors()
-        image_data = robot_sensors.get_camera_data()
-        print(type(image_data))
-        if image_data is not None:
-            img = bytearray(image_data)
-            img = Image.open(BytesIO(image_data))
-            img_byte_arr = BytesIO()
-            img.save(img_byte_arr, format='JPEG')
-            img_byte_arr.seek(0)
-            return Response(img_byte_arr, mimetype='image/jpeg')
-        return "No image data available", 404
-    except Exception as e:
-        return str(e), 500
+    return Response(generate_video_feed(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    # try:
+    #     robot_sensors = RobotSensors()
+    #     image_data = robot_sensors.get_camera_data()
+    #     print(type(image_data))
+    #     if image_data is not None:
+    #         img = bytearray(image_data)
+    #         img = Image.open(BytesIO(image_data))
+    #         img_byte_arr = BytesIO()
+    #         img.save(img_byte_arr, format='JPEG')
+    #         img_byte_arr.seek(0)
+    #         return Response(img_byte_arr, mimetype='image/jpeg')
+    #     return "No image data available", 404
+    # except Exception as e:
+    #     return str(e), 500
 
 
 
