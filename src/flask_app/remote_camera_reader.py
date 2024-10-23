@@ -1,6 +1,7 @@
 import os
-import rospy
+
 import cv2
+import rospy
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 
@@ -33,7 +34,7 @@ def main():
     rospy.init_node('image_saver_node')
 
     # Subscribe to the camera topic
-    rospy.Subscriber('/xtion/rgb/image_raw', Image, image_callback)
+    rospy.Subscriber('/xtion/rgb/image_raw/compressed', Image, image_callback)
 
     print("Waiting for images...")
     rospy.spin()

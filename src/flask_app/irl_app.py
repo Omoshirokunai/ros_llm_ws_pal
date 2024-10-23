@@ -1,7 +1,7 @@
 import base64
 from io import BytesIO
 
-import cv2
+# import cv2
 from flask import Flask, Response, json, jsonify, redirect, render_template, request
 from PIL import Image
 from robot_control_over_ssh import RobotControl
@@ -33,13 +33,7 @@ def pre_grasp():
     robot_control.pre_grasp()
     return jsonify({"status": "success", "action": "camera_feed"})
 def head_up():
-    robot_control.head_up()
-    return jsonify({"status": "success", "action": "head_up"})
-
-@app.route('/video_feed')
-def video_feed():
-    pass
-
+    print("Waiting for images...")
 @app.route('/move_forward', methods=['POST'])
 def move_forward():
     robot_control.move_forward()
