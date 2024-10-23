@@ -1,4 +1,6 @@
 import base64
+import threading
+import time
 from io import BytesIO
 from os import getenv
 
@@ -37,15 +39,20 @@ def index():
 #     return Response(frame,
 #                     mimetype='multipart/x-mixed-replace; boundary=frame')
 # Route to serve the image
+latest_frame = None
+frame_lock = threading.Lock()
 def generate_frames():
     load_dotenv()
     LOCAL_IMAGE_PATH = getenv("LOCAL_IMAGE_PATH")
+    while True:
+        with frame_lock:
 
-    with open(LOCAL_IMAGE_PATH, 'rb') as image_file:
-        # while True:
-            image = image_file.read()
-            yield (b'--frame\r\n'
+            with open(LOCAL_IMAGE_PATH, 'rb') as image_file:
+                # while True:
+                image = image_file.read()
+                yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n\r\n')
+        time.sleep(1)
 @app.route('/video_feed')
 def video_feed():
 

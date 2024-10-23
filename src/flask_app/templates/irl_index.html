@@ -6,7 +6,15 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}" media="print" onload="this.media='all'">
 
     <title>Robot Control</title>
-
+    <script>
+        // Function to update the camera feed
+        function updateCameraFeed() {
+            var img = document.getElementById('live_video');
+            img.src = "{{ url_for('video_feed') }}" + "?t=" + new Date().getTime();
+        }
+        // Update the camera feed every 100 milliseconds
+        setInterval(updateCameraFeed, 1000);
+    </script>
 </head>
 <body>
     <h1>Robot Control Interface</h1>
@@ -14,7 +22,7 @@
         <h2>Camera Feed</h2>
 
         <div class="camera">
-            <img src="{{ url_for('video_feed') }}" >
+            <img id="live_video" src="{{ url_for('video_feed') }}" alt="Live Camera Feed">
         </div>
     </div>
 
