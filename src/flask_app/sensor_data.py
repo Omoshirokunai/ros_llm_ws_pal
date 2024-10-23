@@ -1,5 +1,6 @@
 #--- new
 import os
+import threading
 
 import paramiko
 from dotenv import load_dotenv
@@ -26,17 +27,15 @@ def fetch_image_via_ssh():
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
+
         ssh_client.connect(ssh_host, username=ssh_user, port=ssh_port, password=password)
         sftp = ssh_client.open_sftp()
 
         try:
-            # Fetch the image from the remote server
+            run_camera_capture_script()
             # sftp.get(REMOTE_IMAGE_PATH, LOCAL_IMAGE_PATH)
             sftp.get(remote_image_path, local_image_path)
-
-        except Exception as e:
-            print(local_image_path)
-            print(f"Failed to fetch image: {e}")
+            # print(f"Failed to fetch image: {e}")
         finally:
             sftp.close()
     except Exception as e:
@@ -45,15 +44,20 @@ def fetch_image_via_ssh():
         ssh_client.close()
 
 # Function to run the camera capture script via SSH
-def run_camera_capture_script(ssh_client):
-    stdin, stdout, stderr = ssh_client.exec_command(f"python2 {REMOTE_SCRIPT_PATH}")
-    output = stdout.read().decode()
-    errors = stderr.read().decode()
+def run_camera_capture_script():
+    ##!FIX: command is either not being executed or just locking a thread without doing anything
+    ssh_client = SingleCommandSSHClient()
+    command = "rosrun get_tiago_camera remote_camera_reader.py"
+    # command = "source ~/catkin_ws/devel/setup.bash && bash -c python /home/pal/catkin_ws/src/cam/remote_camera_reader.py'"
 
-    if errors:
-        print(f"Error running camera capture script: {errors}")
-    else:
-        print("Camera capture script ran successfully.")
+    try:
+        print(f"Executing command: {command}")
+        ssh_client.execute_command(command)
+        print(f"Execution complete")
+
+    except Exception as e:
+        print(f"Exception while running camera capture script: {e}")
+
 fetch_image_via_ssh()
 
 

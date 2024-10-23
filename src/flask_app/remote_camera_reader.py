@@ -23,7 +23,7 @@ def save_image_as_jpeg(image_data):
 
         # Save the new image as current.jpg
         cv2.imwrite(current_image_path, cv_image)
-image_received = True
+        image_received = True
         print(f"Image saved as {current_image_path}")
     except Exception as e:
         print(f"Failed to save image: {e}")
