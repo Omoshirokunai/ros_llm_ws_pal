@@ -7,7 +7,7 @@ from sensor_msgs.msg import Image
 
 bridge = CvBridge()
 output_dir = "/path/to/save/images"  # Update to the directory where you want to save images
-
+image_received = False
 def save_image_as_jpeg(image_data):
     try:
         # Convert ROS Image message to OpenCV format
@@ -23,12 +23,17 @@ def save_image_as_jpeg(image_data):
 
         # Save the new image as current.jpg
         cv2.imwrite(current_image_path, cv_image)
+image_received = True
         print(f"Image saved as {current_image_path}")
     except Exception as e:
         print(f"Failed to save image: {e}")
 
 def image_callback(msg):
-    save_image_as_jpeg(msg)
+    global image_received
+    if not image_received:
+        save_image_as_jpeg(msg)
+        # Shutdown ROS node after the first image is captured
+        rospy.signal_shutdown('Image captured, shutting down node.')
 
 def main():
     rospy.init_node('image_saver_node')
