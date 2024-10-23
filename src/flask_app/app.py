@@ -47,7 +47,8 @@ from vertexai.preview.generative_models import Image as GeminiImage
 # endregion Imports
 
 # region Flask and ROS config
-os.environ["GOOGLE_APPLICATIssh pal@tiago-hub -p100ON_CREDENTIALS"] = CREDENTIALS
+
+os.environ["GOOGLE_APPLICATIN_CREDENTIALS"] = CREDENTIALS
 app = Flask(__name__)
 
 bridge = CvBridge()
@@ -96,7 +97,7 @@ def get_camera_image():
             _, buffer = cv2.imencode('.jpg', latest_frame)
             image_str = buffer.tobytes()
             return image_str
-        new_positions[2] += 0.1
+        # new_positions[2] += 0.1
 
 # region models
 goal_setter = GenerativeModel("gemini-1.0-pro", system_instruction=[goal_setter_system_prompt])
