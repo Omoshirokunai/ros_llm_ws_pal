@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}" media="print" onload="this.media='all'">
 
     <title>Robot Control</title>
+
 </head>
 <body>
     <h1>Robot Control Interface</h1>
     <div class="intro2">
         <h2>Camera Feed</h2>
-    <div class="camera">
-        <!-- <img src="{{ url_for('video_feed') }}" alt="Live Camera Feed"> -->
-        <img src="/camera_feed" alt="Camera Feed">
-    </div>
-    </div>
 
+        <div class="camera">
+            <img src="{{ url_for('video_feed') }}" >
+        </div>
+    </div>
 
 
     <br/>

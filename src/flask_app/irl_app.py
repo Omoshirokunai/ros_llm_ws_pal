@@ -1,27 +1,55 @@
 import base64
 from io import BytesIO
+from os import getenv
+
+from dotenv import load_dotenv
 
 # import cv2
-from flask import Flask, Response, json, jsonify, redirect, render_template, request
+from flask import (
+    Flask,
+    Response,
+    json,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from PIL import Image
 from robot_control_over_ssh import RobotControl
-from sensor_data import RobotSensors
+
+# from sensor_data import RobotSensors
 from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 robot_control = RobotControl()
-robot_sensors = RobotSensors()
+# robot_sensors = RobotSensors()
 
 @app.route('/')
 def index():
     return render_template('irl_index.html')
 
 
-@app.route('/camera_feed')
-def camera_feed():
-    frame = robot_sensors.get_camera_data()
-    return Response(frame,
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+# @app.route('/camera_feed')
+# def camera_feed():
+#     frame = robot_sensors.get_camera_data()
+#     return Response(frame,
+#                     mimetype='multipart/x-mixed-replace; boundary=frame')
+# Route to serve the image
+def generate_frames():
+    load_dotenv()
+    LOCAL_IMAGE_PATH = getenv("LOCAL_IMAGE_PATH")
+
+    with open(LOCAL_IMAGE_PATH, 'rb') as image_file:
+        # while True:
+            image = image_file.read()
+            yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n\r\n')
+@app.route('/video_feed')
+def video_feed():
+
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/robot_set_home',  methods=['POST'])
 def robot_set_home():
