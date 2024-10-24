@@ -4,7 +4,7 @@
 SCRIPT_PATH="/path/to/remote_camera_capture.py"
 
 # Check if the script is already running
-if pgrep -f "camera_capture.py" > /dev/null
+if pgrep -f "remote_camera_reader.py" > /dev/null
 then
     echo "camera_capture.py is already running."
 else

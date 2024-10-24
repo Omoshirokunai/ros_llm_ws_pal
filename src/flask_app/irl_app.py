@@ -20,7 +20,8 @@ from flask import (
 )
 from PIL import Image
 from robot_control_over_ssh import RobotControl
-from sensor_data import trigger_capture_script
+from sensor_data import fetch_image_via_ssh, trigger_capture_script, trigger_stop_script
+
 # from sensor_data import RobotSensors
 from werkzeug.exceptions import HTTPException
 
@@ -40,15 +41,17 @@ def index():
 #                     mimetype='multipart/x-mixed-replace; boundary=frame')
 # Route to serve the image
 # Route to trigger the camera capture script if not running
-@app.route('/start_capture')
+@app.route('/start_capture', methods=['GET', 'POST'])
 def start_capture():
     success = trigger_capture_script()
+
     if success:
         return "Camera capture started or already running."
+
     else:
         return "Failed to start camera capture."
 # Route to stop the camera capture script
-@app.route('/stop_capture')
+@app.route('/stop_capture', methods=['GET', 'POST'])
 def stop_capture():
     success = trigger_stop_script()
     if success:
@@ -68,9 +71,10 @@ def generate_frames():
                 image = image_file.read()
                 yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n\r\n')
-        time.sleep(1)
+        # time.sleep(0.2)
 @app.route('/video_feed')
 def video_feed():
+    fetch_image_via_ssh()
 
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -120,4 +124,4 @@ def turn_left():
 #     return response
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

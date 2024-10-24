@@ -13,7 +13,7 @@
             img.src = "{{ url_for('video_feed') }}" + "?t=" + new Date().getTime();
         }
         // Update the camera feed every 100 milliseconds
-        setInterval(updateCameraFeed, 1000);
+        setInterval(updateCameraFeed, 100);
     </script>
 </head>
 <body>
@@ -34,7 +34,11 @@
     <button onclick="sendCommand('/turn_left')">Turn Left</button>
     <button onclick="sendCommand('/pre_grasp')">pre grasp</button>
     <button onclick="sendCommand('/head_up')">Heads up</button>
+
     <button onclick="sendCommand('/robot_set_home')">robot_set_home</button>
+    <button onclick="sendCommand('/start_capture')" style="background-color: #6bfd3f;">start camera</button>
+    <button onclick="sendCommand('/stop_capture')" style="background-color: #db3e3e;">stop camera</button>
+
     </div>
 
 
