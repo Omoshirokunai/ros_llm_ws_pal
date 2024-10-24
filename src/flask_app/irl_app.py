@@ -20,7 +20,7 @@ from flask import (
 )
 from PIL import Image
 from robot_control_over_ssh import RobotControl
-
+from sensor_data import trigger_capture_script
 # from sensor_data import RobotSensors
 from werkzeug.exceptions import HTTPException
 
@@ -39,6 +39,22 @@ def index():
 #     return Response(frame,
 #                     mimetype='multipart/x-mixed-replace; boundary=frame')
 # Route to serve the image
+# Route to trigger the camera capture script if not running
+@app.route('/start_capture')
+def start_capture():
+    success = trigger_capture_script()
+    if success:
+        return "Camera capture started or already running."
+    else:
+        return "Failed to start camera capture."
+# Route to stop the camera capture script
+@app.route('/stop_capture')
+def stop_capture():
+    success = trigger_stop_script()
+    if success:
+        return "Camera capture stopped."
+    else:
+        return "Failed to stop camera capture."
 latest_frame = None
 frame_lock = threading.Lock()
 def generate_frames():
