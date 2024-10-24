@@ -13,7 +13,7 @@
             img.src = "{{ url_for('video_feed') }}" + "?t=" + new Date().getTime();
         }
         // Update the camera feed every 100 milliseconds
-        setInterval(updateCameraFeed, 100);
+        setInterval(updateCameraFeed, 12000);
     </script>
 </head>
 <body>

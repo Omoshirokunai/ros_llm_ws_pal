@@ -19,6 +19,7 @@ local_image_path =os.environ.get("LOCAL_IMAGE_PATH")
 remote_image_path  = os.environ.get("REMOTE_IMAGE_PATH")
 run_capture_script = os.environ.get("RUN_CAPTURE_SCRIPT")
 stop_capture_script =os.environ.get("STOP_CAPTURE_SCRIPT")
+expected_image_size = 120529
 
 # Function to trigger the bash script via SSH
 def trigger_capture_script():
@@ -68,14 +69,13 @@ def trigger_stop_script():
 
 # Function to fetch the image via SSH
 def fetch_image_via_ssh():
-
+    # time.sleep(0.3)
     if not all([ssh_user, ssh_host, password]):
         print("Missing SSH configuration in environment variables.")
         return
 
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
     try:
 
         ssh_client.connect(ssh_host, username=ssh_user, port=ssh_port, password=password)
@@ -84,7 +84,16 @@ def fetch_image_via_ssh():
         try:
             # run_camera_capture_script()
             # sftp.get(REMOTE_IMAGE_PATH, LOCAL_IMAGE_PATH)
-            sftp.get(remote_image_path, local_image_path)
+            # sftp.get(remote_image_path, local_image_path)
+            while True:
+                sftp.get(remote_image_path, local_image_path, max_concurrent_prefetch_requests=20)
+
+                if os.path.getsize(local_image_path) >= expected_image_size:
+                    print(os.path.getsize(local_image_path))
+                    break
+                time.sleep(6)  # Wait for 1 second before checking again
+            time.sleep(6)
+
             # print(f"Failed to fetch image: {e}")
         finally:
             sftp.close()
@@ -92,7 +101,7 @@ def fetch_image_via_ssh():
         print(f"Failed to connect to SSH server: {e}")
     finally:
         ssh_client.close()
-    time.sleep(0.3)
+
 # # Function to run the camera capture script via SSH
 # def run_camera_capture_script():
 #     ##!FIX: command is either not being executed or just locking a thread without doing anything

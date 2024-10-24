@@ -61,6 +61,7 @@ def stop_capture():
 latest_frame = None
 frame_lock = threading.Lock()
 def generate_frames():
+
     load_dotenv()
     LOCAL_IMAGE_PATH = getenv("LOCAL_IMAGE_PATH")
     while True:
@@ -71,7 +72,7 @@ def generate_frames():
                 image = image_file.read()
                 yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n\r\n')
-        # time.sleep(0.2)
+        time.sleep(12)
 @app.route('/video_feed')
 def video_feed():
     fetch_image_via_ssh()
@@ -124,4 +125,5 @@ def turn_left():
 #     return response
 
 if __name__ == '__main__':
+    threading.Thread(target=generate_frames, daemon=True).start()
     app.run(host='0.0.0.0', port=5001, debug=True)
