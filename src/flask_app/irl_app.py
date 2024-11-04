@@ -58,6 +58,7 @@ def stop_capture():
         return "Camera capture stopped."
     else:
         return "Failed to stop camera capture."
+
 latest_frame = None
 frame_lock = threading.Lock()
 def generate_frames():
@@ -73,9 +74,14 @@ def generate_frames():
                 yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n\r\n')
         time.sleep(12)
+
+def fetch_images_continuously():
+    while True:
+        fetch_image_via_ssh()
+        time.sleep(12)
 @app.route('/video_feed')
 def video_feed():
-    fetch_image_via_ssh()
+    # fetch_image_via_ssh()
 
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -125,5 +131,6 @@ def turn_left():
 #     return response
 
 if __name__ == '__main__':
-    threading.Thread(target=generate_frames, daemon=True).start()
+    # threading.Thread(target=generate_frames, daemon=True).start()
+    threading.Thread(target=fetch_images_continuously, daemon=True).start()
     app.run(host='0.0.0.0', port=5001, debug=True)
