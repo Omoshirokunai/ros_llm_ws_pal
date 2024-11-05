@@ -50,9 +50,21 @@
             <textarea id="text-area" rows="5" cols="60" title="user-prompt" name="prompt"></textarea>
         <button type="submit" id="send">Send</button>
         </form>
-        <form action="/robot_set_home" method="post">
-            <button type="submit">Stop LLM Control</button>
+
+
+    </div>
+
+    <div class="text-area">
+        <label for="text-area">Enter your command:</label>
+        <form id="llm-command-form">
+            <textarea id="text-area" rows="5" cols="60" title="user-prompt" name="prompt"></textarea>
+            <button type="submit" id="send">Send to LLM</button>
+
+            <form action="/robot_set_home" method="post">
+                <button type="submit">Stop LLM Control</button>
+            </form>
         </form>
+        <div id="llm-response"></div>
     </div>
 
     <script>

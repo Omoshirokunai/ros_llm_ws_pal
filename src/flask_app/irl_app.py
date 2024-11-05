@@ -1,8 +1,10 @@
 import base64
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
-from os import getenv
+from os import getenv, path
+from queue import Queue
 
 from dotenv import load_dotenv
 
@@ -18,6 +20,7 @@ from flask import (
     send_file,
     url_for,
 )
+from LLM_robot_control_models import control_robot, generate_subgoals, get_feedback
 from PIL import Image
 from robot_control_over_ssh import RobotControl
 from sensor_data import fetch_image_via_ssh, trigger_capture_script, trigger_stop_script
@@ -27,6 +30,10 @@ from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 robot_control = RobotControl()
+executor = ThreadPoolExecutor(max_workers=3)
+command_queue = Queue()
+camera_thread = None
+llm_thread = None
 # robot_sensors = RobotSensors()
 
 @app.route('/')
@@ -34,12 +41,6 @@ def index():
     return render_template('irl_index.html')
 
 
-# @app.route('/camera_feed')
-# def camera_feed():
-#     frame = robot_sensors.get_camera_data()
-#     return Response(frame,
-#                     mimetype='multipart/x-mixed-replace; boundary=frame')
-# Route to serve the image
 # Route to trigger the camera capture script if not running
 @app.route('/start_capture', methods=['GET', 'POST'])
 def start_capture():
@@ -61,6 +62,11 @@ def stop_capture():
 
 latest_frame = None
 frame_lock = threading.Lock()
+def camera_worker():
+    while True:
+        success = fetch_image_via_ssh()
+        time.sleep(12)
+
 def generate_frames():
 
     load_dotenv()
@@ -75,10 +81,10 @@ def generate_frames():
                 b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n\r\n')
         time.sleep(12)
 
-def fetch_images_continuously():
-    while True:
-        fetch_image_via_ssh()
-        time.sleep(12)
+# def fetch_images_continuously():
+#     while True:
+#         fetch_image_via_ssh()
+#         time.sleep(12)
 @app.route('/video_feed')
 def video_feed():
     # fetch_image_via_ssh()
@@ -111,26 +117,81 @@ def turn_left():
     robot_control.turn_left()
     return jsonify({"status": "success", "action": "turn_left"})
 
-# @app.errorhandler(404)
-# def page_not_found(e):
-#     # note that we set the 404 status explicitly
-#     return redirect("/")
 
-# @app.errorhandler(HTTPException)
-# def handle_exception(e):
-#     """Return JSON instead of HTML for HTTP errors."""
-#     # start with the correct headers and status code from the error
-#     response = e.get_response()
-#     # replace the body with JSON
-#     response.data = json.dumps({
-#         "code": e.code,
-#         "name": e.name,
-#         "description": e.description,
-#     })
-#     response.content_type = "application/json"
-#     return response
+# region LLM stuff
+def llm_worker():
+    while True:
+        if not command_queue.empty():
+            command = command_queue.get()
+            execute_llm_command(command)
+        time.sleep(0.1)
+
+def execute_llm_command(prompt):
+    subgoals = generate_subgoals(prompt)
+    if subgoals:
+        for subgoal in subgoals:
+            with open(getenv("LOCAL_IMAGE_PATH"), 'rb') as current_image_file:
+                current_image = current_image_file.read()
+            with open(path.join(path.dirname(getenv("LOCAL_IMAGE_PATH")), "previous.jpg"), 'rb') as previous_image_file:
+                previous_image = previous_image_file.read()
+
+            action = control_robot(subgoal, current_image, previous_image)
+            if action != "failed to understand":
+                robot_control.execute_command(action)
+@app.route('/send_prompt', methods=['POST'])
+def send_prompt():
+    data = request.get_json()
+    prompt = data.get('prompt')
+    command_queue.put(prompt)
+    return jsonify({"status": "success", "message": "Command queued"})
+
+#endregion
+
+# region Robot control routes
+# Flask route to handle the user prompt and control the robot
+# @app.route('/send_prompt', methods=['POST'])
+# def send_prompt():
+#     user_prompt = request.form.get('prompt')
+#     subgoals = generate_subgoals(user_prompt)
+#     if not subgoals:
+#         return jsonify({"status": "error", "message": "Failed to generate subgoals"})
+
+#     current_image_path = getenv("LOCAL_IMAGE_PATH")
+#     previous_image_path = path.join(path.dirname(current_image_path), "previous.jpg")
+
+#     with open(current_image_path, 'rb') as current_image_file:
+#         current_image = current_image_file.read()
+
+#     with open(previous_image_path, 'rb') as previous_image_file:
+#         previous_image = previous_image_file.read()
+
+#     for subgoal in subgoals:
+#         action = control_robot(subgoal, current_image, previous_image)
+#         if action == "failed to understand":
+#             return jsonify({"status": "error", "message": "Robot control model failed to understand the subgoal"})
+
+#         feedback = get_feedback(current_image, previous_image)
+#         if feedback == "subgoal complete":
+#             continue
+#         elif feedback == "main goal complete":
+#             break
+#         else:
+#             return jsonify({"status": "error", "message": "Feedback model failed to understand the images"})
+
+#     return jsonify({"status": "success", "message": "All subgoals completed"})
+# # endregion
+
+
+
 
 if __name__ == '__main__':
     # threading.Thread(target=generate_frames, daemon=True).start()
-    threading.Thread(target=fetch_images_continuously, daemon=True).start()
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # threading.Thread(target=fetch_images_continuously, daemon=True).start()
+    # Start camera thread
+    camera_thread = threading.Thread(target=camera_worker, daemon=True)
+    camera_thread.start()
+
+    # Start LLM thread
+    llm_thread = threading.Thread(target=llm_worker, daemon=True)
+    llm_thread.start()
+    app.run(host='0.0.0.0', port=5001, debug=True, threading=True)
