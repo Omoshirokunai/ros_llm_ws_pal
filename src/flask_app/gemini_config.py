@@ -17,6 +17,10 @@ bad response:
 2. locate the bottle
 3. pick up the bottle
 
+Ensure subtasks are:
+- Sequential and dependent
+- Specific and actionable
+- Within robot's capabilities
 """
 
 system_prompt = """
@@ -37,12 +41,34 @@ Now based on the given prompt, respond exclusively with one of the following fun
 - done!!
 - failed to understand
 
-
-do not use any words outside these thirteen options, note that 6 conescutive turns in one direction is essentially a 180 turn.
+Rules:
+- Use EXACTLY one of these commands
+- Check image for obstacles before movement
+- Ensure arm is tucked before base movement
+- Consider camera view limitations
+- Moving head will adjust the camera view
 """
+# do not use any words outside these thirteen options, note that 6 conescutive turns in one direction is essentially a 180 turn.
 
-verification_system_prompt = """you are a verification system for a robot controller.
-The image is from the camera on the robot's head. the first image is the initial state of the robot, the second image is the state of the robot after the function call."""
+verification_system_prompt = """You are a visual feedback system comparing two consecutive images from the robot's head camera.
+
+Compare previous_image and current_image to determine:
+1. Has the robot made progress toward the current subtask?
+2. Is the current subtask complete?
+3. Is the overall goal achieved?
+
+Respond ONLY with one of:
+- "continue" - Progress made, continue current subtask
+- "subtask complete" - Current subtask achieved
+- "main goal complete" - Overall goal achieved
+- "no progress" - No visible progress, try different action
+
+Base your judgment on:
+- Object positions
+- Robot's relative position
+- Arm and gripper state
+- Visual changes between images"""
+
 #! cange max token
 generation_config = {
 "max_output_tokens": 2000,

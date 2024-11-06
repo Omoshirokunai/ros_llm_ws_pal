@@ -75,9 +75,10 @@ from gemini_config import (
 
 class LLMController:
     def __init__(self):
-        self.goal_setter = ollama.Ollama(model='llava-llama3')
-        self.robot_control = ollama.Ollama(model='llava-llama3')
-        self.feedback = ollama.Ollama(model='llava-llama3')
+        self.model_name = 'llava-llama3'
+        # self.goal_setter = ollama.Ollama(model='llava-llama3')
+        # self.robot_control = ollama.Ollama(model='llava-llama3')
+        # self.feedback = ollama.Ollama(model='llava-llama3')
         self.command_lock = threading.Lock()
 
     def generate_subgoals(self, prompt: str) -> Optional[list]:
@@ -87,7 +88,8 @@ class LLMController:
                     {"role": "system", "content": goal_setter_system_prompt},
                     {"role": "user", "content": prompt},
                 ]
-                response = self.goal_setter.chat(
+                response = ollama.chat(
+                    model=self.model_name,
                     messages=message,
                     stream=False,
                     options=generation_config
@@ -107,7 +109,8 @@ class LLMController:
                     {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
                     {"role": "user", "content": subgoal},
                 ]
-                response = self.robot_control.chat(
+                response = ollama.chat(
+                    model=self.model_name,
                     messages=message,
                     stream=False,
                     options=generation_config
@@ -116,4 +119,24 @@ class LLMController:
                     return response['message']['content'].strip().lower()
             except Exception as e:
                 rich.print(f"[red]Error in control_robot[red]: {e}")
+            return "failed to understand"
+
+    def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
+        with self.command_lock:
+            try:
+                message = [
+                    {"role": "system", "content": verification_system_prompt},
+                    {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
+                    {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
+                ]
+                response = ollama.chat(
+                    model=self.model_name,
+                    messages=message,
+                    stream=False,
+                    options=generation_config
+                )
+                if response and response['message']['content']:
+                    return response['message']['content'].strip().lower()
+            except Exception as e:
+                rich.print(f"[red]Error in get_feedback[red]: {e}")
             return "failed to understand"
