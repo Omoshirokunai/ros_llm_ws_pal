@@ -77,34 +77,42 @@ class LLMController:
                 - 'main goal complete' (entire goal achieved)
                 - 'no progress' (no changes detected)
                 RESPOND WITH EXACTLY ONE OF THESE OPTIONS."""
-
+                 # Correct message format for ollama
                 message = [
-                    {
-                        "role": "system",
-                        "content": formatted_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "image",
-                                "data": base64.b64encode(previous_image).decode('utf-8')
-                            },
-                            {
-                                "type": "text",
-                                "data": "Previous image"
-                            },
-                            {
-                                "type": "image",
-                                "data": base64.b64encode(current_image).decode('utf-8')
-                            },
-                            {
-                                "type": "text",
-                                "data": "Current image - Has the robot completed the task?"
-                            }
-                        ]
-                    }
-                ]
+                {"role": "system", "content": formatted_prompt},
+                {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
+                {"role": "user", "content": "Previous image shown above. Here's current image:"},
+                {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
+                {"role": "user", "content": "Based on these images, what's the task status?"}
+            ]
+
+                # message = [
+                #     {
+                #         "role": "system",
+                #         "content": formatted_prompt
+                #     },
+                #     {
+                #         "role": "user",
+                #         "content": [
+                #             {
+                #                 "type": "image",
+                #                 "data": base64.b64encode(previous_image).decode('utf-8')
+                #             },
+                #             {
+                #                 "type": "text",
+                #                 "data": "Previous image"
+                #             },
+                #             {
+                #                 "type": "image",
+                #                 "data": base64.b64encode(current_image).decode('utf-8')
+                #             },
+                #             {
+                #                 "type": "text",
+                #                 "data": "Current image - Has the robot completed the task?"
+                #             }
+                #         ]
+                #     }
+                # ]
                 # Construct message with both images
                 # message = [
                 #     {"role": "system", "content": formatted_prompt},
