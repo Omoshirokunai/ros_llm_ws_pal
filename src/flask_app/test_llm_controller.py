@@ -17,7 +17,7 @@ def main():
     # Get image paths from environment
     current_image_path = os.getenv("LOCAL_IMAGE_PATH")
     previous_image_path = os.path.join(os.path.dirname(current_image_path), "previous.jpg")
-
+    controller.debug = True  # Enable debug output
     while True:
         # Get user input
         prompt = Prompt.ask("\n[cyan]Enter your command[/cyan] (or 'quit' to exit)")
