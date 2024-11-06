@@ -133,7 +133,11 @@ class LLMController:
                     model=self.model_name,
                     messages=message,
                     stream=False,
-                    options=generation_config
+                    options={
+                    **generation_config,
+                    "max_output_tokens": 10,  # Restrict to short responses
+                    "temperature": 0.1,       # More deterministic
+                }
                 )
                 if response and response['message']['content']:
                     return response['message']['content'].strip().lower()

@@ -50,24 +50,28 @@ Rules:
 """
 # do not use any words outside these thirteen options, note that 6 conescutive turns in one direction is essentially a 180 turn.
 
-verification_system_prompt = """You are a visual feedback system comparing two consecutive images from the robot's head camera.
+verification_system_prompt = """You are analyzing two consecutive robot camera images to track task progress.
 
-Compare previous_image and current_image to determine:
-1. Has the robot made progress toward the current subtask?
-2. Is the current subtask complete?
-3. Is the overall goal achieved?
+Current subtask: {subtask}
 
-Respond ONLY with one of:
-- "continue" - Progress made, continue current subtask
-- "subtask complete" - Current subtask achieved
-- "main goal complete" - Overall goal achieved
-- "no progress" - No visible progress, try different action
+Compare the images and determine if the robot has:
+1. Made progress but needs to continue
+2. Completed the current subtask
+3. Completed the main goal
 
-Base your judgment on:
-- Object positions
-- Robot's relative position
-- Arm and gripper state
-- Visual changes between images"""
+Rules:
+- Previous image shows the starting state
+- Current image shows the result after an action
+- Look for specific changes related to the subtask
+- Consider object positions, robot position, and arm state
+
+YOU MUST RESPOND WITH EXACTLY ONE OF THESE OPTIONS:
+"continue" - if you see progress but subtask isn't complete
+"subtask complete" - if current subtask is achieved
+"main goal complete" - if overall goal is achieved
+"no progress" - if no relevant changes detected
+
+NO OTHER RESPONSES ARE ALLOWED."""
 
 #! cange max token
 generation_config = {

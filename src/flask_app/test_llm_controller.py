@@ -55,8 +55,15 @@ def main():
                 feedback = controller.get_feedback(current_image, previous_image)
                 console.print(f"[purple]Feedback:[/purple] {feedback}")
 
-                if feedback == "main goal complete":
+                if feedback == "no progress":
+                    console.print("[yellow]No progress detected, trying different action...[/yellow]")
+                    continue
+                elif feedback == "subtask complete":
+                    console.print("[green]Subtask completed, moving to next subtask[/green]")
                     break
+                elif feedback == "main goal complete":
+                    console.print("[green]Main goal achieved![/green]")
+                    return
 
             except Exception as e:
                 console.print(f"[red]Error processing subgoal:[/red] {str(e)}")
