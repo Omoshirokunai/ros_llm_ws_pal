@@ -249,4 +249,4 @@ if __name__ == '__main__':
     # Start LLM thread
     llm_thread = threading.Thread(target=llm_worker, daemon=True)
     llm_thread.start()
-    app.run(host='0.0.0.0', port=5001, debug=True, threading=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

@@ -71,7 +71,7 @@ Base your judgment on:
 
 #! cange max token
 generation_config = {
-"max_output_tokens": 2000,
+"max_output_tokens": 20,
 "temperature": 0.2,
 "top_p": 0.98,
 }
