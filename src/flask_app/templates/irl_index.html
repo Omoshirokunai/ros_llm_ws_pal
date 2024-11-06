@@ -28,7 +28,7 @@
 
 
     <br/>
-    <div>
+    <!-- <div>
         <button onclick="sendCommand('/move_forward')">Move Forward</button>
     <button onclick="sendCommand('/turn_right')">Turn Right</button>
     <button onclick="sendCommand('/turn_left')">Turn Left</button>
@@ -39,8 +39,41 @@
     <button onclick="sendCommand('/start_capture')" style="background-color: #6bfd3f;">start camera</button>
     <button onclick="sendCommand('/stop_capture')" style="background-color: #db3e3e;">stop camera</button>
 
-    </div>
+    </div> -->
 
+    <div class="control-buttons">
+        <form action="{{ url_for('move_forward') }}" method="post" class="control-form">
+            <button type="submit">Move Forward</button>
+        </form>
+
+        <form action="{{ url_for('turn_right') }}" method="post" class="control-form">
+            <button type="submit">Turn Right</button>
+        </form>
+
+        <form action="{{ url_for('turn_left') }}" method="post" class="control-form">
+            <button type="submit">Turn Left</button>
+        </form>
+
+        <form action="{{ url_for('pre_grasp') }}" method="post" class="control-form">
+            <button type="submit">Pre Grasp</button>
+        </form>
+
+        <form action="{{ url_for('head_up') }}" method="post" class="control-form">
+            <button type="submit">Head Up</button>
+        </form>
+
+        <form action="{{ url_for('robot_set_home') }}" method="post" class="control-form">
+            <button type="submit">Robot Set Home</button>
+        </form>
+
+        <form action="{{ url_for('start_capture') }}" method="post" class="control-form">
+            <button type="submit" class="success-btn">Start Camera</button>
+        </form>
+
+        <form action="{{ url_for('stop_capture') }}" method="post" class="control-form">
+            <button type="submit" class="danger-btn">Stop Camera</button>
+        </form>
+    </div>
 
     <br/>
 
@@ -68,30 +101,31 @@
     </div>
 
 
-    <!-- Response display using Jinja -->
-    {% if response %}
-    <div class="response-area">
-        <h3>Response:</h3>
-        <div class="response-content">
-            {{ response | safe }}
-        </div>
-    </div>
-    {% endif %}
 
-    <!-- Simple error display -->
-    {% if error %}
-    <div class="error-message">
-        {{ error }}
-    </div>
-    {% endif %}
 
     <script>
         // Minimal JavaScript for basic form handling
-        document.getElementById('command-form').addEventListener('submit', function(e) {
-            if (e.submitter.value === 'manual') {
-                // Let form submit normally for manual commands
-                return true;
-            }
+        document.querySelectorAll('.control-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const button = form.querySelector('button');
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+                    console.log('Response:', data);
+                } catch (error) {
+                    console.error('Error:', error);
+                } finally {
+                    button.disabled = false;
+                }
+            });
         });
     </script>
 <!--
