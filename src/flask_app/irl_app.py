@@ -202,40 +202,6 @@ def send_prompt():
 
 #endregion
 
-# region Robot control routes
-# Flask route to handle the user prompt and control the robot
-# @app.route('/send_prompt', methods=['POST'])
-# def send_prompt():
-#     user_prompt = request.form.get('prompt')
-#     subgoals = generate_subgoals(user_prompt)
-#     if not subgoals:
-#         return jsonify({"status": "error", "message": "Failed to generate subgoals"})
-
-#     current_image_path = getenv("LOCAL_IMAGE_PATH")
-#     previous_image_path = path.join(path.dirname(current_image_path), "previous.jpg")
-
-#     with open(current_image_path, 'rb') as current_image_file:
-#         current_image = current_image_file.read()
-
-#     with open(previous_image_path, 'rb') as previous_image_file:
-#         previous_image = previous_image_file.read()
-
-#     for subgoal in subgoals:
-#         action = control_robot(subgoal, current_image, previous_image)
-#         if action == "failed to understand":
-#             return jsonify({"status": "error", "message": "Robot control model failed to understand the subgoal"})
-
-#         feedback = get_feedback(current_image, previous_image)
-#         if feedback == "subgoal complete":
-#             continue
-#         elif feedback == "main goal complete":
-#             break
-#         else:
-#             return jsonify({"status": "error", "message": "Feedback model failed to understand the images"})
-
-#     return jsonify({"status": "success", "message": "All subgoals completed"})
-# # endregion
-
 
 
 
