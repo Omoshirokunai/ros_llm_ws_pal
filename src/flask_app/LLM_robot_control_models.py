@@ -127,7 +127,7 @@ class LLMController:
                 message = [
                     {"role": "system", "content": verification_system_prompt},
                     {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
-                    {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
+                    # {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
                 ]
                 response = ollama.chat(
                     model=self.model_name,
@@ -137,6 +137,12 @@ class LLMController:
                     **generation_config,
                     "max_output_tokens": 10,  # Restrict to short responses
                     "temperature": 0.1,       # More deterministic
+                    'safety_settings': {
+                    'use_safety_model': True,
+                    'safety_model': 'openai/safetensors',
+                    'safety_threshold': 0.5,
+                    'safety_top_p': 0.95,
+                    'safety_temperature': 0.7}
                 }
                 )
                 if response and response['message']['content']:
