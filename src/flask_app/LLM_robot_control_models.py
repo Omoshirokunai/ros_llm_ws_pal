@@ -18,9 +18,12 @@ class LLMController:
         self.model_name = 'llava-llama3'
         self.command_lock = threading.Lock()
         self.debug = True  # Enable debug logging
+        self.current_goal = None
+        self.current_subtask = None
 
 
     def generate_subgoals(self, prompt: str) -> Optional[list]:
+        self.current_goal = prompt
         with self.command_lock:
             try:
                 message = [
@@ -40,6 +43,8 @@ class LLMController:
             return None
 
     def control_robot(self, subgoal: str, current_image: bytes, previous_image: bytes) -> str:
+        self.current_subtask = subgoal
+
         with self.command_lock:
             try:
                 message = [
