@@ -44,7 +44,7 @@
 
     <br/>
 
-    <div class="text-area">
+    <!-- <div class="text-area">
         <label for="text-area">Enter your command:</label>
         <form action="/" method="post" id="send-form" >
             <textarea id="text-area" rows="5" cols="60" title="user-prompt" name="prompt"></textarea>
@@ -52,7 +52,7 @@
         </form>
 
 
-    </div>
+    </div> -->
 
     <div class="text-area">
         <label for="text-area">Enter your command:</label>
@@ -67,6 +67,34 @@
         <div id="llm-response"></div>
     </div>
 
+
+    <!-- Response display using Jinja -->
+    {% if response %}
+    <div class="response-area">
+        <h3>Response:</h3>
+        <div class="response-content">
+            {{ response | safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Simple error display -->
+    {% if error %}
+    <div class="error-message">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <script>
+        // Minimal JavaScript for basic form handling
+        document.getElementById('command-form').addEventListener('submit', function(e) {
+            if (e.submitter.value === 'manual') {
+                // Let form submit normally for manual commands
+                return true;
+            }
+        });
+    </script>
+<!--
     <script>
         function sendCommand(endpoint) {
             fetch(endpoint, { method: 'POST' })
@@ -74,6 +102,6 @@
                 .then(data => console.log(data))
                 .catch(error => console.error('Error:', error));
         }
-    </script>
+    </script> -->
 </body>
 </html>

@@ -6,6 +6,7 @@ from io import BytesIO
 from os import getenv, path
 from queue import Queue
 
+import rich
 from dotenv import load_dotenv
 
 # import cv2
@@ -20,7 +21,9 @@ from flask import (
     send_file,
     url_for,
 )
-from LLM_robot_control_models import control_robot, generate_subgoals, get_feedback
+
+# from LLM_robot_control_models import control_robot, generate_subgoals, get_feedback
+from LLM_robot_control_models import LLMController
 from PIL import Image
 from robot_control_over_ssh import RobotControl
 from sensor_data import fetch_image_via_ssh, trigger_capture_script, trigger_stop_script
@@ -30,17 +33,22 @@ from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 robot_control = RobotControl()
+llm_controller = LLMController()
+
+# Thread management
 executor = ThreadPoolExecutor(max_workers=3)
 command_queue = Queue()
 camera_thread = None
 llm_thread = None
-# robot_sensors = RobotSensors()
 
+
+# region home
 @app.route('/')
 def index():
     return render_template('irl_index.html')
+# endregion
 
-
+# region camera
 # Route to trigger the camera capture script if not running
 @app.route('/start_capture', methods=['GET', 'POST'])
 def start_capture():
@@ -90,7 +98,9 @@ def video_feed():
     # fetch_image_via_ssh()
 
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+# endregion
 
+# region robot control
 @app.route('/robot_set_home',  methods=['POST'])
 def robot_set_home():
     robot_control.robot_set_home()
@@ -116,7 +126,7 @@ def turn_right():
 def turn_left():
     robot_control.turn_left()
     return jsonify({"status": "success", "action": "turn_left"})
-
+# endregion
 
 # region LLM stuff
 def llm_worker():
@@ -127,17 +137,62 @@ def llm_worker():
         time.sleep(0.1)
 
 def execute_llm_command(prompt):
-    subgoals = generate_subgoals(prompt)
-    if subgoals:
-        for subgoal in subgoals:
-            with open(getenv("LOCAL_IMAGE_PATH"), 'rb') as current_image_file:
-                current_image = current_image_file.read()
-            with open(path.join(path.dirname(getenv("LOCAL_IMAGE_PATH")), "previous.jpg"), 'rb') as previous_image_file:
-                previous_image = previous_image_file.read()
+    try:
+        # Generate subgoals using LLMController
+        subgoals = llm_controller.generate_subgoals(prompt)
+        if not subgoals:
+            rich.print("[red]Failed to generate subgoals[/red]")
+            return
 
-            action = control_robot(subgoal, current_image, previous_image)
-            if action != "failed to understand":
-                robot_control.execute_command(action)
+        rich.print(f"[green]Generated subgoals:[/green] {subgoals}")
+
+        for subgoal in subgoals:
+            try:
+                # Read current and previous images
+                with open(getenv("LOCAL_IMAGE_PATH"), 'rb') as current_image_file:
+                    current_image = current_image_file.read()
+                with open(path.join(path.dirname(getenv("LOCAL_IMAGE_PATH")), "previous.jpg"), 'rb') as previous_image_file:
+                    previous_image = previous_image_file.read()
+
+                # Get robot action from LLMController
+                action = llm_controller.control_robot(subgoal, current_image, previous_image)
+                if action == "failed to understand":
+                    rich.print(f"[yellow]Failed to understand subgoal:[/yellow] {subgoal}")
+                    continue
+
+                rich.print(f"[blue]Executing action:[/blue] {action}")
+
+                                # Execute robot action
+                if hasattr(robot_control, action):
+                    getattr(robot_control, action)()
+
+                # Get feedback
+                feedback = llm_controller.get_feedback(current_image, previous_image)
+                rich.print(f"[purple]Feedback:[/purple] {feedback}")
+
+                if feedback == "main goal complete":
+                    break
+
+            except Exception as e:
+                rich.print(f"[red]Error processing subgoal:[/red] {str(e)}")
+                continue
+
+    except Exception as e:
+        rich.print(f"[red]Error in execute_llm_command:[/red] {str(e)}")
+
+
+# def execute_llm_command(prompt):
+#     subgoals = generate_subgoals(prompt)
+#     if subgoals:
+#         for subgoal in subgoals:
+#             with open(getenv("LOCAL_IMAGE_PATH"), 'rb') as current_image_file:
+#                 current_image = current_image_file.read()
+#             with open(path.join(path.dirname(getenv("LOCAL_IMAGE_PATH")), "previous.jpg"), 'rb') as previous_image_file:
+#                 previous_image = previous_image_file.read()
+
+#             action = control_robot(subgoal, current_image, previous_image)
+#             if action != "failed to understand":
+#                 robot_control.execute_command(action)
 @app.route('/send_prompt', methods=['POST'])
 def send_prompt():
     data = request.get_json()
