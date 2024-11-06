@@ -54,7 +54,9 @@ class LLMController:
                     {"role": "user", "content": subgoal},
                 ]
                 response = ollama.chat(
-                    model=self.model_name,
+                    # model=self.model_name,
+                    model='llava:13b',
+
                     messages=message,
                     stream=False,
                     options=generation_config
@@ -91,21 +93,16 @@ class LLMController:
                     rich.print(f"Current goal: {self.current_goal}")
                     rich.print(f"Subtask: {self.current_subtask}")
                     rich.print("Images included: Previous and Current")
+                    # model=self.model_name,
                 response = ollama.chat(
-                    model=self.model_name,
                     messages=message,
+                    model='llava:13b',
                     stream=False,
                     options={
                     **generation_config,
                     "max_output_tokens": 20,  # Restrict to short responses
                     "max_tokens" : 10,
                     "temperature": 0.2,       # More deterministic
-                    # 'safety_settings': {
-                    # 'use_safety_model': True,
-                    # 'safety_model': 'openai/safetensors',
-                    # 'safety_threshold': 0.5,
-                    # 'safety_top_p': 0.95,
-                    # 'safety_temperature': 0.7}
                 }
                 )
                 if response and response['message']['content']:

@@ -20,9 +20,9 @@ def main():
     controller.debug = True  # Enable debug output
     while True:
         # Get user input
-        prompt = Prompt.ask("\n[cyan]Enter your command[/cyan] (or 'quit' to exit)")
+        prompt = Prompt.ask("\n[cyan]Enter your command[/cyan] (or '\[q]uit' to exit)")
 
-        if prompt.lower() == 'quit':
+        if prompt.lower() in ['quit', 'q']:
             break
 
         # Generate subgoals
