@@ -114,6 +114,7 @@ def head_up():
     print("Waiting for images...")
 @app.route('/move_forward', methods=['POST'])
 def move_forward():
+    print("moving")
     robot_control.move_forward()
     return jsonify({"status": "success", "action": "move_forward"})
 
