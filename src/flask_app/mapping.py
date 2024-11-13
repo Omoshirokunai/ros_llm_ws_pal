@@ -1,90 +1,95 @@
-# mapping.py
 
-from threading import Lock
+import threading
+import time
 
 import cv2
+
+# mapping.py
+# mapping.py
 import numpy as np
 import rospy
-from cv_bridge import CvBridge
-from nav_msgs.msg import OccupancyGrid
 from sensor_msgs.msg import LaserScan
 
 
-class SLAMMapper:
-    def __init__(self):
-        # Initialize ROS node
-        rospy.init_node('slam_mapper', anonymous=True)
+class OccupancyMapper:
+    def __init__(self, width=800, height=800, resolution=0.05):
+        # Initialize map parameters
+        self.width = width  # pixels
+        self.height = height  # pixels
+        self.resolution = resolution  # meters per pixel
+        self.map_center = (width // 2, height // 2)
 
-        # Initialize variables
-        self.map_data = None
-        self.map_lock = Lock()
-        self.bridge = CvBridge()
-        self.map_resolution = 0.1  # meters per pixel
-        self.map_width = 400      # pixels
-        self.map_height = 4000     # pixels
+        # Create empty map
+        self.map = np.zeros((height, width), dtype=np.uint8)
+        self.map_lock = threading.Lock()
 
-        # Subscribers
-        # rospy.Subscriber('/scan_raw', LaserScan, self.lidar_callback)
-        rospy.Subscriber('/map', OccupancyGrid, self.map_callback)
+        # Initialize ROS node and subscriber
+        if not rospy.get_node_uri():
+            rospy.init_node('occupancy_mapper', anonymous=True)
+        self.laser_sub = rospy.Subscriber('/scan_raw', LaserScan, self.laser_callback)
 
-        # Timer for saving map
-        rospy.Timer(rospy.Duration(3.0), self.save_map)
+        # Start update thread
+        self.update_thread = threading.Thread(target=self.update_loop)
+        self.update_thread.daemon = True
+        self.update_thread.start()
 
-    def lidar_callback(self, scan):
-        # Process incoming lidar data
+    def laser_callback(self, scan):
         with self.map_lock:
-            if self.map_data is None:
-                self.map_data = np.zeros((self.map_height, self.map_width))
+            # Clear the map for new update
+            self.map = np.zeros_like(self.map)
 
-    # def map_callback(self, map_msg):
-    #     # Convert occupancy grid to image
-    #     with self.map_lock:
-    #         map_array = np.array(map_msg.data)
-    #         map_array = map_array.reshape((map_msg.info.height, map_msg.info.width))
-    #         # Convert to image format (0-255)
-    #         map_image = np.zeros_like(map_array, dtype=np.uint8)
-    #         map_image[map_array == 0] = 255    # Free space
-    #         map_image[map_array == 100] = 0    # Obstacles
-    #         map_image[map_array == -1] = 128   # Unknown
-    #         self.map_data = map_image
-    def map_callback(self, map_msg):
-        """Handle incoming map data from gmapping"""
+            # Extract LIDAR data
+            angles = np.arange(scan.angle_min, scan.angle_max + scan.angle_increment,
+                             scan.angle_increment)
+            ranges = np.array(scan.ranges)
+
+            # Filter invalid readings
+            valid = np.isfinite(ranges) & (ranges > scan.range_min) & (ranges < scan.range_max)
+            angles = angles[valid]
+            ranges = ranges[valid]
+
+            # Convert polar to cartesian coordinates
+            x = ranges * np.cos(angles)
+            y = ranges * np.sin(angles)
+
+            # Scale to pixels and shift to map center
+            px = (x / self.resolution + self.map_center[0]).astype(int)
+            py = (y / self.resolution + self.map_center[1]).astype(int)
+
+            # Filter points within map bounds
+            valid = (px >= 0) & (px < self.width) & (py >= 0) & (py < self.height)
+            px = px[valid]
+            py = py[valid]
+
+            # Mark occupied cells
+            self.map[py, px] = 255
+
+    def update_loop(self):
+        while not rospy.is_shutdown():
+            self.save_map()
+            time.sleep(2)  # Update every 2 seconds
+
+    def save_map(self):
         with self.map_lock:
-            # Convert occupancy grid to numpy array
-            width = map_msg.info.width
-            height = map_msg.info.height
+            # Add visualization elements
+            vis_map = cv2.cvtColor(self.map, cv2.COLOR_GRAY2BGR)
 
-            if width == 0 or height == 0:
-                rospy.logwarn("Received empty map")
-                return
+            # Draw robot position at center
+            cv2.circle(vis_map, self.map_center, 5, (0, 0, 255), -1)
 
-            # Convert from 1D array to 2D
-            grid_data = np.array(map_msg.data).reshape((height, width))
+            # Draw grid lines
+            grid_spacing = int(1.0 / self.resolution)  # 1 meter grid
+            for i in range(0, self.width, grid_spacing):
+                cv2.line(vis_map, (i, 0), (i, self.height-1), (50, 50, 50), 1)
+            for i in range(0, self.height, grid_spacing):
+                cv2.line(vis_map, (0, i), (self.width-1, i), (50, 50, 50), 1)
 
-            # Convert to image format (0-255)
-            # -1 (unknown) -> 128 (gray)
-            # 0 (free) -> 255 (white)
-            # 100 (occupied) -> 0 (black)
-            image = np.ones((height, width), dtype=np.uint8) * 128
-            image[grid_data == 0] = 255    # Free space
-            image[grid_data == 100] = 0    # Obstacles
-
-            # Resize to desired dimensions
-            self.map_data = cv2.resize(image, (self.map_width, self.map_height),
-                                     interpolation=cv2.INTER_NEAREST)
-    def save_map(self, event=None):
-        with self.map_lock:
-            if self.map_data is not None:
-                cv2.imwrite('current_map.jpg', self.map_data)
-                rospy.loginfo("Map saved to current_map.jpg")
-
-    # def run(self):
-    #     rospy.spin()
+            # Save map
+            cv2.imwrite('map.jpg', vis_map)
 
 if __name__ == '__main__':
     try:
-        mapper = SLAMMapper()
+        mapper = OccupancyMapper()
         rospy.spin()
-        # mapper.run()
     except rospy.ROSInterruptException:
         pass
