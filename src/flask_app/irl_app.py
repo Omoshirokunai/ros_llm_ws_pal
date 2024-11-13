@@ -182,18 +182,6 @@ def execute_llm_command(prompt):
         rich.print(f"[red]Error in execute_llm_command:[/red] {str(e)}")
 
 
-# def execute_llm_command(prompt):
-#     subgoals = generate_subgoals(prompt)
-#     if subgoals:
-#         for subgoal in subgoals:
-#             with open(getenv("LOCAL_IMAGE_PATH"), 'rb') as current_image_file:
-#                 current_image = current_image_file.read()
-#             with open(path.join(path.dirname(getenv("LOCAL_IMAGE_PATH")), "previous.jpg"), 'rb') as previous_image_file:
-#                 previous_image = previous_image_file.read()
-
-#             action = control_robot(subgoal, current_image, previous_image)
-#             if action != "failed to understand":
-#                 robot_control.execute_command(action)
 @app.route('/send_prompt', methods=['POST'])
 def send_prompt():
     data = request.get_json()

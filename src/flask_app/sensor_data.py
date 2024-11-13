@@ -102,22 +102,5 @@ def fetch_image_via_ssh():
     finally:
         ssh_client.close()
 
-# # Function to run the camera capture script via SSH
-# def run_camera_capture_script():
-#     ##!FIX: command is either not being executed or just locking a thread without doing anything
-#     ssh_client = SingleCommandSSHClient()
-#     command = "rosrun get_tiago_camera remote_camera_reader.py"
-#     # command = "source ~/catkin_ws/devel/setup.bash && bash -c python /home/pal/catkin_ws/src/cam/remote_camera_reader.py'"
 
-#     try:
-#         print(f"Executing command: {command}")
-#         ssh_client.execute_command(command)
-#         print(f"Execution complete")
-
-#     except Exception as e:
-#         print(f"Exception while running camera capture script: {e}")
-# trigger_capture_script()
-
-# fetch_image_via_ssh()
-# trigger_stop_script()
 
