@@ -1,4 +1,5 @@
 import base64
+import os
 import threading
 from typing import Optional
 
@@ -21,6 +22,15 @@ class LLMController:
         self.current_goal = None
         self.current_subtask = None
 
+
+    def get_map_context(self):
+        """Get the current map as base64 string for LLM context"""
+        map_path = os.path.join(os.path.dirname(__file__), 'maps/current_map.png')
+        if os.path.exists(map_path):
+            with open(map_path, 'rb') as f:
+                map_bytes = f.read()
+                return base64.b64encode(map_bytes).decode('utf-8')
+        return None
 
     def generate_subgoals(self, prompt: str) -> Optional[list]:
         self.current_goal = prompt
