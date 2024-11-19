@@ -11,7 +11,10 @@
         function updateCameraFeed() {
             var img = document.getElementById('live_video');
             img.src = "{{ url_for('video_feed') }}" + "?t=" + new Date().getTime();
+            var map = document.getElementById('map_view');
+            map.src = "{{ url_for('map_feed') }}" + "?t=" + new Date().getTime();
         }
+
         // Update the camera feed every 100 milliseconds
         setInterval(updateCameraFeed, 12000);
     </script>
@@ -28,6 +31,11 @@
 
 
     <br/>
+
+    <div class="map-view">
+        <h2>Environment Map</h2>
+        <img id="map_view" src="{{ url_for('map_feed') }}" alt="Environment Map">
+    </div>
     <!-- <div>
         <button onclick="sendCommand('/move_forward')">Move Forward</button>
     <button onclick="sendCommand('/turn_right')">Turn Right</button>

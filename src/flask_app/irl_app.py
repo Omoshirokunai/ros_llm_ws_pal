@@ -24,6 +24,7 @@ from flask import (
 
 # from LLM_robot_control_models import control_robot, generate_subgoals, get_feedback
 from LLM_robot_control_models import LLMController
+from mapping import OccupancyMapper
 from PIL import Image
 from robot_control_over_ssh import RobotControl
 from sensor_data import fetch_image_via_ssh, trigger_capture_script, trigger_stop_script
@@ -47,6 +48,14 @@ llm_thread = None
 def index():
     return render_template('irl_index.html')
 # endregion
+
+# region mapfeed
+# Add route for map visualization
+@app.route('/map_feed')
+def map_feed():
+    return send_file('map.jpg', mimetype='image/jpeg')
+
+#endregion
 
 # region camera
 # Route to trigger the camera capture script if not running

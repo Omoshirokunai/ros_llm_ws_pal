@@ -80,6 +80,9 @@ class LLMController:
     def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
         with self.command_lock:
             try:
+
+                map_context = self.get_map_context()
+
                  # Format system prompt with current subtask context
                 formatted_prompt = f"""
                 Task: {self.current_subtask}
@@ -92,6 +95,8 @@ class LLMController:
                  # Correct message format for ollama
                 message = [
                 {"role": "system", "content": formatted_prompt},
+                {"role": "user", "content": map_context, "is_image": True},
+                {"role": "user", "content": "Environment map shown above. Here's previous image:"},
                 {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
                 {"role": "user", "content": "Previous image shown above. Here's current image:"},
                 {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
