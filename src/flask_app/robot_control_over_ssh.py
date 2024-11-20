@@ -16,7 +16,11 @@ class RobotControl:
         print("excuting")
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.5,0.0,0.0]' '[0.0, 0.0, 0.0]'"
         # self._execute_command_for_duration(command, duration)
-        self.ssh_client.execute_command(command)
+        try:
+            self.ssh_client.execute_command(command)
+        except Exception as e:
+            print(f"Failed to connect to SSH: {e}")
+            raise e
 
     def turn_right(self):
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]'"
