@@ -121,24 +121,25 @@ def video_feed():
 #     except Exception as e:
 #         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/robot_set_home',  methods=['POST'])
+@app.route('/robot_set_home',  methods=['POST', 'GET'])
 def robot_set_home():
     robot_control.robot_set_home()
-    return jsonify({"status": "success", "action": "robot_set_home"})
+    # return jsonify({"status": "success", "action": "robot_set_home"})
+    return '', 204
 
 # def head_up():
 #     print("Waiting for images...")
-@app.route('/move_forward', methods=['POST'])
+@app.route('/move_forward', methods=['POST', 'GET'])
 def move_forward():
     robot_control.move_forward()
     return jsonify({"status": "success", "action": "move_forward"})
 
-@app.route('/turn_right', methods=['POST'])
+@app.route('/turn_right', methods=['POST', 'GET'])
 def turn_right():
     robot_control.turn_right()
     return jsonify({"status": "success", "action": "turn_right"})
 
-@app.route('/turn_left', methods=['POST'])
+@app.route('/turn_left', methods=['POST', 'GET'])
 def turn_left():
     robot_control.turn_left()
     return jsonify({"status": "success", "action": "turn_left"})
