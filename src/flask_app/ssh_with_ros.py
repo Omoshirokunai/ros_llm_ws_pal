@@ -21,14 +21,14 @@ class SingleCommandSSHClient:
         self.PASS = os.getenv("PASS")
         self.ROS_SETUP_CMD = os.getenv("ROS_SETUP_CMD", "source ~/.bashrc")
 
-    def execute_command(self, command, use_ros=True):
+    def execute_command(self, command):
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh_client.connect(self.SSH_HOST, username=self.SSH_USER, port=self.SSH_PORT, password=self.PASS)
-        if use_ros:
-            full_command = f"{self.ROS_SETUP_CMD} && {command}"
-        else:
-            full_command = command
+        # if use_ros:
+        full_command = f"{self.ROS_SETUP_CMD} && {command}"
+        # else:
+        #     full_command = command
         ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
         output = ssh_stdout.read().decode()
         ssh_client.close()
