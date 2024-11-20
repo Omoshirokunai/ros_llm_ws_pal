@@ -27,7 +27,12 @@ from LLM_robot_control_models import LLMController
 from mapping import OccupancyMapper
 from PIL import Image
 from robot_control_over_ssh import RobotControl
-from sensor_data import fetch_image_via_ssh, trigger_capture_script, trigger_stop_script
+from sensor_data import (
+    fetch_image_via_ssh,
+    fetch_map_via_ssh,
+    trigger_capture_script,
+    trigger_stop_script,
+)
 
 # from sensor_data import RobotSensors
 from werkzeug.exceptions import HTTPException
@@ -50,6 +55,16 @@ def index():
 # endregion
 
 # region mapfeed
+# Add map worker thread
+map_thread = None
+
+def map_worker():
+    """Background thread to continuously fetch map updates"""
+    while True:
+        fetch_map_via_ssh()
+        time.sleep(5)  # Update map every 5 seconds
+
+
 # Add route for map visualization
 @app.route('/map_feed')
 def map_feed():
@@ -206,6 +221,11 @@ def send_prompt():
 if __name__ == '__main__':
     # threading.Thread(target=generate_frames, daemon=True).start()
     # threading.Thread(target=fetch_images_continuously, daemon=True).start()
+
+    # Add map thread
+    map_thread = threading.Thread(target=map_worker, daemon=True)
+    map_thread.start()
+
     # Start camera thread
     camera_thread = threading.Thread(target=camera_worker, daemon=True)
     camera_thread.start()

@@ -102,5 +102,47 @@ def fetch_image_via_ssh():
     finally:
         ssh_client.close()
 
+# In sensor_data.py
+
+# Add new environment variables at the top with the other env vars:
+remote_map_path = os.environ.get("REMOTE_MAP_PATH", "/home/pal/map.jpg")
+local_map_path = os.environ.get("LOCAL_MAP_PATH", "map.jpg")
+expected_map_size = 100000  # Adjust based on typical map file size
+
+def fetch_map_via_ssh():
+    """Fetch the map.jpg file from remote robot via SSH"""
+    if not all([ssh_user, ssh_host, password]):
+        print("Missing SSH configuration in environment variables.")
+        return False
+
+    ssh_client = paramiko.SSHClient()
+    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        ssh_client.connect(ssh_host, username=ssh_user, port=ssh_port, password=password)
+        sftp = ssh_client.open_sftp()
+
+        try:
+            while True:
+                try:
+                    sftp.get(remote_map_path, local_map_path)
+
+                    if os.path.exists(local_map_path) and os.path.getsize(local_map_path) > 0:
+                        print(f"Map fetched successfully: {os.path.getsize(local_map_path)} bytes")
+                        return True
+                except FileNotFoundError:
+                    print("Map file not found on remote system, waiting...")
+                except Exception as e:
+                    print(f"Error fetching map: {e}")
+
+                time.sleep(2)  # Wait before retry
+
+        finally:
+            sftp.close()
+    except Exception as e:
+        print(f"Failed to connect to SSH server: {e}")
+        return False
+    finally:
+        ssh_client.close()
+
 
 

@@ -13,6 +13,8 @@ from gemini_config import (
     verification_system_prompt,
 )
 
+from flask_app.sensor_data import fetch_image_via_ssh
+
 
 class LLMController:
     def __init__(self):
@@ -23,14 +25,63 @@ class LLMController:
         self.current_subtask = None
 
 
+    # def get_map_context(self):
+    #     """Get the current map as base64 string for LLM context"""
+    #     map_path = os.path.join(os.path.dirname(__file__), 'maps/map.jpg')
+    #     if os.path.exists(map_path):
+    #         with open(map_path, 'rb') as f:
+    #             map_bytes = f.read()
+    #             return base64.b64encode(map_bytes).decode('utf-8')
+    #     return None
+
     def get_map_context(self):
         """Get the current map as base64 string for LLM context"""
-        map_path = os.path.join(os.path.dirname(__file__), 'maps/current_map.png')
-        if os.path.exists(map_path):
-            with open(map_path, 'rb') as f:
-                map_bytes = f.read()
-                return base64.b64encode(map_bytes).decode('utf-8')
-        return None
+        try:
+            with self.command_lock:
+                map_path = os.path.join(os.path.dirname(__file__), 'maps/map.jpg')
+                prev_map_path = os.path.join(os.path.dirname(__file__), 'maps/prev_map.jpg')
+
+                if not os.path.exists(map_path):
+                    rich.print("[yellow]Warning: Map file not found[/yellow]")
+                    return None
+
+                # Read both current and previous maps
+                with open(map_path, 'rb') as f:
+                    map_bytes = f.read()
+
+                # Include previous map if available
+                prev_map_bytes = None
+                if os.path.exists(prev_map_path):
+                    with open(prev_map_path, 'rb') as f:
+                        prev_map_bytes = f.read()
+
+                return {
+                    'current': base64.b64encode(map_bytes).decode('utf-8'),
+                    'previous': base64.b64encode(prev_map_bytes).decode('utf-8') if prev_map_bytes else None
+                }
+
+        except Exception as e:
+            rich.print(f"[red]Error getting map context:[/red] {str(e)}")
+            return None
+    def get_remote_images(self):
+        """Fetch current and previous camera images from remote robot"""
+        try:
+            # Get paths from environment
+            remote_path = os.getenv("REMOTE_IMAGE_PATH")
+            remote_prev_path = os.path.join(os.path.dirname(remote_path), "previous.jpg")
+
+            # Fetch images via SSH
+            current_image = fetch_image_via_ssh(remote_path)
+            previous_image = fetch_image_via_ssh(remote_prev_path)
+
+            if not current_image or not previous_image:
+                raise Exception("Failed to fetch images from remote")
+
+            return current_image, previous_image
+
+        except Exception as e:
+            rich.print(f"[red]Error getting remote images:[/red] {str(e)}")
+            return None, None
 
     def generate_subgoals(self, prompt: str) -> Optional[list]:
         self.current_goal = prompt
@@ -78,6 +129,12 @@ class LLMController:
             return "failed to understand"
 
     def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
+         # Get fresh images from remote
+        current, previous = self.get_remote_images()
+
+        if not current or not previous:
+            return "failed to get images"
+
         with self.command_lock:
             try:
 
