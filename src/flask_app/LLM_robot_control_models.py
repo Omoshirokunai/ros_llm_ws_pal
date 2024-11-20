@@ -77,10 +77,30 @@ class LLMController:
 
         with self.command_lock:
             try:
+                system_prompt_ = f"""
+                Your Goal: {self.current_goal}
+                current Task: {self.current_subtask}
+                in order to achive your goal and current task, would you like to:
+                - move forward
+                - move backward
+                - move left
+                - move right
+                - move head up
+                - move head down
+                - move head left
+                - move head right
+
+                RESPOND WITH EXACTLY ONE OF THESE OPTIONS..
+                """
+                # Load map for context
+                with open(LOCAL_PATHS['map'], 'rb') as f:
+                    map_context = base64.b64encode(f.read()).decode('utf-8')
+
                 message = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
+                    {"role": "system", "content": system_prompt_},
                     {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
+                    {"role": "user", "content": "Above is what your camera can see. Here is a Lidar map of the Environment:"},
+                    {"role": "user", "content": map_context, "is_image": True},
                     {"role": "user", "content": subgoal},
                 ]
                 response = ollama.chat(
@@ -91,8 +111,20 @@ class LLMController:
                     stream=False,
                     options=generation_config
                 )
+                valid_responses = [
+                    "move forward",
+                    "move backward",
+                    "move left",
+                    "move right",
+                    "move head up",
+                    "move head down",
+                    "move head left",
+                    "move head right",
+                ]
                 if response and response['message']['content']:
-                    return response['message']['content'].strip().lower()
+                    response = response['message']['content'].strip().lower()
+                    return response
+                    # return response['message']['content'].strip().lower()
             except Exception as e:
                 rich.print(f"[red]Error in control_robot[red]: {e}")
             return "failed to understand"

@@ -44,11 +44,7 @@ def main():
                 if not fetch_images():
                     console.print("[red]Failed to fetch required images[/red]")
                     continue
-                # Load images
-                # with open(current_image_path, 'rb') as curr_file, \
-                #      open(previous_image_path, 'rb') as prev_file:
-                #     current_image = curr_file.read()
-                #     previous_image = prev_file.read()
+
                 with open(LOCAL_PATHS['current'], 'rb') as curr_file, \
                     open(LOCAL_PATHS['previous'], 'rb') as prev_file:
                         current_image = curr_file.read()
