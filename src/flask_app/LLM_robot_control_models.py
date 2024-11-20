@@ -13,7 +13,7 @@ from gemini_config import (
     system_prompt,
     verification_system_prompt,
 )
-from sensor_data import fetch_image_via_ssh
+from sensor_data import LOCAL_PATHS, fetch_images
 
 load_dotenv()
 
@@ -26,36 +26,31 @@ class LLMController:
         self.current_subtask = None
 
 
-    def get_map_context(self):
-        print("Getting map context")
-        """Get the current map as base64 string for LLM context"""
-        # map_path = os.path.join(os.path.dirname(__file__), 'maps/map.jpg')
-        map_path = os.getenv("LOCAL_MAP_PATH")
-        if os.path.exists(map_path):
-            with open(map_path, 'rb') as f:
-                map_bytes = f.read()
-                return base64.b64encode(map_bytes).decode('utf-8')
-        return None
+    # def get_map_context(self):
+    #     print("Getting map context")
+    #     """Get the current map as base64 string for LLM context"""
+    #     # map_path = os.path.join(os.path.dirname(__file__), 'maps/map.jpg')
+    #     map_path = os.getenv("LOCAL_MAP_PATH")
+    #     if os.path.exists(map_path):
+    #         with open(map_path, 'rb') as f:
+    #             map_bytes = f.read()
+    #             return base64.b64encode(map_bytes).decode('utf-8')
+    #     return None
 
-    def get_remote_images(self):
-        """Fetch current and previous camera images from remote robot"""
-        try:
-            # Get paths from environment
-            remote_path = os.getenv("REMOTE_IMAGE_PATH")
-            remote_prev_path = os.path.join(os.path.dirname(remote_path), "previous.jpg")
+    def load_images(self):
+        """Fetch and load all required images"""
+        if not fetch_images():
+            raise Exception("Failed to fetch required images")
 
-            # Fetch images via SSH
-            current_image = fetch_image_via_ssh(remote_path)
-            previous_image = fetch_image_via_ssh(remote_prev_path)
+        images = {}
+        for img_type in ['current', 'previous', 'map']:
+            try:
+                with open(LOCAL_PATHS[img_type], 'rb') as f:
+                    images[img_type] = f.read()
+            except Exception as e:
+                raise Exception(f"Failed to load {img_type} image: {e}")
 
-            if not current_image or not previous_image:
-                raise Exception("Failed to fetch images from remote")
-
-            return current_image, previous_image
-
-        except Exception as e:
-            rich.print(f"[red]Error getting remote images:[/red] {str(e)}")
-            return None, None
+        return images
 
     def generate_subgoals(self, prompt: str) -> Optional[list]:
         self.current_goal = prompt
@@ -104,15 +99,16 @@ class LLMController:
 
     def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
          # Get fresh images from remote
-        current, previous = self.get_remote_images()
 
-        if not current or not previous:
-            return "failed to get images"
 
-        with self.command_lock:
+        # with self.command_lock:
             try:
+                images = self.load_images()
+                # Load map for context
+                with open(LOCAL_PATHS['map'], 'rb') as f:
+                    map_context = base64.b64encode(f.read()).decode('utf-8')
 
-                map_context = self.get_map_context()
+                # map_context = self.get_map_context()
 
                  # Format system prompt with current subtask context
                 formatted_prompt = f"""
