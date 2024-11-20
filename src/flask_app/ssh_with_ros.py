@@ -31,6 +31,7 @@ class SingleCommandSSHClient:
         #     full_command = command
         ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
         output = ssh_stdout.read().decode()
+        print(output)
         ssh_client.close()
         return output
 

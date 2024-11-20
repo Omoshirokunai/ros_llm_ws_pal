@@ -3,11 +3,11 @@ from ssh_with_ros import PersistentSSHClient, SingleCommandSSHClient
 
 class RobotControl:
     def __init__(self):
-        # self.ssh_client = SingleCommandSSHClient()
-        self.ssh_client = PersistentSSHClient()
+        self.ssh_client = SingleCommandSSHClient()
+        # self.ssh_client = PersistentSSHClient()
         self.head_pose = 0.0
         # self.current_torso_height = 0.0
-    def robot_set_home(self, duration=3000):
+    def robot_set_home(self):
         command = "rosrun play_motion run_motion home"
         self.ssh_client.execute_command(command)
         # self._execute_command_for_duration(command, 3)
@@ -18,13 +18,13 @@ class RobotControl:
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
 
-    def turn_right(self, duration=4000):
+    def turn_right(self):
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]'"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
 
 
-    def turn_left(self, duration=4000):
+    def turn_left(self):
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.5]' '[0.0, 0.0, 0.4]'"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
