@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from LLM_robot_control_models import LLMController
 from rich.console import Console
 from rich.prompt import Prompt
+from sensor_data import LOCAL_PATHS, fetch_images
 
 console = Console()
 
@@ -40,12 +41,18 @@ def main():
         # Process each subgoal
         for subgoal in subgoals:
             try:
+                if not fetch_images():
+                    console.print("[red]Failed to fetch required images[/red]")
+                    continue
                 # Load images
-                with open(current_image_path, 'rb') as curr_file, \
-                     open(previous_image_path, 'rb') as prev_file:
-                    current_image = curr_file.read()
-                    previous_image = prev_file.read()
-
+                # with open(current_image_path, 'rb') as curr_file, \
+                #      open(previous_image_path, 'rb') as prev_file:
+                #     current_image = curr_file.read()
+                #     previous_image = prev_file.read()
+                with open(LOCAL_PATHS['current'], 'rb') as curr_file, \
+                    open(LOCAL_PATHS['previous'], 'rb') as prev_file:
+                        current_image = curr_file.read()
+                        previous_image = prev_file.read()
                 # Get robot control action
                 console.print(f"\n[yellow]Processing subgoal:[/yellow] {subgoal}")
                 action = controller.control_robot(subgoal, current_image, previous_image)
