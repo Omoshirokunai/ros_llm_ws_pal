@@ -18,15 +18,17 @@ class SingleCommandSSHClient:
         self.SSH_USER = os.getenv("SSH_USER")
         self.SSH_HOST = os.getenv("SSH_HOST")
         self.SSH_PORT = int(os.getenv("SSH_PORT"))
+        # self.SSH_PORT = 100
+
         self.PASS = os.getenv("PASS")
-        self.ROS_SETUP_CMD = os.getenv("ROS_SETUP_CMD", "source ~/.bashrc")
+        self.ROS_SETUP_CMD = os.getenv("ROS_SETUP_CMD")
 
     def execute_command(self, command):
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             ssh_client.connect(self.SSH_HOST, username=self.SSH_USER, port=self.SSH_PORT, password=self.PASS)
-            print(f"Executing command: {command}")
+            print(f"Executing command")
         except Exception as e:
             print(f"Failed to connect to SSH: {e}")
             raise e
@@ -34,6 +36,7 @@ class SingleCommandSSHClient:
         full_command = f"{self.ROS_SETUP_CMD} && {command}"
 
         ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
+        print(f"{full_command} executed")
         output = ssh_stdout.read().decode()
         error = ssh_stderr.read().decode()
         print(output)

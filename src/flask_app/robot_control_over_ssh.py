@@ -1,3 +1,5 @@
+import time
+
 from ssh_with_ros import PersistentSSHClient, SingleCommandSSHClient
 
 
@@ -14,10 +16,11 @@ class RobotControl:
 
     def move_forward(self):
         print("excuting")
-        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.5,0.0,0.0]' '[0.0, 0.0, 0.0]'"
-        # self._execute_command_for_duration(command, duration)
+        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.5,0.0,0.0]' '[0.0, 0.0, 0.0]' --once"
+        # self._execute_command_for_duration(command, 100)
         try:
             self.ssh_client.execute_command(command)
+            time.sleep(1)
         except Exception as e:
             print(f"Failed to connect to SSH: {e}")
             raise e
@@ -26,6 +29,7 @@ class RobotControl:
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]'"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
+        time.sleep(0.1)
 
 
     def turn_left(self):
@@ -40,13 +44,13 @@ class RobotControl:
         self.ssh_client.execute_command(command)
 
 
-    # def _execute_command_for_duration(self, command, duration):
-    #     import time
+    def _execute_command_for_duration(self, command, duration):
+        import time
 
-    #     # start_time = time.time()
-    #     end_time = time.time() + duration
-    #     # while (time.time() - start_time) < duration:
-    #     while time.time() < end_time:
+        # start_time = time.time()
+        end_time = time.time() + duration
+        # while (time.time() - start_time) < duration:
+        while time.time() < end_time:
 
-    #         self.ssh_client.execute_command(command)
-    #         time.sleep(0.1)  # Add a small delay to avoid flooding the command
+            self.ssh_client.execute_command(command)
+            time.sleep(0.1)  # Add a small delay to avoid flooding the command

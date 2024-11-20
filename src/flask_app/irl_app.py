@@ -97,30 +97,6 @@ def video_feed():
 # endregion
 
 # region robot control
-# @app.route('/move_forward', methods=['POST'])
-# def move_forward():
-#     try:
-#         robot_control.move_forward()  # Increase duration for more noticeable movement
-#         return jsonify({"status": "success", "action": "move_forward"})
-#     except Exception as e:
-#         return jsonify({"status": "error", "message": str(e)}), 500
-
-# @app.route('/turn_right', methods=['POST'])
-# def turn_right():
-#     try:
-#         robot_control.turn_right()  # Increase duration for more noticeable turn
-#         return jsonify({"status": "success", "action": "turn_right"})
-#     except Exception as e:
-#         return jsonify({"status": "error", "message": str(e)}), 500
-
-# @app.route('/turn_left', methods=['POST'])
-# def turn_left():
-#     try:
-#         robot_control.turn_left()  # Increase duration for more noticeable turn
-#         return jsonify({"status": "success", "action": "turn_left"})
-#     except Exception as e:
-#         return jsonify({"status": "error", "message": str(e)}), 500
-
 @app.route('/robot_set_home',  methods=['POST', 'GET'])
 def robot_set_home():
     robot_control.robot_set_home()
@@ -132,17 +108,23 @@ def robot_set_home():
 @app.route('/move_forward', methods=['POST', 'GET'])
 def move_forward():
     robot_control.move_forward()
-    return jsonify({"status": "success", "action": "move_forward"})
+    return '', 204
+
+    # return jsonify({"status": "success", "action": "move_forward"})
 
 @app.route('/turn_right', methods=['POST', 'GET'])
 def turn_right():
     robot_control.turn_right()
-    return jsonify({"status": "success", "action": "turn_right"})
+    # return jsonify({"status": "success", "action": "turn_right"})
+    return '', 204
+
 
 @app.route('/turn_left', methods=['POST', 'GET'])
 def turn_left():
     robot_control.turn_left()
-    return jsonify({"status": "success", "action": "turn_left"})
+    # return jsonify({"status": "success", "action": "turn_left"})
+    return '', 204
+
 # endregion
 
 
