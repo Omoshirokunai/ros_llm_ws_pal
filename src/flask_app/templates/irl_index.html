@@ -17,6 +17,28 @@
 
         // Update the camera feed every 100 milliseconds
         setInterval(updateCameraFeed, 12000);
+
+        // basic form handling
+        document.querySelectorAll('.control-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const button = form.querySelector('button');
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+
+                    });
+                    const data = await response.json();
+                    console.log('Response:', data);
+                } catch (error) {
+                    console.error('Error:', error);
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
     </script>
 </head>
 <body>
@@ -49,7 +71,7 @@
 
     </div> -->
 
-    <div class="control-buttons">
+    <div>
         <form action="{{ url_for('move_forward') }}" method="post" class="control-form">
             <button type="submit">Move Forward</button>
         </form>
@@ -83,16 +105,6 @@
 
     <br/>
 
-    <!-- <div class="text-area">
-        <label for="text-area">Enter your command:</label>
-        <form action="/" method="post" id="send-form" >
-            <textarea id="text-area" rows="5" cols="60" title="user-prompt" name="prompt"></textarea>
-        <button type="submit" id="send">Send</button>
-        </form>
-
-
-    </div> -->
-
     <div class="text-area">
         <label for="text-area">Enter your command:</label>
         <form id="llm-command-form">
@@ -108,40 +120,5 @@
 
 
 
-
-    <script>
-        // Minimal JavaScript for basic form handling
-        document.querySelectorAll('.control-form').forEach(form => {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const button = form.querySelector('button');
-                button.disabled = true;
-
-                try {
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    const data = await response.json();
-                    console.log('Response:', data);
-                } catch (error) {
-                    console.error('Error:', error);
-                } finally {
-                    button.disabled = false;
-                }
-            });
-        });
-    </script>
-<!--
-    <script>
-        function sendCommand(endpoint) {
-            fetch(endpoint, { method: 'POST' })
-                .then(response => response.json())
-                .then(data => console.log(data))
-                .catch(error => console.error('Error:', error));
-        }
-    </script> -->
 </body>
 </html>
