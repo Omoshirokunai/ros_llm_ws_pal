@@ -5,6 +5,7 @@ from typing import Optional
 
 import ollama
 import rich
+from dotenv import load_dotenv
 from gemini_config import (
     generation_config,
     goal_setter_system_prompt,
@@ -12,9 +13,9 @@ from gemini_config import (
     system_prompt,
     verification_system_prompt,
 )
+from sensor_data import fetch_image_via_ssh
 
-from flask_app.sensor_data import fetch_image_via_ssh
-
+load_dotenv()
 
 class LLMController:
     def __init__(self):
@@ -25,44 +26,17 @@ class LLMController:
         self.current_subtask = None
 
 
-    # def get_map_context(self):
-    #     """Get the current map as base64 string for LLM context"""
-    #     map_path = os.path.join(os.path.dirname(__file__), 'maps/map.jpg')
-    #     if os.path.exists(map_path):
-    #         with open(map_path, 'rb') as f:
-    #             map_bytes = f.read()
-    #             return base64.b64encode(map_bytes).decode('utf-8')
-    #     return None
-
     def get_map_context(self):
+        print("Getting map context")
         """Get the current map as base64 string for LLM context"""
-        try:
-            with self.command_lock:
-                map_path = os.path.join(os.path.dirname(__file__), 'maps/map.jpg')
-                prev_map_path = os.path.join(os.path.dirname(__file__), 'maps/prev_map.jpg')
+        # map_path = os.path.join(os.path.dirname(__file__), 'maps/map.jpg')
+        map_path = os.getenv("LOCAL_MAP_PATH")
+        if os.path.exists(map_path):
+            with open(map_path, 'rb') as f:
+                map_bytes = f.read()
+                return base64.b64encode(map_bytes).decode('utf-8')
+        return None
 
-                if not os.path.exists(map_path):
-                    rich.print("[yellow]Warning: Map file not found[/yellow]")
-                    return None
-
-                # Read both current and previous maps
-                with open(map_path, 'rb') as f:
-                    map_bytes = f.read()
-
-                # Include previous map if available
-                prev_map_bytes = None
-                if os.path.exists(prev_map_path):
-                    with open(prev_map_path, 'rb') as f:
-                        prev_map_bytes = f.read()
-
-                return {
-                    'current': base64.b64encode(map_bytes).decode('utf-8'),
-                    'previous': base64.b64encode(prev_map_bytes).decode('utf-8') if prev_map_bytes else None
-                }
-
-        except Exception as e:
-            rich.print(f"[red]Error getting map context:[/red] {str(e)}")
-            return None
     def get_remote_images(self):
         """Fetch current and previous camera images from remote robot"""
         try:

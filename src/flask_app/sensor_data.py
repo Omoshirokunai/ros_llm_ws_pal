@@ -68,7 +68,7 @@ def trigger_stop_script():
         ssh_client.close()
 
 # Function to fetch the image via SSH
-def fetch_image_via_ssh():
+def fetch_image_via_ssh(remote_image_path=remote_image_path):
     # time.sleep(0.3)
     if not all([ssh_user, ssh_host, password]):
         print("Missing SSH configuration in environment variables.")
@@ -82,9 +82,6 @@ def fetch_image_via_ssh():
         sftp = ssh_client.open_sftp()
 
         try:
-            # run_camera_capture_script()
-            # sftp.get(REMOTE_IMAGE_PATH, LOCAL_IMAGE_PATH)
-            # sftp.get(remote_image_path, local_image_path)
             while True:
                 sftp.get(remote_image_path, local_image_path, max_concurrent_prefetch_requests=20)
 
