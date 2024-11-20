@@ -1,10 +1,11 @@
 # region Imports
-import rospy # type: ignore
-from geometry_msgs.msg import Twist # type: ignore
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # type: ignore
-from std_msgs.msg import Float64 # type: ignore
-from nav_msgs.msg import Odometry # type: ignore
-from control_msgs.msg import JointTrajectoryControllerState # type: ignore
+import rospy  # type: ignore
+from control_msgs.msg import JointTrajectoryControllerState  # type: ignore
+from geometry_msgs.msg import Twist  # type: ignore
+from nav_msgs.msg import Odometry  # type: ignore
+from std_msgs.msg import Float64  # type: ignore
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint  # type: ignore
+
 # import asyncio
 # from sensor_msgs.msg import JointState # type: ignore
 # endregion Imports
@@ -59,24 +60,7 @@ def move_robot(direction:str)->str:
 
 # endregion Movement
 
-# region Torso
-def update_torso(position):
-    """
-    Update the position of the robot's torso.
-    """
-    return NotImplemented
 
-    # traj = JointTrajectory()
-    # traj.joint_names = ['torso_lift_joint']
-    # point = JointTrajectoryPoint()
-    # point.positions = [position]
-    # point.time_from_start = rospy.Duration(1.0)
-    # traj.points.append(point)
-
-    # torso_pub.publish(traj)
-
-    # return "Torso position updated"
-# endregion Torso
 
 # region arm
 

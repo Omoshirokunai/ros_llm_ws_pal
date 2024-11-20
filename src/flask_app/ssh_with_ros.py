@@ -30,10 +30,9 @@ class SingleCommandSSHClient:
         except Exception as e:
             print(f"Failed to connect to SSH: {e}")
             raise e
-        # if use_ros:
+
         full_command = f"{self.ROS_SETUP_CMD} && {command}"
-        # else:
-        #     full_command = command
+
         ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
         output = ssh_stdout.read().decode()
         error = ssh_stderr.read().decode()
