@@ -127,7 +127,49 @@ def turn_left():
 
 # endregion
 
+# region LLM control
+# Add new routes
+# In irl_app.py - Update/add these routes
+# In irl_app.py - Update the send_llm_prompt route
+@app.route('/send_llm_prompt', methods=['POST'])
+def send_llm_prompt():
+    prompt = request.form.get('prompt')
+    if not prompt:
+        return render_template('irl_index.html',
+                             error="Please enter a prompt")
 
+    try:
+        # Log the user prompt
+        print(f"Received prompt: {prompt}")
+
+        # Generate subgoals
+        subgoals = llm_controller.generate_subgoals(prompt)
+
+        # Log the response
+        print(f"Generated subgoals: {subgoals}")
+
+        if not subgoals:
+            return render_template('irl_index.html',
+                                error="Failed to generate subgoals",
+                                user_prompt=prompt)
+
+        return render_template('irl_index.html',
+                             user_prompt=prompt,
+                             subgoals=subgoals)
+
+    except Exception as e:
+        print(f"Error in send_llm_prompt: {str(e)}")
+        return render_template('irl_index.html',
+                             error=str(e),
+                             user_prompt=prompt)
+
+# def process_subgoals(prompt, subgoals):
+#     """Process subgoals in background"""
+#     print("Processing subgoals...")
+    # for subgoal in subgoals:
+    #     llm_controller.current_subtask = subgoal
+        # Add your subgoal processing logic here
+# endregion
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

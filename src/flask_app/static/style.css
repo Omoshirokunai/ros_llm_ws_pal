@@ -197,7 +197,165 @@ button:hover {
     display: block;
 }
 
-/* .dropdown button {
+/* IRL style sheet */
+.main-container {
+    /* display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 20px; */
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 60vh;
+    padding: 20px;
+    gap: 20px;
+}
 
+.camera-section, .map-section, .response-section {
+    /* border: 1px solid #333;
+    padding: 15px;
+    background: #1a1a1a;
+    height: 400px;
+    overflow-y: auto; */
+    flex: 0 0 38%; /* Each section takes ~30% width */
+    height: 90%;
+    border: 1px solid #333;
+    padding: 12px;
+    background: #1a1a1a;
+    /* overflow-y: auto; */
+}
+
+.camera-section img, .map-section img {
+    width: 100%;
+    /* height: auto; */
+    object-fit: contain;
+    height: calc(100% - 10px); /* Subtract header height */
+    /* object-fit: cover; */
+}
+
+
+/* .camera, .map-view {
+    height: 10%;
+    width: 100%;
 } */
 
+/* Adjust headers */
+.camera-section h2, .map-section h2, .response-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+}
+
+
+.error {
+    color: #ff4444;
+    margin: 10px 0;
+}
+
+.response-area {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #444;
+    background: #111;
+}
+
+.response-area ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.response-area li {
+    margin: 5px 0;
+    padding: 5px;
+    border-bottom: 1px solid #333;
+}
+
+.control-section {
+    /* background: #b61f1f; */
+    margin-top: 10px;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Left column container */
+.left-controls {
+    /* display: flex;
+    flex-direction: column;
+    gap: 20px; */
+    flex: 0 0 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.manual-controls {
+    display: grid;
+    grid-template-areas:
+        ".     forward  ."
+        "left  home    right"
+        ".     backward .";
+
+    gap: 10px;
+    justify-content: center;
+    padding: 20px;
+    /* background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px; */
+}
+
+.manual-controls form {
+    margin: 0;
+}
+
+.manual-controls button {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.manual-controls form:nth-child(1) { grid-area: forward; }
+.manual-controls form:nth-child(2) { grid-area: right; }
+.manual-controls form:nth-child(3) { grid-area: left; }
+.manual-controls form:nth-child(4) { grid-area: home; }
+
+.camera-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding: 20px;
+    /* background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px; */
+}
+
+/* .command-section {
+    padding: 20px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+} */
+
+.command-section textarea {
+    width: 100%;
+    margin-bottom: 15px;
+    background: #000;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.command-section button {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
+}

@@ -34,6 +34,7 @@ class SingleCommandSSHClient:
             raise e
 
         full_command = f"{self.ROS_SETUP_CMD} && {command}"
+        # full_command = f"source ~/robotics_ws/devel/setup.bash && {command}"
 
         ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
         print(f"{full_command} executed")

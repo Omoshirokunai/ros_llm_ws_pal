@@ -13,6 +13,8 @@ def run_command(command):
     SSH_USER = os.getenv("SSH_USER")
     SSH_HOST = os.getenv("SSH_HOST")
     SSH_PORT = int(os.getenv("SSH_PORT"))
+    ROS_IP_CMD = os.getenv("ROS_IP_CMD", "hostname -I | cut -d' ' -f1")
+    ROS_MASTER_URI_CMD = os.getenv("ROS_MASTER_URI_CMD", "echo $ROS_MASTER_URI")
     PASS = os.getenv("PASS")
     ROS_SETUP_CMD = os.getenv("ROS_SETUP_CMD", "source ~/.bashrc")
     ssh_client = paramiko.SSHClient()
@@ -26,27 +28,40 @@ def run_command(command):
 
     #  # Wait for roscore to start
     # time.sleep(5)
-#!TODO: try without ros_setup
-    full_command = f"{ROS_SETUP_CMD} && {command}"
-    # full_command = f"{command}"
+    # full_command = f"source ~/catkin_ws/devel/setup.bash && {command}"
+    # full_command = f"{ROS_SETUP_CMD} && {command}"
+
+    full_command = f"source ~/robotics_ws/devel/setup.bash && {command}"
 
     # full_command = f"source ~/.bashrc && {command}"
 
 
     ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
-    time.sleep(1)
+    # time.sleep(4)
 
     # Check for errors
     error = ssh_stderr.read().decode()
     if error:
-            print(f"Error: {error}")
-            return None
+            # print(f"Error: {error}")
+            raise Exception(f"Error: {error}")
+            # return None
     output = ssh_stdout.read().decode()
-    print(output)
 
+    print(output)
+    ssh_client.close()
     return output
 
-command = "rostopic list"
-# command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]'"
-# command =  "roscore"
-run_command(command)
+if __name__ == "__main__":
+    # command = "rostopic list"
+    run_command("echo $ROS_MASTER_URI && echo $ROS_HOSTNAME && echo $ROS_IP")
+    # Test ROS communication
+    run_command("rostopic list")
+    # run_command("echo $ROS_IP")
+    # run_command("rostopic echo /scan_raw -n 1")
+    # cmd_vel_command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '{linear: {x: 0.5, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}' --once"
+    # run_command(cmd_vel_command)
+    # command = "echo $ROS_MASTER_URI"
+    command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0, 0.0, 0.4]' --once"
+
+    run_command(command)
+    time.sleep(1)

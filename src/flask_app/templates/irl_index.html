@@ -18,66 +18,137 @@
         // Update the camera feed every 100 milliseconds
         setInterval(updateCameraFeed, 12000);
 
+
     </script>
 </head>
 <body>
     <h1>Robot Control Interface</h1>
-    <div class="intro2">
+    <div class="main-container">
+<div class="intro2">
         <h2>Camera Feed</h2>
 
-        <div class="camera">
+        <div class="camera-section">
             <img id="live_video" src="{{ url_for('video_feed') }}" alt="Live Camera Feed">
         </div>
     </div>
-
-
-    <br/>
-
-    <div class="map-view">
+    <div class="intro2">
         <h2>Environment Map</h2>
+        <div class="map-section">
         <img id="map_view" src="{{ url_for('map_feed') }}" alt="Environment Map">
     </div>
 
-    <div>
-        <form action="{{ url_for('move_forward') }}" method="post" class="control-form">
-            <button type="submit">Move Forward</button>
-        </form>
-
-        <form action="{{ url_for('turn_right') }}" method="post" class="control-form">
-            <button type="submit">Turn Right</button>
-        </form>
-
-        <form action="{{ url_for('turn_left') }}" method="post" class="control-form">
-            <button type="submit">Turn Left</button>
-        </form>
-
-        <form action="{{ url_for('robot_set_home') }}" method="post" class="control-form">
-            <button type="submit">Robot Set Home</button>
-        </form>
-
-        <form action="{{ url_for('start_capture') }}" method="post" class="control-form">
-            <button type="submit" class="success-btn" style="background-color: #6bfd3f;">Start Camera</button>
-        </form>
-
-        <form action="{{ url_for('stop_capture') }}" method="post" class="control-form">
-            <button type="submit" class="danger-btn" style="background-color: #db3e3e;">Stop Camera</button>
-        </form>
-    </>
-
-    <br/>
-
-    <div class="text-area">
-        <label for="text-area">Enter your command:</label>
-        <form id="llm-command-form">
-            <textarea id="text-area" rows="5" cols="60" title="user-prompt" name="prompt"></textarea>
-            <button type="submit" id="send">Send to LLM</button>
-
-            <form action="/robot_set_home" method="post">
-                <button type="submit">Stop LLM Control</button>
-            </form>
-        </form>
-        <div id="llm-response"></div>
     </div>
+
+    <div class="response-section">
+        <div class="response-area">
+            <h3>LLM Responses:</h3>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+
+            {% if subgoals %}
+                <h4>Subgoals:</h4>
+                <ul>
+                {% for subgoal in subgoals %}
+                    <li>{{ subgoal }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% if current_goal %}
+                <p><strong>Current Goal:</strong> {{ current_goal }}</p>
+            {% endif %}
+
+            {% if current_subtask %}
+                <p><strong>Current Subtask:</strong> {{ current_subtask }}</p>
+            {% endif %}
+    </div>
+
+    <form action="{{ url_for('robot_set_home') }}" method="post">
+        <button type="submit">Stop LLM Control</button>
+    </form>
+
+</div>
+    </div>
+<!--
+    <div classs="control-section">
+        <div class="left-controls">
+            <div class="manual-controls">
+                <form action="{{ url_for('move_forward') }}" method="post" class="control-form">
+                    <button type="submit">Forward</button>
+                </form>
+
+                <form action="{{ url_for('turn_right') }}" method="post" class="control-form">
+                    <button type="submit">Right</button>
+                </form>
+
+                <form action="{{ url_for('turn_left') }}" method="post" class="control-form">
+                    <button type="submit">Left</button>
+                </form>
+
+                <form action="{{ url_for('robot_set_home') }}" method="post" class="control-form">
+                    <button type="submit">Home</button>
+                </form>
+            </div>
+            <div class="camera-controls">
+                <form action="{{ url_for('start_capture') }}" method="post" class="control-form">
+                    <button type="submit" class="success-btn" style="background-color: #6bfd3f;">Start Camera</button>
+                </form>
+
+                <form action="{{ url_for('stop_capture') }}" method="post" class="control-form">
+                    <button type="submit" class="danger-btn" style="background-color: #db3e3e;">Stop Camera</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="command-section">
+            <form action="{{ url_for('send_llm_prompt') }}" method="post">
+                <textarea name="prompt" rows="5" placeholder="Enter your command...">{{ prompt or '' }}</textarea>
+                <button type="submit" class="success-btn">Send to LLM</button>
+            </form>
+
+    </div>
+</div> -->
+
+<!-- Replace the control section HTML with: -->
+<div class="control-section">
+    <div class="left-controls">
+        <div class="manual-controls">
+            <form action="{{ url_for('move_forward') }}" method="post" class="control-form">
+                <button type="submit">Forward</button>
+            </form>
+
+            <form action="{{ url_for('turn_right') }}" method="post" class="control-form">
+                <button type="submit">Right</button>
+            </form>
+
+            <form action="{{ url_for('turn_left') }}" method="post" class="control-form">
+                <button type="submit">Left</button>
+            </form>
+
+            <form action="{{ url_for('robot_set_home') }}" method="post" class="control-form">
+                <button type="submit">Home</button>
+            </form>
+        </div>
+
+        <div class="camera-controls">
+            <form action="{{ url_for('start_capture') }}" method="post" class="control-form">
+                <button type="submit" class="success-btn" style="background-color: #6bfd3f;">Start Camera</button>
+            </form>
+
+            <form action="{{ url_for('stop_capture') }}" method="post" class="control-form">
+                <button type="submit" class="danger-btn" style="background-color: #db3e3e;">Stop Camera</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="command-section">
+        <form action="{{ url_for('send_llm_prompt') }}" method="post">
+            <textarea name="prompt" rows="5" placeholder="Enter your command...">{{ prompt or '' }}</textarea>
+            <button type="submit" class="success-btn">Send to LLM</button>
+        </form>
+    </div>
+</div>
 
 
 
