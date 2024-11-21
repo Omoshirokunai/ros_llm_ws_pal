@@ -25,8 +25,9 @@ def run_command(command):
         raise e
 
     #  # Wait for roscore to start
-
-    full_command = f"source ~/.bashrc && {ROS_SETUP_CMD} && {command}"
+    # time.sleep(5)
+#!TODO: try without ros_setup
+    full_command = f"{ROS_SETUP_CMD} && {command}"
     # full_command = f"source ~/.bashrc && {command}"
 
 
