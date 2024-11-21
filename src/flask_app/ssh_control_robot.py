@@ -28,6 +28,8 @@ def run_command(command):
     # time.sleep(5)
 #!TODO: try without ros_setup
     full_command = f"{ROS_SETUP_CMD} && {command}"
+    # full_command = f"{command}"
+
     # full_command = f"source ~/.bashrc && {command}"
 
 
@@ -44,7 +46,7 @@ def run_command(command):
 
     return output
 
-
-command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]'"
+command = "rostopic list"
+# command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]'"
 # command =  "roscore"
 run_command(command)
