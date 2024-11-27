@@ -85,10 +85,6 @@ class LLMController:
                 - move backward
                 - move left
                 - move right
-                - move head up
-                - move head down
-                - move head left
-                - move head right
 
                 RESPOND WITH EXACTLY ONE OF THESE OPTIONS..
                 """

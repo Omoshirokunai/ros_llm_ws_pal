@@ -169,12 +169,13 @@ def process_subgoals(prompt, subgoals):
     """Process the subgoals and send to robot"""
     try:
         current_subgoal_index = 0
-
+        print(f"Processing subgoals: {subgoals}, lenght: {len(subgoals)}")
         while current_subgoal_index < len(subgoals):
+
             # Get current images
-            with open('static/images/current.jpg', 'rb') as f:
+            with open('src/flask_app/static/images/current.jpg', 'rb') as f:
                 current_image = f.read()
-            with open('static/images/map.jpg', 'rb') as f:
+            with open('src/flask_app/static/images/map.jpg', 'rb') as f:
                 map_image = f.read()
 
             current_subgoal = subgoals[current_subgoal_index]
@@ -183,18 +184,20 @@ def process_subgoals(prompt, subgoals):
 
             if validate_control_response(control_response):
                 # Save image before action
-                with open('static/images/previous.jpg', 'wb') as f:
-                    f.write(current_image)
+                with open('src/flask_app/static/images/previous.jpg', 'wb') as f:
+                    previous_image = f.write(current_image)
+
+                    # f.write(current_image)
 
                 # Execute robot action
                 execute_robot_action(control_response)
 
                 # Get new image after action
-                with open('static/images/current.jpg', 'rb') as f:
+                with open('src/flask_app/static/images/current.jpg', 'rb') as f:
                     current_image = f.read()
 
                 # Get feedback
-                feedback = llm_controller.get_feedback(current_image)
+                feedback = llm_controller.get_feedback(current_image, previous_image)
 
                 if feedback == "continue":
                     current_subgoal_index += 1
