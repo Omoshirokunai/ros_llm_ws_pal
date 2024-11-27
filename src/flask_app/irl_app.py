@@ -186,9 +186,11 @@ def process_subgoals(prompt, subgoals):
                 print(f"Error reading images: {e}")
                 continue
 
+
             current_subgoal = subgoals[current_subgoal_index]
              # Get control action
             control_response = llm_controller.control_robot(current_subgoal, current_image, map_image)
+            print(f"Control response: {control_response}")
 
             if validate_control_response(control_response):
                 # Save image before action
@@ -203,9 +205,16 @@ def process_subgoals(prompt, subgoals):
                         continue
                     # f.write(current_image)
 
-                # Execute robot action
-                execute_robot_action(control_response)
-                time.sleep(1)
+                 # Execute robot action
+                if not execute_robot_action(control_response):
+                    print("Failed to execute robot action")
+                    continue
+
+                time.sleep(2)  # Wait for robot to complete action
+
+                # # Execute robot action
+                # execute_robot_action(control_response)
+                # time.sleep(1)
 
                 # Fetch fresh images again after action
                 if not fetch_images():
@@ -227,15 +236,20 @@ def process_subgoals(prompt, subgoals):
 
                 # Get feedback
                 feedback = llm_controller.get_feedback(current_image, previous_image)
+                print(f"Feedback: {feedback}")
 
                 if feedback == "continue":
-                    current_subgoal_index += 1
+                    print("Continue trying to finish subtask")
+                    continue
                 elif feedback == "subtask complete":
+                    print(f"completed Subtask: {current_subgoal_index + 1},\n moving to next subtask")
                     current_subgoal_index += 1
                 elif feedback == "no progress":
+                    print("No progress made, retrying action")
                     # try alternative action
                     continue
                 elif feedback == "main goal complete":
+                    print("Main goal complete")
                     return True
                 else:
                     print(f"Invalid control response: {control_response}")
@@ -245,6 +259,7 @@ def process_subgoals(prompt, subgoals):
         print(f"Error processing subtasks: {e}")
         return False
 
+    print("All subgoals completed")
     return True
 
 def validate_control_response(response):
@@ -257,7 +272,7 @@ def validate_control_response(response):
     ]
     # check whole response if it is in the valid actions
     # return response in valid_actions
-    return response.lower() in valid_actions
+    return response and response.lower() in valid_actions
 
 def execute_robot_action(action):
     """Execute robot action based on the response"""
