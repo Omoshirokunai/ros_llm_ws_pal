@@ -27,7 +27,7 @@ from LLM_robot_control_models import LLMController
 # from mapping import OccupancyMapper
 from PIL import Image
 from robot_control_over_ssh import RobotControl
-from sensor_data import trigger_capture_script, trigger_stop_script
+from sensor_data import fetch_images, trigger_capture_script, trigger_stop_script
 
 app = Flask(__name__)
 robot_control = RobotControl()
@@ -171,12 +171,20 @@ def process_subgoals(prompt, subgoals):
         current_subgoal_index = 0
         print(f"Processing subgoals: {subgoals}, lenght: {len(subgoals)}")
         while current_subgoal_index < len(subgoals):
-
-            # Get current images
-            with open('src/flask_app/static/images/current.jpg', 'rb') as f:
-                current_image = f.read()
-            with open('src/flask_app/static/images/map.jpg', 'rb') as f:
-                map_image = f.read()
+            if not fetch_images():
+                # raise Exception("Failed to fetch required images")
+                print("Failed to fetch required images")
+                time.sleep(1)
+                continue
+            try:
+                # Get current images
+                with open('src/flask_app/static/images/current.jpg', 'rb') as f:
+                    current_image = f.read()
+                with open('src/flask_app/static/images/map.jpg', 'rb') as f:
+                    map_image = f.read()
+            except Exception as e:
+                print(f"Error reading images: {e}")
+                continue
 
             current_subgoal = subgoals[current_subgoal_index]
              # Get control action
@@ -184,17 +192,38 @@ def process_subgoals(prompt, subgoals):
 
             if validate_control_response(control_response):
                 # Save image before action
-                with open('src/flask_app/static/images/previous.jpg', 'wb') as f:
-                    previous_image = f.write(current_image)
-
+                try:
+                # with open('src/flask_app/static/images/previous.jpg', 'wb') as f:
+                #     previous_image = f.write(current_image)
+                    with open('static/images/current.jpg', 'rb') as src:
+                        with open('static/images/previous.jpg', 'wb') as dst:
+                            dst.write(src.read())
+                except Exception as e:
+                        print(f"Error saving previous image: {e}")
+                        continue
                     # f.write(current_image)
 
                 # Execute robot action
                 execute_robot_action(control_response)
+                time.sleep(1)
+
+                # Fetch fresh images again after action
+                if not fetch_images():
+                    print("Failed to fetch post-action images")
+                    continue
 
                 # Get new image after action
-                with open('src/flask_app/static/images/current.jpg', 'rb') as f:
-                    current_image = f.read()
+                 # Read new current image for feedback
+                try:
+                    with open('static/images/current.jpg', 'rb') as f:
+                        new_current_image = f.read()
+                    with open('static/images/previous.jpg', 'rb') as f:
+                        previous_image = f.read()
+                except Exception as e:
+                    print(f"Error reading feedback images: {e}")
+                    continue
+                # with open('src/flask_app/static/images/current.jpg', 'rb') as f:
+                #     current_image = f.read()
 
                 # Get feedback
                 feedback = llm_controller.get_feedback(current_image, previous_image)
