@@ -128,9 +128,7 @@ def turn_left():
 # endregion
 
 # region LLM control
-# Add new routes
-# In irl_app.py - Update/add these routes
-# In irl_app.py - Update the send_llm_prompt route
+
 @app.route('/send_llm_prompt', methods=['POST'])
 def send_llm_prompt():
     prompt = request.form.get('prompt')
@@ -153,9 +151,12 @@ def send_llm_prompt():
                                 error="Failed to generate subgoals",
                                 user_prompt=prompt)
 
+        #!!process subgoals and control the robot
+        success = process_subgoals(prompt, subgoals)
+
         return render_template('irl_index.html',
                              user_prompt=prompt,
-                             subgoals=subgoals)
+                             subgoals=subgoals, success=success)
 
     except Exception as e:
         print(f"Error in send_llm_prompt: {str(e)}")
@@ -163,12 +164,83 @@ def send_llm_prompt():
                              error=str(e),
                              user_prompt=prompt)
 
-# def process_subgoals(prompt, subgoals):
-#     """Process subgoals in background"""
-#     print("Processing subgoals...")
-    # for subgoal in subgoals:
-    #     llm_controller.current_subtask = subgoal
-        # Add your subgoal processing logic here
+# Todo: Process subgoals and send to robot
+def process_subgoals(prompt, subgoals):
+    """Process the subgoals and send to robot"""
+    try:
+        current_subgoal_index = 0
+
+        while current_subgoal_index < len(subgoals):
+            # Get current images
+            with open('static/images/current.jpg', 'rb') as f:
+                current_image = f.read()
+            with open('static/images/map.jpg', 'rb') as f:
+                map_image = f.read()
+
+            current_subgoal = subgoals[current_subgoal_index]
+             # Get control action
+            control_response = llm_controller.control_robot(current_subgoal, current_image, map_image)
+
+            if validate_control_response(control_response):
+                # Save image before action
+                with open('static/images/previous.jpg', 'wb') as f:
+                    f.write(current_image)
+
+                # Execute robot action
+                execute_robot_action(control_response)
+
+                # Get new image after action
+                with open('static/images/current.jpg', 'rb') as f:
+                    current_image = f.read()
+
+                # Get feedback
+                feedback = llm_controller.get_feedback(current_image)
+
+                if feedback == "continue":
+                    current_subgoal_index += 1
+                elif feedback == "subtask complete":
+                    current_subgoal_index += 1
+                elif feedback == "no progress":
+                    # try alternative action
+                    continue
+                elif feedback == "main goal complete":
+                    return True
+                else:
+                    print(f"Invalid control response: {control_response}")
+                    continue
+
+    except Exception as e:
+        print(f"Error processing subtasks: {e}")
+        return False
+
+    return True
+
+def validate_control_response(response):
+    """Validate that control response is one of allowed actions"""
+    valid_actions = [
+        "move forward",
+        "move backward",
+        "turn left",
+        "turn right",
+    ]
+    # check whole response if it is in the valid actions
+    # return response in valid_actions
+    return response.lower() in valid_actions
+
+def execute_robot_action(action):
+    """Execute robot action based on the response"""
+    if action == "move forward":
+        robot_control.move_forward()
+    elif action == "move backward":
+        robot_control.move_backward()
+    elif action == "turn left":
+        robot_control.turn_left()
+    elif action == "turn right":
+        robot_control.turn_right()
+    else:
+        print(f"Invalid action: {action}")
+
+#TODO: check lidar if there is an obstacle and the next commad is to move {direction of obstacle} reprompt the llm telling it that there is an obstacle
 # endregion
 
 if __name__ == '__main__':

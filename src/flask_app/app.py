@@ -100,6 +100,7 @@ def get_camera_image():
         # new_positions[2] += 0.1
 
 # region models
+#todo: use llm_robot_control_models.py for simulation
 goal_setter = GenerativeModel("gemini-1.0-pro", system_instruction=[goal_setter_system_prompt])
 # control_model = GenerativeModel("gemini-1.5-flash", system_instruction=[system_prompt])
 # verifier =
@@ -175,6 +176,7 @@ def llava_control(prompt, image_str, llava_system_prompt=system_prompt ):
 # endregion llava_control
 
 # region llava_control_loop
+
 def llava_control_loop(prompt, subgoals):
     global llava_response, stop_gemini, gemini_response_history, current_subgoal_index
     stop_gemini = False
@@ -315,6 +317,7 @@ def stop_gemini_control():
 
 # region Sensors
 # region camera
+#TODO: save current.jpg to a file and save previous.jpg for the llm prompt
 def image_callback(msg):
     global latest_frame
     try:
@@ -348,6 +351,7 @@ def video_feed():
 # endregion camera
 
 # region lidar
+#TODO: create map.jpg from lidar data(occupancy grid) for the llm prrompt
 def lidar_callback(data):
     global lidar_data
     with lidar_lock:
