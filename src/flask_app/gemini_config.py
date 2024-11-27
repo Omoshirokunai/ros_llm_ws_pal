@@ -2,7 +2,7 @@ import vertexai.preview.generative_models as generative_models
 
 goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera limited head movemnt.
 your job is to only break down the following prompt into a numbered list of achievable subtasks.
-responses must start with "look for [object]", "move to", "retrun to".
+responses must start with "look for [object] [object direction]", "move to", "retrun to".
 make sure to specify the objective of each subgoal:
 example:
 taks: get the bottle on your left.

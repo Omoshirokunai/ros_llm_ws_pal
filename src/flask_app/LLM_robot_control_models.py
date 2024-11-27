@@ -143,10 +143,10 @@ class LLMController:
     def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list) -> str:
          # Get fresh images from remote
 
-
+            print("getting feedback")
         # with self.command_lock:
             try:
-                images = self.load_images()
+                # images = self.load_images()
                 # Load map for context
                 with open(LOCAL_PATHS['map'], 'rb') as f:
                     map_context = base64.b64encode(f.read()).decode('utf-8')
