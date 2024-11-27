@@ -169,7 +169,10 @@ def process_subgoals(prompt, subgoals):
     """Process the subgoals and send to robot"""
     try:
         current_subgoal_index = 0
+        executed_actions = []
+        last_feedback = None
         print(f"Processing subgoals: {subgoals}, lenght: {len(subgoals)}")
+        print(f"Action history: {executed_actions}")
         while current_subgoal_index < len(subgoals):
             if not fetch_images():
                 # raise Exception("Failed to fetch required images")
@@ -189,8 +192,15 @@ def process_subgoals(prompt, subgoals):
 
             current_subgoal = subgoals[current_subgoal_index]
              # Get control action
-            control_response = llm_controller.control_robot(current_subgoal, current_image, map_image)
+            control_response = llm_controller.control_robot(
+                current_subgoal,
+                current_image,
+                map_image,
+                executed_actions,
+                last_feedback)
             print(f"Control response: {control_response}")
+            print(f"Previous actions: {executed_actions}")
+            print("Last feedback: {last_feedback}")
 
             if validate_control_response(control_response):
                 # Save image before action
@@ -206,11 +216,14 @@ def process_subgoals(prompt, subgoals):
                     # f.write(current_image)
 
                  # Execute robot action
-                if not execute_robot_action(control_response):
+                if execute_robot_action(control_response):
+                     executed_actions.append(control_response)
+                     time.sleep(2)
+                else:
                     print("Failed to execute robot action")
                     continue
 
-                time.sleep(2)  # Wait for robot to complete action
+                # time.sleep(2)  # Wait for robot to complete action
 
                 # # Execute robot action
                 # execute_robot_action(control_response)
@@ -235,8 +248,13 @@ def process_subgoals(prompt, subgoals):
                 #     current_image = f.read()
 
                 # Get feedback
-                feedback = llm_controller.get_feedback(current_image, previous_image)
-                print(f"Feedback: {feedback}")
+                feedback = llm_controller.get_feedback(
+                    new_current_image,
+                    previous_image,
+                    current_subgoal,
+                    executed_actions)
+                last_feedback = feedback
+                print(f"Feedback for current subgoal {current_subgoal_index + 1}: {feedback}")
 
                 if feedback == "continue":
                     print("Continue trying to finish subtask")
@@ -244,8 +262,12 @@ def process_subgoals(prompt, subgoals):
                 elif feedback == "subtask complete":
                     print(f"completed Subtask: {current_subgoal_index + 1},\n moving to next subtask")
                     current_subgoal_index += 1
+                    executed_actions = [] # reset executed actions
+                    last_feedback = None
                 elif feedback == "no progress":
+
                     print("No progress made, retrying action")
+                    executed_actions.pop() # try another approach
                     # try alternative action
                     continue
                 elif feedback == "main goal complete":

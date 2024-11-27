@@ -24,6 +24,7 @@ class LLMController:
         self.debug = True  # Enable debug logging
         self.current_goal = None
         self.current_subtask = None
+        self.feedback_history = [] #track feedback
 
 
     # def get_map_context(self):
@@ -72,21 +73,33 @@ class LLMController:
                 rich.print(f"[red]Error in generate_subgoals[red]: {e}")
             return None
 
-    def control_robot(self, subgoal: str, current_image: bytes, previous_image: bytes) -> str:
+    def control_robot(self, subgoal: str, current_image: bytes, previous_image: bytes, executed_actions: list = None, last_feedback:str = None ) -> str:
         self.current_subtask = subgoal
 
         with self.command_lock:
             try:
+                 # Enhanced system prompt with feedback context
                 system_prompt_ = f"""
-                Your Goal: {self.current_goal}
-                current Task: {self.current_subtask}
-                in order to achive your goal and current task, would you like to:
+                You are a robot controller tasked with making valid function calls to a robot. You are to guide the robot to complete a series of subtasks that will lead to the completion of a main goal.
+                Your Main Goal: {self.current_goal}
+                Current Task: {subgoal}
+                Previous Actions: {', '.join(executed_actions) if executed_actions else 'None'}
+                Last Feedback: {last_feedback if last_feedback else 'No feedback yet'}
+
+                Based on the previous actions and feedback, choose ONE action:
                 - move forward
                 - move backward
                 - move left
                 - move right
 
-                RESPOND WITH EXACTLY ONE OF THESE OPTIONS..
+                Consider:
+                1. Previous actions taken: {executed_actions}
+                2. Last feedback received: {last_feedback}
+                3. Current camera view
+                4. Lidar environment map where the red dot represents the robot and white lines represent obstacles
+                5. Progress needed for current subtask
+
+                RESPOND WITH EXACTLY ONE OF THESE OPTIONS.
                 """
                 # Load map for context
                 with open(LOCAL_PATHS['map'], 'rb') as f:
@@ -95,9 +108,10 @@ class LLMController:
                 message = [
                     {"role": "system", "content": system_prompt_},
                     {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
-                    {"role": "user", "content": "Above is what your camera can see. Here is a Lidar map of the Environment:"},
+                    {"role": "user", "content": "Current camera view above. Here is a Lidar map of the Environment:"},
                     {"role": "user", "content": map_context, "is_image": True},
-                    {"role": "user", "content": subgoal},
+                    {"role": "user", "content": f"Based on the previous actions ({', '.join(executed_actions) if executed_actions else 'None'}) and feedback ({last_feedback if last_feedback else 'None'}), what action should be taken next to achieve: {subgoal}?"}
+                    # {"role": "user", "content": subgoal},
                 ]
                 response = ollama.chat(
                     # model=self.model_name,
@@ -107,16 +121,16 @@ class LLMController:
                     stream=False,
                     options=generation_config
                 )
-                valid_responses = [
-                    "move forward",
-                    "move backward",
-                    "move left",
-                    "move right",
-                    "move head up",
-                    "move head down",
-                    "move head left",
-                    "move head right",
-                ]
+                # valid_responses = [
+                #     "move forward",
+                #     "move backward",
+                #     "move left",
+                #     "move right",
+                #     "move head up",
+                #     "move head down",
+                #     "move head left",
+                #     "move head right",
+                # ]
                 if response and response['message']['content']:
                     response = response['message']['content'].strip().lower()
                     return response
@@ -125,7 +139,8 @@ class LLMController:
                 rich.print(f"[red]Error in control_robot[red]: {e}")
             return "failed to understand"
 
-    def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
+    # def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
+    def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list) -> str:
          # Get fresh images from remote
 
 
@@ -139,23 +154,36 @@ class LLMController:
                 # map_context = self.get_map_context()
 
                  # Format system prompt with current subtask context
+                # new feedback system prompt with action history
                 formatted_prompt = f"""
-                Task: {self.current_subtask}
-                Compare the two images and tell me if the task is:
-                - 'continue' (made progress but not complete)
-                - 'subtask complete' (current task done)
-                - 'main goal complete' (entire goal achieved)
-                - 'no progress' (no changes detected)
-                RESPOND WITH EXACTLY ONE OF THESE OPTIONS."""
+                    Goal: {self.current_goal}
+                    Current Task: {current_subgoal}
+                    Actions executed so far: {', '.join(executed_actions)}
+
+                    Compare the two images and determine the task status:
+                    - 'continue' (made progress but not complete)
+                    - 'subtask complete' (current task done)
+                    - 'main goal complete' (entire goal achieved)
+                    - 'no progress' (no changes detected)
+
+                    Consider:
+                    1. The sequence of actions taken so far: {executed_actions}
+                    2. Visual changes between images
+                    3. Progress toward the current subtask based on the images
+                    4. Overall goal completion
+
+                    RESPOND WITH EXACTLY ONE OF THESE OPTIONS.
+                    """
                  # Correct message format for ollama
                 message = [
                 {"role": "system", "content": formatted_prompt},
                 {"role": "user", "content": map_context, "is_image": True},
-                {"role": "user", "content": "Environment map shown above. Here's previous image:"},
+                {"role": "user", "content": "Environment lidar map shown above. Here's  the camera image before the last action was taken:"},
                 {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
-                {"role": "user", "content": "Previous image shown above. Here's current image:"},
+                {"role": "user", "content": "Here's the current image after the action was taken:"},
                 {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
-                {"role": "user", "content": "Based on these images, what's the task status?"}
+                {"role": "user", "content": f"What is the task status after the action: {executed_actions[-1] if executed_actions else 'None'}?"}
+                # {"role": "user", "content": "Based on these images and given , what's the task status?"}
             ]
 
                 if self.debug:
