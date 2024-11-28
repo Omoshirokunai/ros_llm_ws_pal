@@ -196,7 +196,11 @@ def process_subgoals(prompt, subgoals):
                 continue
 
 
-            # current_subgoal = subgoals[current_subgoal_index]
+            current_subgoal = subgoals[current_subgoal_index]
+            # print(f"Control response: {control_response}")
+            print(f"\n Processing Current subgoal: {current_subgoal_index + 1} : {current_subgoal}")
+            print(f"Previous actions: {executed_actions}")
+            print(f"Last feedback: {last_feedback}")
              # Get control action
             control_response = llm_controller.control_robot(
                 current_subgoal,
@@ -204,17 +208,15 @@ def process_subgoals(prompt, subgoals):
                 map_image,
                 executed_actions,
                 last_feedback)
-            rich.print(f"[blue] Control response: [/blue] {control_response}")
-            # print(f"Previous actions: {executed_actions}")
-            # print("Last feedback: {last_feedback}")
+
 
             if validate_control_response(control_response):
                 # Save image before action
                 try:
                 # with open('src/flask_app/static/images/previous.jpg', 'wb') as f:
                 #     previous_image = f.write(current_image)
-                    with open('static/images/current.jpg', 'rb') as src:
-                        with open('static/images/previous.jpg', 'wb') as dst:
+                    with open('src/flask_app/static/images/current.jpg', 'rb') as src:
+                        with open('src/flask_app/static/images/previous.jpg', 'wb') as dst:
                             dst.write(src.read())
                 except Exception as e:
                         print(f"Error saving previous image: {e}")
@@ -244,9 +246,9 @@ def process_subgoals(prompt, subgoals):
                 # Get new image after action
                  # Read new current image for feedback
                 try:
-                    with open('static/images/current.jpg', 'rb') as f:
+                    with open('src/flask_app/static/images/current.jpg', 'rb') as f:
                         new_current_image = f.read()
-                    with open('static/images/previous.jpg', 'rb') as f:
+                    with open('src/flask_app/static/images/previous.jpg', 'rb') as f:
                         previous_image = f.read()
                 except Exception as e:
                     print(f"Error reading feedback images: {e}")
