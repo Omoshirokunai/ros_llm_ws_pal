@@ -171,9 +171,15 @@ def process_subgoals(prompt, subgoals):
         current_subgoal_index = 0
         executed_actions = []
         last_feedback = None
-        print(f"Processing subgoals: {subgoals}, lenght: {len(subgoals)}")
-        print(f"Action history: {executed_actions}")
+
+        print(f"Processing {len(subgoals)} subgoals")
+        print(f"Main goal: {prompt}")
         while current_subgoal_index < len(subgoals):
+            current_subgoal = subgoals[current_subgoal_index]
+            print(f"\nProcessing subgoal {current_subgoal_index + 1}: {current_subgoal}")
+            print(f"Executed actions: {executed_actions}")
+            print(f"Last feedback: {last_feedback}")
+
             if not fetch_images():
                 # raise Exception("Failed to fetch required images")
                 print("Failed to fetch required images")
@@ -190,7 +196,7 @@ def process_subgoals(prompt, subgoals):
                 continue
 
 
-            current_subgoal = subgoals[current_subgoal_index]
+            # current_subgoal = subgoals[current_subgoal_index]
              # Get control action
             control_response = llm_controller.control_robot(
                 current_subgoal,
@@ -198,9 +204,9 @@ def process_subgoals(prompt, subgoals):
                 map_image,
                 executed_actions,
                 last_feedback)
-            print(f"Control response: {control_response}")
-            print(f"Previous actions: {executed_actions}")
-            print("Last feedback: {last_feedback}")
+            rich.print(f"[blue] Control response: [/blue] {control_response}")
+            # print(f"Previous actions: {executed_actions}")
+            # print("Last feedback: {last_feedback}")
 
             if validate_control_response(control_response):
                 # Save image before action
@@ -218,9 +224,10 @@ def process_subgoals(prompt, subgoals):
                  # Execute robot action
                 if execute_robot_action(control_response):
                      executed_actions.append(control_response)
+                     rich.print(f"[blue] Updated executed actions:[/blue] {executed_actions}")
                      time.sleep(2)
                 else:
-                    print("Failed to execute robot action")
+                    rich.print("[red]Failed to execute robot action[/red]")
                     continue
 
                 # time.sleep(2)  # Wait for robot to complete action
@@ -231,7 +238,7 @@ def process_subgoals(prompt, subgoals):
 
                 # Fetch fresh images again after action
                 if not fetch_images():
-                    print("Failed to fetch post-action images")
+                    rich.print("[red] Failed to fetch post-action images[/red]")
                     continue
 
                 # Get new image after action
@@ -254,10 +261,11 @@ def process_subgoals(prompt, subgoals):
                     current_subgoal,
                     executed_actions)
                 last_feedback = feedback
-                print(f"Feedback for current subgoal {current_subgoal_index + 1}: {feedback}")
+                rich.print(f"[purple]Feedback recieved:[/purple] {feedback}")
+                print(f"updated feedback context: {last_feedback}")
 
                 if feedback == "continue":
-                    print("Continue trying to finish subtask")
+                    print("Progress made, continuing to with current subtask")
                     continue
                 elif feedback == "subtask complete":
                     print(f"completed Subtask: {current_subgoal_index + 1},\n moving to next subtask")
@@ -265,23 +273,27 @@ def process_subgoals(prompt, subgoals):
                     executed_actions = [] # reset executed actions
                     last_feedback = None
                 elif feedback == "no progress":
-
                     print("No progress made, retrying action")
-                    executed_actions.pop() # try another approach
-                    # try alternative action
+
+                    control_response = llm_controller.control_robot(
+                        current_subgoal,
+                        current_image,
+                        map_image,
+                        executed_actions,
+                        "no significant progress hasnt been made to completing the task based on your previous actions")
                     continue
                 elif feedback == "main goal complete":
                     print("Main goal complete")
                     return True
                 else:
-                    print(f"Invalid control response: {control_response}")
+                    rich.print(f"[orange3]Invalid control response:[/orange3] {control_response}")
                     continue
 
     except Exception as e:
         print(f"Error processing subtasks: {e}")
         return False
 
-    print("All subgoals completed")
+    rich.print("[green_yellow]All subgoals completed[/green_yellow]")
     return True
 
 def validate_control_response(response):

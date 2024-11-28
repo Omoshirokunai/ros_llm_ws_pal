@@ -28,7 +28,7 @@ class SingleCommandSSHClient:
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             ssh_client.connect(self.SSH_HOST, username=self.SSH_USER, port=self.SSH_PORT, password=self.PASS)
-            print(f"Executing command")
+            # print(f"Executing command")
         except Exception as e:
             print(f"Failed to connect to SSH: {e}")
             raise e
@@ -37,7 +37,7 @@ class SingleCommandSSHClient:
         # full_command = f"source ~/robotics_ws/devel/setup.bash && {command}"
 
         ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(full_command)
-        print(f"{full_command} executed")
+        # print(f"{full_command} executed")
         output = ssh_stdout.read().decode()
         error = ssh_stderr.read().decode()
         print(output)

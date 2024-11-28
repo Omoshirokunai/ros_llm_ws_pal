@@ -1,5 +1,6 @@
 import time
 
+from rich import print
 from ssh_with_ros import PersistentSSHClient, SingleCommandSSHClient
 
 
@@ -15,7 +16,7 @@ class RobotControl:
         # self._execute_command_for_duration(command, 3)
 
     def move_forward(self):
-        print("excuting")
+        print("[green] excuting move forward [/green]")
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.5,0.0,0.0]' '[0.0, 0.0, 0.0]' --once"
         # self._execute_command_for_duration(command, 100)
         try:
@@ -26,6 +27,7 @@ class RobotControl:
             raise e
 
     def turn_right(self):
+        print("[green] excuting turn right [/green]")
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]'"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
@@ -33,11 +35,13 @@ class RobotControl:
 
 
     def turn_left(self):
+        print("[green] excuting turn left [/green]")
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.5]' '[0.0, 0.0, 0.4]'"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
 
     def head_up(self, increment=0.3):
+        print("[green] excecuting head up [/green]")
         self.head_pose = min(self.head_pose + increment, -1)
         self.head_pose = max(self.head_pose, 0.7)
         command = f"rosrun play_motion move_joint head_2_joint {self.head_pose} 2.0"
