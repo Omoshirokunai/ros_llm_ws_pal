@@ -17,13 +17,15 @@ logging.basicConfig(
 
 class MapData:
     def __init__(self):
-        self.width = 800
-        self.height = 800
+        self.width = 500
+        self.height = 500
         self.resolution = 0.05  # meters per pixel
         self.map_center = (self.width // 2, self.height // 2)
         self.map = np.zeros((self.height, self.width), dtype=np.uint8)
         self.persistence_map = np.zeros((self.height, self.width), dtype=np.uint8)
-        self.save_path = os.path.expanduser('~/map.jpg')
+        # self.save_path = os.path.expanduser('~/map.jpg')
+        self.save_path = '/home/pal/catkin_ws/src/get_map_image/map.jpg'
+
 
 def laser_callback(scan, map_data):
     """Process LIDAR scan data and update maps"""
@@ -69,18 +71,39 @@ def laser_callback(scan, map_data):
         # Draw robot position
         cv2.circle(vis_map, map_data.map_center, 5, (0, 0, 255), -1)
 
-        # Draw grid
-        grid_spacing = int(1.0 / map_data.resolution)
-        for i in range(0, map_data.width, grid_spacing):
-            cv2.line(vis_map, (i, 0), (i, map_data.height-1), (50, 50, 50), 1)
-        for i in range(0, map_data.height, grid_spacing):
-            cv2.line(vis_map, (0, i), (map_data.width-1, i), (50, 50, 50), 1)
+        # Draw obstacles with larger circles
+        obstacle_points = np.where(map_data.persistence_map > 0)
+        for y, x in zip(obstacle_points[0], obstacle_points[1]):
+            cv2.circle(vis_map, (x, y), 3, (255, 255, 255), -1)  # Increased radius from 1 to 3
+
+        # Draw direction arrow
+        # Calculate arrow endpoint (30 pixels in front of robot)
+        arrow_length = 10
+        robot_x, robot_y = map_data.map_center
+        # Assuming robot's orientation is in radians
+        robot_angle = 0  # You'll need to get this from your robot's odometry
+        end_x = int(robot_x + arrow_length * np.cos(robot_angle))
+        end_y = int(robot_y + arrow_length * np.sin(robot_angle))
+
+        # Draw arrow
+        cv2.arrowedLine(vis_map,
+                        map_data.map_center,
+                        (end_x, end_y),
+                        (0, 255, 0),  # Green color
+                        2,  # Thickness
+                        tipLength=0.3)  # Arrow head size
+        # # Draw grid
+        # grid_spacing = int(1.0 / map_data.resolution)
+        # for i in range(0, map_data.width, grid_spacing):
+        #     cv2.line(vis_map, (i, 0), (i, map_data.height-1), (50, 50, 50), 1)
+        # for i in range(0, map_data.height, grid_spacing):
+        #     cv2.line(vis_map, (0, i), (map_data.width-1, i), (50, 50, 50), 1)
 
         # Save map
         cv2.imwrite(map_data.save_path, vis_map)
 
     except Exception as e:
-        logging.error(f"Error in laser callback: {e}")
+        logging.error(e)
 
 def main():
     try:
@@ -105,7 +128,7 @@ def main():
             rate.sleep()
 
     except Exception as e:
-        logging.error(f"Error in main loop: {e}")
+        logging.error(e)
     finally:
         logging.info("Mapping service stopped")
 
