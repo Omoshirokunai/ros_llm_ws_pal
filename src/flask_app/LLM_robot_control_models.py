@@ -86,18 +86,18 @@ class LLMController:
                 Previous Actions: {', '.join(executed_actions) if executed_actions else 'None'}
                 Last Feedback: {last_feedback if last_feedback else 'No feedback yet'}
 
-                Based on the previous actions and feedback, choose ONE action:
+                Based on the previous actions and feedback, choose ONE action from this list:
+                - turn left
                 - move forward
                 - move backward
-                - move left
-                - move right
+                - turn right
 
                 Consider:
                 1. Previous actions taken: {executed_actions}
                 2. Last feedback received: {last_feedback}
                 3. Current camera view
                 4. Lidar environment map where the red dot represents the robot and white lines represent obstacles
-                5. Progress needed for current subtask
+                5. feedback contains information and suggestions make sure to use them especially if the feedback includes a different action to take.
 
                 RESPOND WITH EXACTLY ONE OF THESE OPTIONS.
                 """
@@ -140,7 +140,7 @@ class LLMController:
             return "failed to understand"
 
     # def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
-    def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list) -> str:
+    def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None) -> str:
          # Get fresh images from remote
 
             print("getting feedback")
@@ -159,9 +159,11 @@ class LLMController:
                     Goal: {self.current_goal}
                     Current Task: {current_subgoal}
                     Actions executed so far: {', '.join(executed_actions)}
+                    Your previous feedback: {last_feedback if last_feedback else 'No feedback yet'}
 
                     Compare the two images and determine the task status:
                     - 'continue' (made progress but not complete)
+                    - 'do [different action instead]' (actions taken so far have not helped recommend a different action)
                     - 'subtask complete' (current task done)
                     - 'main goal complete' (entire goal achieved)
                     - 'no progress' (no changes detected)
@@ -171,6 +173,7 @@ class LLMController:
                     2. Visual changes between images
                     3. Progress toward the current subtask based on the images
                     4. Overall goal completion
+                    5. Repeated actions that may not be helpful
 
                     RESPOND WITH EXACTLY ONE OF THESE OPTIONS.
                     """
