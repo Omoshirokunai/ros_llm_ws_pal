@@ -69,9 +69,9 @@ NO OTHER RESPONSES ARE ALLOWED."""
 
 #! cange max token
 generation_config = {
-"max_output_tokens": 20,
-"temperature": 0.2,
-"top_p": 0.98,
+"max_output_tokens": 10,
+"temperature": 0.1,
+"top_p": 0.96,
 }
 
 safety_settings = {

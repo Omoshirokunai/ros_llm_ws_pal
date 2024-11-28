@@ -198,17 +198,21 @@ def process_subgoals(prompt, subgoals):
 
             current_subgoal = subgoals[current_subgoal_index]
             # print(f"Control response: {control_response}")
-            print(f"\n Processing Current subgoal: {current_subgoal_index + 1} : {current_subgoal}")
+            rich.print(f"\n [blue]Processing Current subgoal[/blue]: {current_subgoal}")
             print(f"Previous actions: {executed_actions}")
             print(f"Last feedback: {last_feedback}")
              # Get control action
+            #remove numbering from subgoal
+            # current_subgoal = current_subgoal.split(" ", 1)[1]
             control_response = llm_controller.control_robot(
-                current_subgoal,
+
+                current_subgoal.split(" ", 1)[1],
                 current_image,
                 map_image,
                 executed_actions,
                 last_feedback)
 
+            rich.print(f"[yellow]Feedback response:[yellow] {control_response}")
 
             if validate_control_response(control_response):
                 # Save image before action
@@ -230,6 +234,14 @@ def process_subgoals(prompt, subgoals):
                      time.sleep(2)
                 else:
                     rich.print("[red]Failed to execute robot action[/red]")
+                    # control_response = llm_controller.control_robot(
+                    #     current_subgoal,
+                    #     current_image,
+                    #     map_image,
+                    #     executed_actions,
+                    #     "failed to execute the last action try again")
+
+                    # validate_control_response(control_response)
                     continue
 
                 # time.sleep(2)  # Wait for robot to complete action
@@ -238,14 +250,14 @@ def process_subgoals(prompt, subgoals):
                 # execute_robot_action(control_response)
                 # time.sleep(1)
 
-                # Fetch fresh images again after action
-                if not fetch_images():
-                    rich.print("[red] Failed to fetch post-action images[/red]")
-                    continue
 
                 # Get new image after action
                  # Read new current image for feedback
                 try:
+                    # Fetch fresh images again after action
+                    if not fetch_images():
+                        rich.print("[red] Failed to fetch post-action images[/red]")
+                        # continue
                     with open('src/flask_app/static/images/current.jpg', 'rb') as f:
                         new_current_image = f.read()
                     with open('src/flask_app/static/images/previous.jpg', 'rb') as f:
@@ -261,7 +273,8 @@ def process_subgoals(prompt, subgoals):
                     new_current_image,
                     previous_image,
                     current_subgoal,
-                    executed_actions)
+                    executed_actions,
+                    last_feedback)
                 last_feedback = feedback
                 rich.print(f"[purple]Feedback recieved:[/purple] {feedback}")
                 print(f"updated feedback context: {last_feedback}")
@@ -284,6 +297,15 @@ def process_subgoals(prompt, subgoals):
                         executed_actions,
                         "no significant progress hasnt been made to completing the task based on your previous actions")
                     continue
+                elif feedback.startswith("do") or feedback.startswith("based"):
+                    # feedback to try recommending a different action
+
+                    control_response = llm_controller.control_robot(
+                        current_subgoal,
+                        current_image,
+                        map_image,
+                        executed_actions,
+                        feedback)
                 elif feedback == "main goal complete":
                     print("Main goal complete")
                     return True
@@ -299,6 +321,7 @@ def process_subgoals(prompt, subgoals):
     return True
 
 def validate_control_response(response):
+
     """Validate that control response is one of allowed actions"""
     valid_actions = [
         "move forward",
@@ -313,15 +336,21 @@ def validate_control_response(response):
 def execute_robot_action(action):
     """Execute robot action based on the response"""
     if action == "move forward":
-        robot_control.move_forward()
+        return robot_control.move_forward()
+        # return True
+
     elif action == "move backward":
-        robot_control.move_backward()
+        return robot_control.move_backward()
+        # return True
+
     elif action == "turn left":
-        robot_control.turn_left()
+        return robot_control.turn_left()
+
     elif action == "turn right":
-        robot_control.turn_right()
+        return robot_control.turn_right()
     else:
         print(f"Invalid action: {action}")
+        return False
 
 #TODO: check lidar if there is an obstacle and the next commad is to move {direction of obstacle} reprompt the llm telling it that there is an obstacle
 # endregion

@@ -14,6 +14,7 @@ class RobotControl:
         command = "rosrun play_motion run_motion home"
         self.ssh_client.execute_command(command)
         # self._execute_command_for_duration(command, 3)
+        return True
 
     def move_forward(self):
         print("[green] excuting move forward [/green]")
@@ -25,20 +26,25 @@ class RobotControl:
         except Exception as e:
             print(f"Failed to connect to SSH: {e}")
             raise e
+        return True
 
     def turn_right(self):
         print("[green] excuting turn right [/green]")
-        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]'"
+        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.4]' --once"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
-        time.sleep(0.1)
+        time.sleep(1)
+        return True
 
 
     def turn_left(self):
         print("[green] excuting turn left [/green]")
-        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.5]' '[0.0, 0.0, 0.4]'"
+        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0, 0.0, 0.4]' --once"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
+        time.sleep(1)
+
+        return True
 
     def head_up(self, increment=0.3):
         print("[green] excecuting head up [/green]")
@@ -46,6 +52,7 @@ class RobotControl:
         self.head_pose = max(self.head_pose, 0.7)
         command = f"rosrun play_motion move_joint head_2_joint {self.head_pose} 2.0"
         self.ssh_client.execute_command(command)
+        return True
 
 
     def _execute_command_for_duration(self, command, duration):
