@@ -21,7 +21,16 @@ from gemini_config import (
     safety_settings,
     system_prompt,
 )
-from robot_control import (
+from safe import CREDENTIALS, PROJECT_ID, REGIONNA
+from sensor_msgs.msg import (  # type: ignore #* camera and lidar data
+    Image,
+    JointState,
+    LaserScan,
+)
+from vertexai.preview.generative_models import GenerativeModel
+from vertexai.preview.generative_models import Image as GeminiImage
+
+from flask_app.sim_robot_control import (
     VALID_DIRECTIONS,
     control_gripper,
     execute_with_feedback,
@@ -35,14 +44,6 @@ from robot_control import (
     update_arm,
     update_torso,
 )
-from safe import CREDENTIALS, PROJECT_ID, REGIONNA
-from sensor_msgs.msg import (  # type: ignore #* camera and lidar data
-    Image,
-    JointState,
-    LaserScan,
-)
-from vertexai.preview.generative_models import GenerativeModel
-from vertexai.preview.generative_models import Image as GeminiImage
 
 # endregion Imports
 

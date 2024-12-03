@@ -165,160 +165,285 @@ def send_llm_prompt():
                              user_prompt=prompt)
 
 # Todo: Process subgoals and send to robot
-def process_subgoals(prompt, subgoals):
-    """Process the subgoals and send to robot"""
+# def process_subgoals(prompt, subgoals):
+#     """Process the subgoals and send to robot"""
+#     try:
+#         current_subgoal_index = 0
+#         executed_actions = []
+#         last_feedback = None
+
+#         print(f"Processing {len(subgoals)} subgoals")
+#         print(f"Main goal: {prompt}")
+#         while current_subgoal_index < len(subgoals):
+#             current_subgoal = subgoals[current_subgoal_index]
+#             print(f"\nProcessing subgoal {current_subgoal_index + 1}: {current_subgoal}")
+#             print(f"Executed actions: {executed_actions}")
+#             print(f"Last feedback: {last_feedback}")
+
+#             if not fetch_images():
+#                 # raise Exception("Failed to fetch required images")
+#                 print("Failed to fetch required images")
+#                 time.sleep(1)
+#                 continue
+#             try:
+#                 # Get current images
+#                 with open('src/flask_app/static/images/current.jpg', 'rb') as f:
+#                     current_image = f.read()
+#                 with open('src/flask_app/static/images/map.jpg', 'rb') as f:
+#                     map_image = f.read()
+#             except Exception as e:
+#                 print(f"Error reading images: {e}")
+#                 continue
+
+
+#             current_subgoal = subgoals[current_subgoal_index]
+#             # print(f"Control response: {control_response}")
+#             rich.print(f"\n [blue]Processing Current subgoal[/blue]: {current_subgoal}")
+#             print(f"Previous actions: {executed_actions}")
+#             print(f"Last feedback: {last_feedback}")
+#              # Get control action
+#             #remove numbering from subgoal
+#             # current_subgoal = current_subgoal.split(" ", 1)[1]
+#             control_response = llm_controller.control_robot(
+
+#                 current_subgoal.split(" ", 1)[1],
+#                 current_image,
+#                 map_image,
+#                 executed_actions,
+#                 last_feedback)
+
+#             rich.print(f"[yellow]Feedback response:[yellow] {control_response}")
+
+#             if validate_control_response(control_response):
+#                 # Save image before action
+#                 try:
+#                 # with open('src/flask_app/static/images/previous.jpg', 'wb') as f:
+#                 #     previous_image = f.write(current_image)
+#                     with open('src/flask_app/static/images/current.jpg', 'rb') as src:
+#                         with open('src/flask_app/static/images/previous.jpg', 'wb') as dst:
+#                             dst.write(src.read())
+#                 except Exception as e:
+#                         print(f"Error saving previous image: {e}")
+#                         continue
+#                     # f.write(current_image)
+
+#                  # Execute robot action
+#                 if execute_robot_action(control_response):
+#                      executed_actions.append(control_response)
+#                      rich.print(f"[blue] Updated executed actions:[/blue] {executed_actions}")
+#                      time.sleep(2)
+#                 else:
+#                     rich.print("[red]Failed to execute robot action[/red]")
+#                     # control_response = llm_controller.control_robot(
+#                     #     current_subgoal,
+#                     #     current_image,
+#                     #     map_image,
+#                     #     executed_actions,
+#                     #     "failed to execute the last action try again")
+
+#                     # validate_control_response(control_response)
+#                     continue
+
+#                 # time.sleep(2)  # Wait for robot to complete action
+
+#                 # # Execute robot action
+#                 # execute_robot_action(control_response)
+#                 # time.sleep(1)
+
+
+#                 # Get new image after action
+#                  # Read new current image for feedback
+#                 try:
+#                     # Fetch fresh images again after action
+#                     if not fetch_images():
+#                         rich.print("[red] Failed to fetch post-action images[/red]")
+#                         # continue
+#                     with open('src/flask_app/static/images/current.jpg', 'rb') as f:
+#                         new_current_image = f.read()
+#                     with open('src/flask_app/static/images/previous.jpg', 'rb') as f:
+#                         previous_image = f.read()
+#                 except Exception as e:
+#                     print(f"Error reading feedback images: {e}")
+#                     continue
+#                 # with open('src/flask_app/static/images/current.jpg', 'rb') as f:
+#                 #     current_image = f.read()
+
+#                 # Get feedback
+#                 feedback = llm_controller.get_feedback(
+#                     new_current_image,
+#                     previous_image,
+#                     current_subgoal,
+#                     executed_actions,
+#                     last_feedback)
+#                 last_feedback = feedback
+#                 rich.print(f"[purple]Feedback recieved:[/purple] {feedback}")
+#                 print(f"updated feedback context: {last_feedback}")
+
+#                 if feedback == "continue":
+#                     print("Progress made, continuing to with current subtask")
+#                     continue
+#                 elif feedback == "subtask complete":
+#                     print(f"completed Subtask: {current_subgoal_index + 1},\n moving to next subtask")
+#                     current_subgoal_index += 1
+#                     executed_actions = [] # reset executed actions
+#                     last_feedback = None
+#                 elif feedback == "no progress":
+#                     print("No progress made, retrying action")
+
+#                     control_response = llm_controller.control_robot(
+#                         current_subgoal,
+#                         current_image,
+#                         map_image,
+#                         executed_actions,
+#                         "no significant progress hasnt been made to completing the task based on your previous actions")
+#                     continue
+#                 elif feedback.startswith("do") or feedback.startswith("based"):
+#                     # feedback to try recommending a different action
+
+#                     control_response = llm_controller.control_robot(
+#                         current_subgoal,
+#                         current_image,
+#                         map_image,
+#                         executed_actions,
+#                         feedback)
+#                 elif feedback == "main goal complete":
+#                     print("Main goal complete")
+#                     return True
+#                 else:
+#                     rich.print(f"[orange3]Invalid control response:[/orange3] {control_response}")
+#                     continue
+
+#     except Exception as e:
+#         print(f"Error processing subtasks: {e}")
+#         return False
+
+#     rich.print("[green_yellow]All subgoals completed[/green_yellow]")
+#     return True
+
+# def validate_control_response(response):
+
+#     """Validate that control response is one of allowed actions"""
+#     valid_actions = [
+#         "move forward",
+#         "move backward",
+#         "turn left",
+#         "turn right",
+#     ]
+#     # check whole response if it is in the valid actions
+#     # return response in valid_actions
+#     return response and response.lower() in valid_actions
+
+def process_subgoals(prompt, subgoals, robot_control, llm_controller):
+    """Process subgoals for both simulation and real robot"""
+    current_subgoal_index = 0
+    executed_actions = []
+    last_feedback = None
+    initial_image = None
+
     try:
-        current_subgoal_index = 0
-        executed_actions = []
-        last_feedback = None
+        # Get initial state image
+        if not fetch_images():
+            raise Exception("Failed to fetch initial images")
+        with open('src/flask_app/static/images/current.jpg', 'rb') as f:
+            initial_image = f.read()
 
-        print(f"Processing {len(subgoals)} subgoals")
-        print(f"Main goal: {prompt}")
+        rich.print(f"[blue]Processing {len(subgoals)} subgoals for goal:[/blue] {prompt}")
+
         while current_subgoal_index < len(subgoals):
-            current_subgoal = subgoals[current_subgoal_index]
-            print(f"\nProcessing subgoal {current_subgoal_index + 1}: {current_subgoal}")
-            print(f"Executed actions: {executed_actions}")
-            print(f"Last feedback: {last_feedback}")
+            current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]  # Remove numbering
+            rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
 
+            # Get current state images
             if not fetch_images():
-                # raise Exception("Failed to fetch required images")
-                print("Failed to fetch required images")
-                time.sleep(1)
                 continue
+
             try:
-                # Get current images
                 with open('src/flask_app/static/images/current.jpg', 'rb') as f:
                     current_image = f.read()
+                with open('src/flask_app/static/images/previous.jpg', 'rb') as f:
+                    previous_image = f.read()
                 with open('src/flask_app/static/images/map.jpg', 'rb') as f:
                     map_image = f.read()
             except Exception as e:
-                print(f"Error reading images: {e}")
+                rich.print(f"[red]Error reading images: {e}[/red]")
                 continue
 
-
-            current_subgoal = subgoals[current_subgoal_index]
-            # print(f"Control response: {control_response}")
-            rich.print(f"\n [blue]Processing Current subgoal[/blue]: {current_subgoal}")
-            print(f"Previous actions: {executed_actions}")
-            print(f"Last feedback: {last_feedback}")
-             # Get control action
-            #remove numbering from subgoal
-            # current_subgoal = current_subgoal.split(" ", 1)[1]
+            # Get control action
             control_response = llm_controller.control_robot(
+                subgoal=current_subgoal,
+                initial_image=initial_image,
+                current_image=current_image,
+                previous_image=previous_image,
+                map_image=map_image,
+                executed_actions=executed_actions,
+                last_feedback=last_feedback
+            )
 
-                current_subgoal.split(" ", 1)[1],
-                current_image,
-                map_image,
-                executed_actions,
-                last_feedback)
+            if not validate_control_response(control_response):
+                rich.print(f"[red]Invalid control response:[/red] {control_response}")
+                continue
 
-            rich.print(f"[yellow]Feedback response:[yellow] {control_response}")
+            # Save current as previous before executing action
+            with open('src/flask_app/static/images/current.jpg', 'rb') as src:
+                with open('src/flask_app/static/images/previous.jpg', 'wb') as dst:
+                    dst.write(src.read())
 
-            if validate_control_response(control_response):
-                # Save image before action
-                try:
-                # with open('src/flask_app/static/images/previous.jpg', 'wb') as f:
-                #     previous_image = f.write(current_image)
-                    with open('src/flask_app/static/images/current.jpg', 'rb') as src:
-                        with open('src/flask_app/static/images/previous.jpg', 'wb') as dst:
-                            dst.write(src.read())
-                except Exception as e:
-                        print(f"Error saving previous image: {e}")
-                        continue
-                    # f.write(current_image)
+            # Execute action and update history
+            if execute_robot_action(control_response, robot_control):
+                executed_actions.append(control_response)
+                rich.print(f"[green]Executed action:[/green] {control_response}")
+                time.sleep(2)  # Allow time for action completion
+            else:
+                rich.print("[red]Failed to execute robot action[/red]")
+                continue
 
-                 # Execute robot action
-                if execute_robot_action(control_response):
-                     executed_actions.append(control_response)
-                     rich.print(f"[blue] Updated executed actions:[/blue] {executed_actions}")
-                     time.sleep(2)
-                else:
-                    rich.print("[red]Failed to execute robot action[/red]")
-                    # control_response = llm_controller.control_robot(
-                    #     current_subgoal,
-                    #     current_image,
-                    #     map_image,
-                    #     executed_actions,
-                    #     "failed to execute the last action try again")
+            # Get feedback with updated images
+            if not fetch_images():
+                continue
 
-                    # validate_control_response(control_response)
-                    continue
+            try:
+                with open('src/flask_app/static/images/current.jpg', 'rb') as f:
+                    new_current_image = f.read()
+                with open('src/flask_app/static/images/previous.jpg', 'rb') as f:
+                    new_previous_image = f.read()
+            except Exception as e:
+                rich.print(f"[red]Error reading feedback images: {e}[/red]")
+                continue
 
-                # time.sleep(2)  # Wait for robot to complete action
+            feedback = llm_controller.get_feedback(
+                initial_image=initial_image,
+                current_image=new_current_image,
+                previous_image=new_previous_image,
+                map_image=map_image,
+                current_subgoal=current_subgoal,
+                executed_actions=executed_actions,
+                last_feedback=last_feedback
+            )
 
-                # # Execute robot action
-                # execute_robot_action(control_response)
-                # time.sleep(1)
+            rich.print(f"[purple]Feedback received:[/purple] {feedback}")
+            last_feedback = feedback
 
+            # Process feedback
+            if feedback == "continue":
+                continue
+            elif feedback == "subtask complete":
+                current_subgoal_index += 1
+                executed_actions = []  # Reset for new subtask
+                last_feedback = None
+            elif feedback == "main goal complete":
+                return True
+            elif feedback == "no progress":
+                last_feedback = "Previous action made no progress, try a different approach"
+                continue
+            elif feedback.startswith("do"):
+                last_feedback = feedback  # Pass suggestion to next control iteration
+                continue
 
-                # Get new image after action
-                 # Read new current image for feedback
-                try:
-                    # Fetch fresh images again after action
-                    if not fetch_images():
-                        rich.print("[red] Failed to fetch post-action images[/red]")
-                        # continue
-                    with open('src/flask_app/static/images/current.jpg', 'rb') as f:
-                        new_current_image = f.read()
-                    with open('src/flask_app/static/images/previous.jpg', 'rb') as f:
-                        previous_image = f.read()
-                except Exception as e:
-                    print(f"Error reading feedback images: {e}")
-                    continue
-                # with open('src/flask_app/static/images/current.jpg', 'rb') as f:
-                #     current_image = f.read()
-
-                # Get feedback
-                feedback = llm_controller.get_feedback(
-                    new_current_image,
-                    previous_image,
-                    current_subgoal,
-                    executed_actions,
-                    last_feedback)
-                last_feedback = feedback
-                rich.print(f"[purple]Feedback recieved:[/purple] {feedback}")
-                print(f"updated feedback context: {last_feedback}")
-
-                if feedback == "continue":
-                    print("Progress made, continuing to with current subtask")
-                    continue
-                elif feedback == "subtask complete":
-                    print(f"completed Subtask: {current_subgoal_index + 1},\n moving to next subtask")
-                    current_subgoal_index += 1
-                    executed_actions = [] # reset executed actions
-                    last_feedback = None
-                elif feedback == "no progress":
-                    print("No progress made, retrying action")
-
-                    control_response = llm_controller.control_robot(
-                        current_subgoal,
-                        current_image,
-                        map_image,
-                        executed_actions,
-                        "no significant progress hasnt been made to completing the task based on your previous actions")
-                    continue
-                elif feedback.startswith("do") or feedback.startswith("based"):
-                    # feedback to try recommending a different action
-
-                    control_response = llm_controller.control_robot(
-                        current_subgoal,
-                        current_image,
-                        map_image,
-                        executed_actions,
-                        feedback)
-                elif feedback == "main goal complete":
-                    print("Main goal complete")
-                    return True
-                else:
-                    rich.print(f"[orange3]Invalid control response:[/orange3] {control_response}")
-                    continue
+        return current_subgoal_index >= len(subgoals)
 
     except Exception as e:
-        print(f"Error processing subtasks: {e}")
+        rich.print(f"[red]Error in process_subgoals:[/red] {str(e)}")
         return False
-
-    rich.print("[green_yellow]All subgoals completed[/green_yellow]")
-    return True
 
 def validate_control_response(response):
 
@@ -332,6 +457,7 @@ def validate_control_response(response):
     # check whole response if it is in the valid actions
     # return response in valid_actions
     return response and response.lower() in valid_actions
+
 
 def execute_robot_action(action):
     """Execute robot action based on the response"""
