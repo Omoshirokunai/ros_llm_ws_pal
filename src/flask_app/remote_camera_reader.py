@@ -1,16 +1,22 @@
+"""
+    Get Images from Tiago Robot in simulation save them as current.jpg and previous.jpg
+"""
 import os
 
 import cv2
 import rospy
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
+import numpy as np
 
 bridge = CvBridge()
-output_dir = "/path/to/save/images"  # Update to the directory where you want to save images
+output_dir = "/home/hameed/ros_llm_ws_pal/src/flask_app/static/images/"  # Update to the directory where you want to save images
 image_received = False
 def save_image_as_jpeg(image_data):
     try:
         # Convert ROS Image message to OpenCV format
+        # np_arr = np.frombuffer(image_data.data, np.uint8)
+        # cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         cv_image = bridge.imgmsg_to_cv2(image_data, desired_encoding="bgr8")
 
         # Define paths for current and previous images
@@ -39,7 +45,8 @@ def main():
     rospy.init_node('image_saver_node')
 
     # Subscribe to the camera topic
-    rospy.Subscriber('/xtion/rgb/image_raw/compressed', Image, image_callback)
+    # rospy.Subscriber('/xtion/rgb/image_raw/compressed', Image, image_callback)
+    rospy.Subscriber('/xtion/rgb/image_raw', Image, image_callback)
 
     print("Waiting for images...")
     rospy.spin()
