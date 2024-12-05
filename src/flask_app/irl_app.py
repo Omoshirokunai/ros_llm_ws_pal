@@ -153,7 +153,7 @@ def send_llm_prompt():
                                 user_prompt=prompt)
 
         #!!process subgoals and control the robot
-        success = process_subgoals(prompt, subgoals)
+        success = process_subgoals(prompt, subgoals, robot_control, llm_controller)
 
         return render_template('irl_index.html',
                              user_prompt=prompt,
