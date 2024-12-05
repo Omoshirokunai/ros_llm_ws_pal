@@ -150,10 +150,10 @@ def send_llm_prompt():
             initial_image = f.read()
 
         # Generate subgoals with initial image context
+        # TODO: add scene description to the generate subgoal model
         subgoals = llm_controller.generate_subgoals(prompt, initial_image)
         # Generate subgoals
         # subgoals = llm_controller.generate_subgoals(prompt)
-
         # Log the response
         print(f"Generated subgoals: {subgoals}")
 
@@ -223,7 +223,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 rich.print(f"[red]Error loading images: {e}[/red]")
                 continue
 
-
+            #TODO: Add scene descriptor to the control_robot function it takes current image
             # control loop with context
             control_response = llm_controller.control_robot(
                 subgoal=current_subgoal,
@@ -279,15 +279,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 rich.print(f"[red]Error reading feedback images: {e}[/red]")
                 continue
 
-            # feedback = llm_controller.get_feedback(
-            #     initial_image=initial_image,
-            #     current_image=new_current_image,
-            #     previous_image=new_previous_image,
-            #     map_image=map_image,
-            #     current_subgoal=current_subgoal,
-            #     executed_actions=executed_actions,
-            #     last_feedback=last_feedback
-            # )
+            #TODO: Add scene descriptor to the get_feedback function it takes current image
             feedback = llm_controller.get_feedback(
                 initial_image=images['initial'],
                 current_image=images['current'],

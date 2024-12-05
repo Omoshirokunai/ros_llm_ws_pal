@@ -53,6 +53,29 @@ class LLMController:
                 raise Exception(f"Failed to load {img_type} image: {e}")
 
         return images
+    def scene_descriptor(self, image: bytes) -> str:
+        """takes current image and returns a description of the scene"""
+        # TODO: Add scene decription to the subgoal generator as well as the other models
+        with self.command_lock:
+            try:
+                system_prompt = f"""
+                describe what can you see in the image?
+                """
+                message = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": base64.b64encode(image).decode('utf-8'), "is_image": True},
+                ]
+                response = ollama.chat(
+                    model=self.model_name,
+                    messages=message,
+                    stream=False,
+                    options=generation_config
+                )
+                if response and response['message']['content']:
+                    return response['message']['content']
+            except Exception as e:
+                rich.print(f"[red]Error in scene_descriptor[red]: {e}")
+            return "failed to understand"
 
     def generate_subgoals(self, prompt: str, initial_image:bytes) -> Optional[list]:
         self.current_goal = prompt
