@@ -71,13 +71,15 @@ def trigger_stop_script():
 REMOTE_PATHS = {
     'current': os.getenv("REMOTE_IMAGE_PATH", "/home/pal/current.jpg"),
     'previous': os.getenv("REMOTE_PREVIOUS_PATH", "/home/pal/previous.jpg"),
-    'map': os.getenv("REMOTE_MAP_PATH", "/home/pal/map.jpg")
+    'map': os.getenv("REMOTE_MAP_PATH", "/home/pal/map.jpg"),
+    'lidar': os.getenv("REMOTE_LIDAR_PATH", "/home/pal/lidar_data.json")
 }
 
 LOCAL_PATHS = {
     'current': os.getenv("LOCAL_IMAGE_PATH", "current.jpg"),
     'previous': os.getenv("LOCAL_PREVIOUS_PATH", "previous.jpg"),
-    'map': os.getenv("LOCAL_MAP_PATH", "map.jpg")
+    'map': os.getenv("LOCAL_MAP_PATH", "map.jpg"),
+    'lidar': os.getenv("LOCAL_LIDAR_PATH", "lidar_data.json")
 }
 
 def fetch_images():

@@ -20,6 +20,7 @@ from flask import (
     send_file,
     url_for,
 )
+from lidar_safety import LidarSafety
 
 # from LLM_robot_control_models import control_robot, generate_subgoals, get_feedback
 from LLM_robot_control_models import LLMController
@@ -32,7 +33,7 @@ from sensor_data import fetch_images, trigger_capture_script, trigger_stop_scrip
 app = Flask(__name__)
 robot_control = RobotControl()
 llm_controller = LLMController()
-
+lidar_safety = LidarSafety()
 # Thread management
 executor = ThreadPoolExecutor(max_workers=3)
 command_queue = Queue()
@@ -344,8 +345,12 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
         # Get initial state image
         if not fetch_images():
             raise Exception("Failed to fetch initial images")
-        with open('src/flask_app/static/images/current.jpg', 'rb') as f:
-            initial_image = f.read()
+
+         # Save initial state for the entire task
+        with open('src/flask_app/static/images/current.jpg', 'rb') as src:
+            with open('src/flask_app/static/images/initial.jpg', 'wb') as dst:
+                initial_image = src.read()
+                dst.write(initial_image)
 
         rich.print(f"[blue]Processing {len(subgoals)} subgoals for goal:[/blue] {prompt}")
 
@@ -357,24 +362,33 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             if not fetch_images():
                 continue
 
+            # Load all required images
+            images = {
+                'initial': initial_image,
+                'current': None,
+                'previous': None,
+                'map': None
+            }
+
             try:
                 with open('src/flask_app/static/images/current.jpg', 'rb') as f:
-                    current_image = f.read()
+                    images['current'] = f.read()
                 with open('src/flask_app/static/images/previous.jpg', 'rb') as f:
-                    previous_image = f.read()
+                    images['previous'] = f.read()
                 with open('src/flask_app/static/images/map.jpg', 'rb') as f:
-                    map_image = f.read()
+                    images['map'] = f.read()
             except Exception as e:
-                rich.print(f"[red]Error reading images: {e}[/red]")
+                rich.print(f"[red]Error loading images: {e}[/red]")
                 continue
 
-            # Get control action
+
+            # control loop with context
             control_response = llm_controller.control_robot(
                 subgoal=current_subgoal,
-                initial_image=initial_image,
-                current_image=current_image,
-                previous_image=previous_image,
-                map_image=map_image,
+                initial_image=images['initial'],
+                current_image=images['current'],
+                previous_image=images['previous'],
+                map_image=images['map'],
                 executed_actions=executed_actions,
                 last_feedback=last_feedback
             )
@@ -389,12 +403,22 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                     dst.write(src.read())
 
             # Execute action and update history
-            if execute_robot_action(control_response, robot_control):
+            # if execute_robot_action(control_response, robot_control):
+            #     executed_actions.append(control_response)
+            #     rich.print(f"[green]Executed action:[/green] {control_response}")
+            #     time.sleep(2)  # Allow time for action completion
+            # else:
+            #     rich.print("[red]Failed to execute robot action[/red]")
+            #     continue
+            success, safety_warning = execute_robot_action(control_response)
+            if success:
                 executed_actions.append(control_response)
                 rich.print(f"[green]Executed action:[/green] {control_response}")
                 time.sleep(2)  # Allow time for action completion
             else:
-                rich.print("[red]Failed to execute robot action[/red]")
+                if safety_warning:
+                    last_feedback = f"Safety warning: {safety_warning}. Choose a different action."
+                rich.print(f"[red]Failed to execute robot action: {safety_warning}[/red]")
                 continue
 
             # Get feedback with updated images
@@ -410,16 +434,24 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 rich.print(f"[red]Error reading feedback images: {e}[/red]")
                 continue
 
+            # feedback = llm_controller.get_feedback(
+            #     initial_image=initial_image,
+            #     current_image=new_current_image,
+            #     previous_image=new_previous_image,
+            #     map_image=map_image,
+            #     current_subgoal=current_subgoal,
+            #     executed_actions=executed_actions,
+            #     last_feedback=last_feedback
+            # )
             feedback = llm_controller.get_feedback(
-                initial_image=initial_image,
-                current_image=new_current_image,
-                previous_image=new_previous_image,
-                map_image=map_image,
+                initial_image=images['initial'],
+                current_image=images['current'],
+                previous_image=images['previous'],
+                map_image=images['map'],
                 current_subgoal=current_subgoal,
                 executed_actions=executed_actions,
                 last_feedback=last_feedback
             )
-
             rich.print(f"[purple]Feedback received:[/purple] {feedback}")
             last_feedback = feedback
 
@@ -435,7 +467,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             elif feedback == "no progress":
                 last_feedback = "Previous action made no progress, try a different approach"
                 continue
-            elif feedback.startswith("do"):
+            elif feedback.startswith("do") or feedback.startswith("based"):
                 last_feedback = feedback  # Pass suggestion to next control iteration
                 continue
 
@@ -458,25 +490,37 @@ def validate_control_response(response):
     # return response in valid_actions
     return response and response.lower() in valid_actions
 
-
+ACTION_TIMEOUT = 10  # seconds
 def execute_robot_action(action):
     """Execute robot action based on the response"""
-    if action == "move forward":
-        return robot_control.move_forward()
-        # return True
+    try:
+        start_time = time.time()
+        while time.time() - start_time < ACTION_TIMEOUT:
+            is_safe, warning = lidar_safety.check_direction_safety(action)
 
-    elif action == "move backward":
-        return robot_control.move_backward()
-        # return True
+            if not is_safe:
+                rich.print(f"[red]Safety check failed:[/red] {warning}")
+                return False, f"Safety warning: {warning}"
 
-    elif action == "turn left":
-        return robot_control.turn_left()
+            if action == "move forward":
+                return robot_control.move_forward()
+                # return True
 
-    elif action == "turn right":
-        return robot_control.turn_right()
-    else:
-        print(f"Invalid action: {action}")
-        return False
+            elif action == "move backward":
+                return robot_control.move_backward()
+                # return True
+
+            elif action == "turn left":
+                return robot_control.turn_left()
+
+            elif action == "turn right":
+                return robot_control.turn_right()
+            else:
+                print(f"Invalid action: {action}")
+                return False
+        return False, "Action timed out"
+    except Exception as e:
+        return False, f"Action failed: {str(e)}"
 
 #TODO: check lidar if there is an obstacle and the next commad is to move {direction of obstacle} reprompt the llm telling it that there is an obstacle
 # endregion

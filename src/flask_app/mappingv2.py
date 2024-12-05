@@ -1,4 +1,5 @@
 # mapping_service.py
+import json
 import logging
 import os
 import time
@@ -25,13 +26,26 @@ class MapData:
         self.persistence_map = np.zeros((self.height, self.width), dtype=np.uint8)
         # self.save_path = os.path.expanduser('~/map.jpg')
         self.save_path = '/home/pal/catkin_ws/src/get_map_image/map.jpg'
+        self.json_path = '/home/pal/catkin_ws/src/get_map_image/lidar_data.json'
 
+        self.latest_scan = None
 
 def laser_callback(scan, map_data):
     """Process LIDAR scan data and update maps"""
     try:
         # Clear current map
         map_data.map = np.zeros_like(map_data.map)
+
+        # Store raw LIDAR data
+        map_data.latest_scan = {
+            'ranges': list(scan.ranges),
+            'angle_min': scan.angle_min,
+            'angle_max': scan.angle_max,
+            'angle_increment': scan.angle_increment
+        }
+        # Save LIDAR data to JSON
+        with open(map_data.lidar_path, 'w') as f:
+            json.dump(map_data.latest_scan, f)
 
         # Get LIDAR data
         angles = np.arange(scan.angle_min, scan.angle_max + scan.angle_increment,
