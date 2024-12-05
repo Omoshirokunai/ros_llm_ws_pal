@@ -54,38 +54,56 @@ class LLMController:
 
         return images
 
-    def generate_subgoals(self, prompt: str) -> Optional[list]:
+    def generate_subgoals(self, prompt: str, initial_image:bytes) -> Optional[list]:
         self.current_goal = prompt
         with self.command_lock:
             try:
                 message = [
                     {"role": "system", "content": goal_setter_system_prompt},
-                    {"role": "user", "content": prompt},
+                    {"role": "system", "content": "if task is already complete respond with 'complete'"},
+
                 ]
+
+                if initial_image:
+                    message.extend([
+                        {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
+                        {"role": "user", "content": "Generate subgoals based on this initial state and the following goal:"}
+                    ])
+                message.append({"role": "user", "content": prompt})
                 response = ollama.chat(
                     model=self.model_name,
                     messages=message,
                     stream=False,
-                    options=generation_config
+                    options={
+                    **generation_config,
+                    "max_output_tokens": 20,  # Restrict to short responses
+                    "max_tokens" : 10,
+                    "temperature": 0.6,       # More deterministic
+                }
                 )
                 if response and response['message']['content']:
-                    return response['message']['content'].split('\n')
+                    subgoals = response['message']['content'].split('\n')
+                    # return response['message']['content'].split('\n')
+                    subgoals = [s.strip() for s in subgoals if s.strip()]
+                if subgoals:
+                    return subgoals
             except Exception as e:
                 rich.print(f"[red]Error in generate_subgoals[red]: {e}")
             return None
 
-    def control_robot(self, subgoal: str, initial_image: bytes, current_image: bytes, previous_image: bytes, map_image:bytes, executed_actions: list = None, last_feedback:str = None ) -> str:
+    def control_robot(self, subgoal: str, initial_image: bytes, current_image: bytes, previous_image: bytes, map_image:bytes, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = []) -> str:
         self.current_subtask = subgoal
 
         with self.command_lock:
             try:
                 system_prompt_ = f"""
             You are a robot controller tasked with completing: {self.current_goal}
+            To achieve this, you must complete the follwoing: {', '.join(all_subgoals)}
             Current Subtask: {subgoal}
             Previous Actions: {', '.join(executed_actions) if executed_actions else 'None'}
             Last Feedback: {last_feedback if last_feedback else 'No feedback yet'}
 
-            Compare the initial state to current state and choose ONE action:
+            Compare the initial state to current state and choose any ONE of these actions to achieve the subtask:
             - turn left
             - move forward
             - move backward
@@ -101,14 +119,14 @@ class LLMController:
             """
                 message = [
                 {"role": "system", "content": system_prompt_},
-                {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
                 {"role": "user", "content": "Initial state when task started:"},
-                {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
+                {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
                 {"role": "user", "content": "Current state:"},
-                {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
-                {"role": "user", "content": "Previous state:"},
-                {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
-                {"role": "user", "content": "Environment map:"},
+                {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
+                # {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
+                # {"role": "user", "content": "Previous state:"},
+                # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
+                # {"role": "user", "content": "Environment map:"},
                 {"role": "user", "content": f"Based on all images and {last_feedback if last_feedback else 'no'} feedback, what action achieves {subgoal}?"}
             ]
                 response = ollama.chat(
@@ -117,7 +135,12 @@ class LLMController:
 
                     messages=message,
                     stream=False,
-                    options=generation_config
+                    options={
+                    **generation_config,
+                    "max_output_tokens": 20,  # Restrict to short responses
+                    "max_tokens" : 10,
+                    "temperature": 0.3,       # More deterministic
+                }
                 )
                 if response and response['message']['content']:
                     response = response['message']['content'].strip().lower()
@@ -147,20 +170,13 @@ class LLMController:
                     Last Actions: {', '.join(executed_actions[-5:] if executed_actions else 'None')}
                     Previous Feedback: {last_feedback if last_feedback else 'None'}
 
-                    Success Criteria:
-                    1. Physical Progress: Distance to goal decreased
-                    2. Visual Progress: Target more visible/accessible
-                    3. Obstacle Avoidance: Safe navigation maintained
-                    4. Path Efficiency: Actions moving toward goal
-                    5. Task Alignment: Actions match current subtask
-
-                    Compare states and determine if subtask is complete
                     Compare initial, previous and current states to determine:
                     - 'continue' - progress made but not subtask not complete
                     - 'subtask complete' - move to the next subtask
                     - 'main goal complete' - Overall objective achieved
                     - 'no progress' - No meaningful change
                     - 'do [specific action]' - Suggest better approach
+                    - 'complete' - if all tasks are done
 
                     RESPOND WITH EXACTLY ONE OPTION
                     """
@@ -191,7 +207,7 @@ class LLMController:
                     **generation_config,
                     "max_output_tokens": 20,  # Restrict to short responses
                     "max_tokens" : 10,
-                    "temperature": 0.2,       # More deterministic
+                    "temperature": 0.3,       # More deterministic
                 }
                 )
                 if response and response['message']['content']:
