@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}" media="print" onload="this.media='all'">
+
+    <title>Robot Control</title>
+    <script>
+        // Function to update the camera feed
+        function updateCameraFeed() {
+            var img = document.getElementById('live_video');
+            img.src = "{{ url_for('video_feed') }}" + "?t=" + new Date().getTime();
+        }
+
+        // Update the camera feed every 100 milliseconds
+        setInterval(updateCameraFeed, 12000);
+
+
+    </script>
+</head>
+<body>
+    <h1>Robot Control Interface</h1>
+    <div class="main-container">
+<div class="intro2">
+        <h2>Camera Feed</h2>
+
+        <div class="camera-section">
+            <img id="live_video" src="{{ url_for('video_feed') }}" alt="Live Camera Feed">
+        </div>
+    </div>
+    <div class="intro2">
+        <h2>Environment Map</h2>
+        <div class="map-section">
+    </div>
+
+    </div>
+
+    <div class="response-section">
+        <div class="response-area">
+            <h3>LLM Responses:</h3>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+
+            {% if subgoals %}
+                <h4>Subgoals:</h4>
+                <ul>
+                {% for subgoal in subgoals %}
+                    <li>{{ subgoal }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% if current_goal %}
+                <p><strong>Current Goal:</strong> {{ current_goal }}</p>
+            {% endif %}
+
+            {% if current_subtask %}
+                <p><strong>Current Subtask:</strong> {{ current_subtask }}</p>
+            {% endif %}
+    </div>
+
+
+</div>
+    </div>
+
+<!-- Replace the control section HTML with: -->
+<div class="control-section">
+    <div class="left-controls">
+        <div class="manual-controls">
+            <form action="{{ url_for('move_forward') }}" method="post" class="control-form">
+                <button type="submit">Forward</button>
+            </form>
+
+            <form action="{{ url_for('turn_right') }}" method="post" class="control-form">
+                <button type="submit">Right</button>
+            </form>
+
+            <form action="{{ url_for('turn_left') }}" method="post" class="control-form">
+                <button type="submit">Left</button>
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="command-section">
+        <form action="{{ url_for('send_llm_prompt') }}" method="post">
+            <textarea name="prompt" rows="5" placeholder="Enter your command...">{{ prompt or '' }}</textarea>
+            <button type="submit" class="success-btn">Send to LLM</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

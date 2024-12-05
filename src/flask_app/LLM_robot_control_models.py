@@ -5,7 +5,7 @@ from typing import Optional
 
 import ollama
 import rich
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from gemini_config import (
     generation_config,
     goal_setter_system_prompt,
@@ -15,7 +15,7 @@ from gemini_config import (
 )
 from sensor_data import LOCAL_PATHS, fetch_images
 
-load_dotenv()
+# load_dotenv()
 
 class LLMController:
     def __init__(self):

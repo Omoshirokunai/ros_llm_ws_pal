@@ -13,7 +13,7 @@ load_dotenv()
 # Ensure environment variables are loaded
 ssh_user = os.getenv("SSH_USER")
 ssh_host = os.getenv("SSH_HOST")
-ssh_port = int(os.getenv("SSH_PORT"))
+ssh_port = int(os.getenv("SSH_PORT", 100))
 password = os.getenv("PASS")
 local_image_path =os.environ.get("LOCAL_IMAGE_PATH")
 remote_image_path  = os.environ.get("REMOTE_IMAGE_PATH")

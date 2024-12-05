@@ -174,8 +174,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from flask import Flask, Response, jsonify, render_template, request
 from sensor_msgs.msg import Image, LaserScan
 
-from flask_app.LLM_robot_control_models import LLMController
-from flask_app.sim_robot_control import move_robot
+from LLM_robot_control_models import LLMController
+from sim_robot_control import move_robot
 
 # Initialize Flask app
 app = Flask(__name__)
