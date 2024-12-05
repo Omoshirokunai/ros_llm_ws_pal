@@ -153,7 +153,7 @@ def send_llm_prompt():
                                 user_prompt=prompt)
 
         #!!process subgoals and control the robot
-        success = process_subgoals(prompt, subgoals)
+        success = process_subgoals(prompt, subgoals, robot_control, llm_controller)
 
         return render_template('irl_index.html',
                              user_prompt=prompt,
@@ -347,6 +347,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             raise Exception("Failed to fetch initial images")
 
          # Save initial state for the entire task
+
         with open('src/flask_app/static/images/current.jpg', 'rb') as src:
             with open('src/flask_app/static/images/initial.jpg', 'wb') as dst:
                 initial_image = src.read()
@@ -410,15 +411,17 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             # else:
             #     rich.print("[red]Failed to execute robot action[/red]")
             #     continue
-            success, safety_warning = execute_robot_action(control_response)
+            success = execute_robot_action(control_response)
             if success:
                 executed_actions.append(control_response)
                 rich.print(f"[green]Executed action:[/green] {control_response}")
                 time.sleep(2)  # Allow time for action completion
             else:
-                if safety_warning:
-                    last_feedback = f"Safety warning: {safety_warning}. Choose a different action."
-                rich.print(f"[red]Failed to execute robot action: {safety_warning}[/red]")
+                # if safety_warning:
+                    # last_feedback = f"Safety warning: {safety_warning}. Choose a different action."
+                # rich.print(f"[red]Failed to execute robot action: {safety_warning}[/red]")
+                last_feedback = f"Failed to execute robot action: {success}. Choose a different action."
+                rich.print(f"[red]Failed to execute robot action: Safety issue[/red]")
                 continue
 
             # Get feedback with updated images
@@ -517,7 +520,7 @@ def execute_robot_action(action):
                 return robot_control.turn_right()
             else:
                 print(f"Invalid action: {action}")
-                return False
+                return False , "Invalid action"
         return False, "Action timed out"
     except Exception as e:
         return False, f"Action failed: {str(e)}"

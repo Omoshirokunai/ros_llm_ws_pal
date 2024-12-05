@@ -94,7 +94,7 @@ def fetch_images():
         ssh_client.connect(ssh_host, username=ssh_user, port=ssh_port, password=password)
         sftp = ssh_client.open_sftp()
 
-        for img_type in ['current', 'previous', 'map']:
+        for img_type in ['current', 'previous', 'map', 'lidar']:
             remote_path = REMOTE_PATHS[img_type]
             local_path = LOCAL_PATHS[img_type]
 

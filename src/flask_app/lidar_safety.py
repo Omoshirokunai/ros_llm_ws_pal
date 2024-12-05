@@ -9,7 +9,7 @@ class LidarSafety:
     def __init__(self):
         self.safety_threshold = 0.5  # 50cm minimum safe distance
         self.field_of_view = 180  # degrees
-        self.lidar_path = os.path.join('static/images/lidar_data.json')
+        self.lidar_path = os.path.join('src/flask_app/static/images/lidar_data.json')
 
     def load_lidar_data(self):
         """Load latest LIDAR readings from file"""
