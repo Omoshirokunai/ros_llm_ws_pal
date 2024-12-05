@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import time
+from threading import Lock
 
 import cv2
 import numpy as np
@@ -30,6 +31,16 @@ class MapData:
 
         self.latest_scan = None
 
+        #locks of map and latest_scan
+        self.map_lock = Lock()
+        self.lidar_lock = Lock()
+
+        # Decay and threshold parameters
+        self.decay_factor = 0.7  # Increased decay
+        self.persistence_threshold = 50  # Minimum value to keep point
+        self.update_counter = 0
+        self.clear_interval = 10  # Clear map every N updates
+
 def laser_callback(scan, map_data):
     """Process LIDAR scan data and update maps"""
     try:
@@ -41,11 +52,19 @@ def laser_callback(scan, map_data):
             'ranges': list(scan.ranges),
             'angle_min': scan.angle_min,
             'angle_max': scan.angle_max,
-            'angle_increment': scan.angle_increment
+            'angle_increment': scan.angle_increment,
+            'timestamp': time.time()
         }
+
         # Save LIDAR data to JSON
-        with open(map_data.lidar_path, 'w') as f:
-            json.dump(map_data.latest_scan, f)
+        # with open(map_data.lidar_path, 'w') as f:
+        #     json.dump(map_data.latest_scan, f)
+
+        # Atomic write of LIDAR data
+        temp_json = f"{map_data.json_path}.temp"
+        with open(temp_json, 'w') as f:
+                json.dump(map_data.latest_scan, f)
+        os.rename(temp_json, map_data.json_path)
 
         # Get LIDAR data
         angles = np.arange(scan.angle_min, scan.angle_max + scan.angle_increment,
@@ -73,11 +92,20 @@ def laser_callback(scan, map_data):
         # Update current scan
         map_data.map[py, px] = 255
 
+         # Periodic clear of persistence map
+        map_data.update_counter += 1
+        if map_data.update_counter >= map_data.clear_interval:
+            map_data.persistence_map *= 0.5  # Aggressive clear
+            map_data.update_counter = 0
+
         # Update persistence map with decay
         map_data.persistence_map = np.maximum(
-            map_data.persistence_map * 0.95,  # Decay factor
+            map_data.persistence_map * map_data.decay_factor, # Decay factor
             map_data.map
         )
+        # Apply threshold to remove weak persistent points
+        map_data.persistence_map[map_data.persistence_map < map_data.persistence_threshold] = 0
+
 
         # Generate visualization
         vis_map = cv2.cvtColor(map_data.persistence_map.astype(np.uint8), cv2.COLOR_GRAY2BGR)
@@ -86,9 +114,9 @@ def laser_callback(scan, map_data):
         cv2.circle(vis_map, map_data.map_center, 5, (0, 0, 255), -1)
 
         # Draw obstacles with larger circles
-        obstacle_points = np.where(map_data.persistence_map > 0)
+        obstacle_points = np.where(map_data.persistence_map > map_data.persistence_threshold)
         for y, x in zip(obstacle_points[0], obstacle_points[1]):
-            cv2.circle(vis_map, (x, y), 3, (255, 255, 255), -1)  # Increased radius from 1 to 3
+            cv2.circle(vis_map, (x, y), 2, (255, 255, 255), -1)  # Increased radius from 1 to 3
 
         # Draw direction arrow
         # Calculate arrow endpoint (30 pixels in front of robot)
@@ -114,7 +142,10 @@ def laser_callback(scan, map_data):
         #     cv2.line(vis_map, (0, i), (map_data.width-1, i), (50, 50, 50), 1)
 
         # Save map
-        cv2.imwrite(map_data.save_path, vis_map)
+        # cv2.imwrite(map_data.save_path, vis_map)
+        temp_map = f"{map_data.save_path}.temp"
+        cv2.imwrite(temp_map, vis_map)
+        os.rename(temp_map, map_data.save_path)
 
     except Exception as e:
         logging.error(e)
@@ -137,7 +168,7 @@ def main():
         )
 
         # Keep running
-        rate = rospy.Rate(2)  # 2 Hz update rate
+        rate = rospy.Rate(5)  # 2 Hz update rate
         while not rospy.is_shutdown():
             rate.sleep()
 
