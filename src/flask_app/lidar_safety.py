@@ -7,7 +7,7 @@ import numpy as np
 
 class LidarSafety:
     def __init__(self):
-        self.safety_threshold = 0.5  # 50cm minimum safe distance
+        self.safety_threshold = 0.2  # 50cm minimum safe distance
         self.field_of_view = 180  # degrees
         self.lidar_path = os.path.join('src/flask_app/static/images/lidar_data.json')
 
@@ -43,7 +43,7 @@ class LidarSafety:
             min_distance = np.min(sector_ranges)
 
             if min_distance < self.safety_threshold:
-                return False, f"Obstacle detected {min_distance:.2f}m ahead"
+                return False, f"Obstacle detected {min_distance:.4f}m ahead"
 
         elif action == "turn left":
             sector = sectors["left"]
@@ -51,7 +51,7 @@ class LidarSafety:
             min_distance = np.min(sector_ranges)
 
             if min_distance < self.safety_threshold:
-                return False, f"Obstacle detected {min_distance:.2f}m to the left"
+                return False, f"Obstacle detected {min_distance:.4f}m to the left"
 
         elif action == "turn right":
             sector = sectors["right"]
@@ -59,6 +59,6 @@ class LidarSafety:
             min_distance = np.min(sector_ranges)
 
             if min_distance < self.safety_threshold:
-                return False, f"Obstacle detected {min_distance:.2f}m to the right"
+                return False, f"Obstacle detected {min_distance:.4f}m to the right"
 
         return True, None

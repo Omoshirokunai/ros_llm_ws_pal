@@ -63,7 +63,7 @@ def laser_callback(scan, map_data):
         # Atomic write of LIDAR data
         temp_json = f"{map_data.json_path}.temp"
         with open(temp_json, 'w') as f:
-                json.dump(map_data.latest_scan, f)
+            json.dump(map_data.latest_scan, f)
         os.rename(temp_json, map_data.json_path)
 
         # Get LIDAR data

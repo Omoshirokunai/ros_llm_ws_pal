@@ -79,41 +79,6 @@ class LLMController:
 
         with self.command_lock:
             try:
-                #  # Enhanced system prompt with feedback context
-                # system_prompt_ = f"""
-                # You are a robot controller tasked with making valid function calls to a robot. You are to guide the robot to complete a series of subtasks that will lead to the completion of a main goal.
-                # Your Main Goal: {self.current_goal}
-                # Current Task: {subgoal}
-                # Previous Actions: {', '.join(executed_actions) if executed_actions else 'None'}
-                # Last Feedback: {last_feedback if last_feedback else 'No feedback yet'}
-
-                # Based on the previous actions and feedback, choose ONE action from this list:
-                # - turn left
-                # - move forward
-                # - move backward
-                # - turn right
-
-                # Consider:
-                # 1. Previous actions taken: {executed_actions}
-                # 2. Last feedback received: {last_feedback}
-                # 3. Current camera view
-                # 4. Lidar environment map where the red dot represents the robot and white lines represent obstacles
-                # 5. feedback contains information and suggestions make sure to use them especially if the feedback includes a different action to take.
-
-                # RESPOND WITH EXACTLY ONE OF THESE OPTIONS.
-                # """
-                # # Load map for context
-                # with open(LOCAL_PATHS['map'], 'rb') as f:
-                #     map_context = base64.b64encode(f.read()).decode('utf-8')
-
-                # message = [
-                #     {"role": "system", "content": system_prompt_},
-                #     {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
-                #     {"role": "user", "content": "Current camera view above. Here is a Lidar map of the Environment:"},
-                #     {"role": "user", "content": map_context, "is_image": True},
-                #     {"role": "user", "content": f"Based on the previous actions ({', '.join(executed_actions) if executed_actions else 'None'}) and feedback ({last_feedback if last_feedback else 'None'}), what action should be taken next to achieve: {subgoal}?"}
-                #     # {"role": "user", "content": subgoal},
-                # ]
                 system_prompt_ = f"""
             You are a robot controller tasked with completing: {self.current_goal}
             Current Subtask: {subgoal}
@@ -154,16 +119,6 @@ class LLMController:
                     stream=False,
                     options=generation_config
                 )
-                # valid_responses = [
-                #     "move forward",
-                #     "move backward",
-                #     "move left",
-                #     "move right",
-                #     "move head up",
-                #     "move head down",
-                #     "move head left",
-                #     "move head right",
-                # ]
                 if response and response['message']['content']:
                     response = response['message']['content'].strip().lower()
                     return response
@@ -185,43 +140,6 @@ class LLMController:
                 with open(LOCAL_PATHS['map'], 'rb') as f:
                     map_context = base64.b64encode(f.read()).decode('utf-8')
 
-                # map_context = self.get_map_context()
-
-                 # Format system prompt with current subtask context
-                # new feedback system prompt with action history
-            #     formatted_prompt = f"""
-            #         Goal: {self.current_goal}
-            #         Current Task: {current_subgoal}
-            #         Actions executed so far: {', '.join(executed_actions)}
-            #         Your previous feedback: {last_feedback if last_feedback else 'No feedback yet'}
-
-            #         Compare the two images and determine the task status:
-            #         - 'continue' (made progress but not complete)
-            #         - 'do [different action instead]' (actions taken so far have not helped recommend a different action)
-            #         - 'subtask complete' (current task done)
-            #         - 'main goal complete' (entire goal achieved)
-            #         - 'no progress' (no changes detected)
-
-            #         Consider:
-            #         1. The sequence of actions taken so far: {executed_actions}
-            #         2. Visual changes between images
-            #         3. Progress toward the current subtask based on the images
-            #         4. Overall goal completion
-            #         5. Repeated actions that may not be helpful
-
-            #         RESPOND WITH EXACTLY ONE OF THESE OPTIONS.
-            #         """
-            #      # Correct message format for ollama
-            #     message = [
-            #     {"role": "system", "content": formatted_prompt},
-            #     {"role": "user", "content": map_context, "is_image": True},
-            #     {"role": "user", "content": "Environment lidar map shown above. Here's  the camera image before the last action was taken:"},
-            #     {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
-            #     {"role": "user", "content": "Here's the current image after the action was taken:"},
-            #     {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
-            #     {"role": "user", "content": f"What is the task status after the action: {executed_actions[-1] if executed_actions else 'None'}?"}
-            #     # {"role": "user", "content": "Based on these images and given , what's the task status?"}
-            # ]
                 formatted_prompt = f"""
         Goal: {self.current_goal}
         Current Task: {current_subgoal}
