@@ -129,7 +129,7 @@ class LLMController:
 
     # def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
     # def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None) -> str:
-    def get_feedback(self, initial_image: bytes, current_image: bytes, previous_image: bytes, map_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None) -> str:
+    def get_feedback(self, initial_image: bytes, current_image: bytes, previous_image: bytes, map_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None, subgoals: list = None) -> str:
          # Get fresh images from remote
 
         print("getting feedback")
@@ -141,27 +141,29 @@ class LLMController:
                     map_context = base64.b64encode(f.read()).decode('utf-8')
 
                 formatted_prompt = f"""
-        Goal: {self.current_goal}
-        Current Task: {current_subgoal}
-        Actions History: {', '.join(executed_actions)}
-        Previous Feedback: {last_feedback if last_feedback else 'None'}
+                    Goal: {self.current_goal}
+                    Current Task: {current_subgoal}
+                    All Subtasks: {' → '.join(subgoals)}
+                    Last Actions: {', '.join(executed_actions[-5:] if executed_actions else 'None')}
+                    Previous Feedback: {last_feedback if last_feedback else 'None'}
 
-        Success Criteria:
-        1. Physical Progress: Distance to goal decreased
-        2. Visual Progress: Target more visible/accessible
-        3. Obstacle Avoidance: Safe navigation maintained
-        4. Path Efficiency: Actions moving toward goal
-        5. Task Alignment: Actions match current subtask
+                    Success Criteria:
+                    1. Physical Progress: Distance to goal decreased
+                    2. Visual Progress: Target more visible/accessible
+                    3. Obstacle Avoidance: Safe navigation maintained
+                    4. Path Efficiency: Actions moving toward goal
+                    5. Task Alignment: Actions match current subtask
 
-        Compare initial, previous and current states to determine:
-        - 'continue' - Clear progress but incomplete
-        - 'subtask complete' - Success criteria met
-        - 'main goal complete' - Overall objective achieved
-        - 'no progress' - No meaningful change
-        - 'do [specific action]' - Suggest better approach
+                    Compare states and determine if subtask is complete
+                    Compare initial, previous and current states to determine:
+                    - 'continue' - progress made but not subtask not complete
+                    - 'subtask complete' - move to the next subtask
+                    - 'main goal complete' - Overall objective achieved
+                    - 'no progress' - No meaningful change
+                    - 'do [specific action]' - Suggest better approach
 
-        RESPOND WITH EXACTLY ONE OPTION
-        """
+                    RESPOND WITH EXACTLY ONE OPTION
+                    """
                 message = [
             {"role": "system", "content": formatted_prompt},
             {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
@@ -170,8 +172,8 @@ class LLMController:
             {"role": "user", "content": "Current state:"},
             {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
             {"role": "user", "content": "Previous state:"},
-            {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
-            {"role": "user", "content": "Map:"},
+            # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
+            # {"role": "user", "content": "Map:"},
             {"role": "user", "content": f"Evaluate progress after: {executed_actions[-1] if executed_actions else 'No action'}"}
         ]
 

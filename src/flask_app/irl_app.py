@@ -454,6 +454,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 current_subgoal=current_subgoal,
                 executed_actions=executed_actions,
                 last_feedback=last_feedback
+                subgoals = subgoals
             )
             rich.print(f"[purple]Feedback received:[/purple] {feedback}")
             last_feedback = feedback
