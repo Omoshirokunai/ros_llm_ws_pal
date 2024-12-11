@@ -53,31 +53,43 @@ class LLMController:
                 raise Exception(f"Failed to load {img_type} image: {e}")
 
         return images
-    def scene_descriptor(self, image: bytes) -> str:
-        """takes current image and returns a description of the scene"""
-        # TODO: Add scene decription to the subgoal generator as well as the other models
-        with self.command_lock:
-            try:
-                system_prompt = f"""
-                describe what can you see in the image?
-                """
-                message = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": base64.b64encode(image).decode('utf-8'), "is_image": True},
-                ]
-                response = ollama.chat(
-                    model=self.model_name,
-                    messages=message,
-                    stream=False,
-                    options=generation_config
-                )
-                if response and response['message']['content']:
-                    return response['message']['content']
-            except Exception as e:
-                rich.print(f"[red]Error in scene_descriptor[red]: {e}")
-            return "failed to understand"
+
+
+    def get_scene_description(self, image: bytes) -> str:
+        """Generate semantic description of the current scene"""
+        try:
+            system_prompt = """Describe the scene from a robot's perspective. Focus on:
+            1. Notable objects and their relative positions
+            2. Open spaces and pathways
+            4. Spatial relationships (left, right, front, behind)
+            Be brief and precise.
+            Examples
+            - The scene shows a {object} on {object_location}
+            - The scene shows a {object} in front
+            - The scene partially shows a {object} on the {direction}
+            """
+            message = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": base64.b64encode(image).decode('utf-8'), "is_image": True}
+            ]
+
+            response = ollama.chat(
+                model='llava:13b',
+                messages=message,
+                stream=False,
+                options={
+                    "max_tokens": 100,
+                    "temperature": 0.2
+                }
+            )
+            return response['message']['content'].strip()
+        except Exception as e:
+            rich.print(f"[red]Scene description failed:[/red] {str(e)}")
+            return "Scene description unavailable"
 
     def generate_subgoals(self, prompt: str, initial_image:bytes) -> Optional[list]:
+        scene_description = self.get_scene_description(initial_image)
+
         self.current_goal = prompt
         with self.command_lock:
             try:
@@ -90,8 +102,11 @@ class LLMController:
                 if initial_image:
                     message.extend([
                         {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
-                        {"role": "user", "content": "Generate subgoals based on this initial state and the following goal:"}
+                        #scene_description
+                        {"role": "user", "content": f"Currently the robot sees: {scene_description}"},
+                        {"role": "user", "content": f"Generate subgoals based on this initial state and the following goal:"}
                     ])
+
                 message.append({"role": "user", "content": prompt})
                 response = ollama.chat(
                     model=self.model_name,
@@ -116,14 +131,16 @@ class LLMController:
 
     def control_robot(self, subgoal: str, initial_image: bytes, current_image: bytes, previous_image: bytes, map_image:bytes, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = []) -> str:
         self.current_subtask = subgoal
+        scene_description = self.get_scene_description(current_image)
 
         with self.command_lock:
             try:
                 system_prompt_ = f"""
             You are a robot controller tasked with completing: {self.current_goal}
             To achieve this, you must complete the follwoing: {', '.join(all_subgoals)}
+            current scene shows: {scene_description}
             Current Subtask: {subgoal}
-            Previous Actions: {', '.join(executed_actions) if executed_actions else 'None'}
+            Previous Actions: {', '.join(executed_actions[-5:]) if executed_actions else 'None'}
             Last Feedback: {last_feedback if last_feedback else 'No feedback yet'}
 
             Compare the initial state to current state and choose any ONE of these actions to achieve the subtask:
@@ -187,8 +204,10 @@ class LLMController:
                     map_context = base64.b64encode(f.read()).decode('utf-8')
 
                 formatted_prompt = f"""
+                Give feedback on the robot's progress toward the main goal: {self.current_goal}
                     Goal: {self.current_goal}
                     Current Task: {current_subgoal}
+                    Current scene shows: {self.get_scene_description(current_image)}
                     All Subtasks: {' → '.join(subgoals)}
                     Last Actions: {', '.join(executed_actions[-5:] if executed_actions else 'None')}
                     Previous Feedback: {last_feedback if last_feedback else 'None'}
