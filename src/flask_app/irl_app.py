@@ -344,6 +344,7 @@ def validate_control_response(response):
         "move backward",
         "turn left",
         "turn right",
+        "completed",
     ]
     # check whole response if it is in the valid actions
     # return response in valid_actions
@@ -374,6 +375,8 @@ def execute_robot_action(action):
 
             elif action == "turn right":
                 return robot_control.turn_right()
+            elif action == "completed":
+                return True
             else:
                 print(f"Invalid action: {action}")
                 return False , "Invalid action"

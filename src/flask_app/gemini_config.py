@@ -7,14 +7,19 @@ make sure to specify the objective of each subgoal:
 example:
 taks: get the bottle on your left.
 
-response
+valid response
 1. look for bottle on left
 2. move close to the bottle
+3. stop
+
+valid response:
+1. task already complete
 
 bad response:
 1. move to the left
 2. locate the bottle
 3. pick up the bottle
+4. stop when you see it
 
 Ensure subtasks are:
 - Sequential and dependent
@@ -68,12 +73,15 @@ YOU MUST RESPOND WITH EXACTLY ONE OF THESE OPTIONS:
 NO OTHER RESPONSES ARE ALLOWED."""
 
 #! cange max token
+# generation_config = {
+# "max_output_tokens": 10,
+# "temperature": 0.1,
+# "top_p": 0.96,
+# }
 generation_config = {
-"max_output_tokens": 10,
-"temperature": 0.1,
-"top_p": 0.96,
+"top_p": 0.3,
+"top_k": 10,
 }
-
 safety_settings = {
 generative_models.HarmCategory.HARM_CATEGORY_HATE_SPEECH: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
 generative_models.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
