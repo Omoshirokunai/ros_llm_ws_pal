@@ -7,6 +7,7 @@ from queue import Queue
 
 import rich
 from dotenv import load_dotenv
+from evaluation_metrics import TaskEvaluator
 
 # import cv2
 from flask import (
@@ -182,6 +183,10 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
     last_feedback = None
     initial_image = None
 
+    #Evaluator
+    evaluator = TaskEvaluator()
+    evaluator.start_task(prompt, subgoals)
+
     try:
         # Get initial state image
         if not fetch_images():
@@ -225,6 +230,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
             #TODO: Add scene descriptor to the control_robot function it takes current image
             # control loop with context
+            scene_desc = llm_controller.get_scene_description(images['current'])
             control_response = llm_controller.control_robot(
                 subgoal=current_subgoal,
                 initial_image=images['initial'],
@@ -240,28 +246,28 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 rich.print(f"[red]Invalid control response:[/red] {control_response}")
                 continue
 
+            # Check safety before execution
+            is_safe, warning = lidar_safety.check_direction_safety(control_response)
+            evaluator.log_safety_event(True, not is_safe)
+
+            if not is_safe:
+                last_feedback = f"Safety warning: {warning}"
+                continue
+
+
             # Save current as previous before executing action
             with open('src/flask_app/static/images/current.jpg', 'rb') as src:
                 with open('src/flask_app/static/images/previous.jpg', 'wb') as dst:
                     dst.write(src.read())
 
-            # Execute action and update history
-            # if execute_robot_action(control_response, robot_control):
-            #     executed_actions.append(control_response)
-            #     rich.print(f"[green]Executed action:[/green] {control_response}")
-            #     time.sleep(2)  # Allow time for action completion
-            # else:
-            #     rich.print("[red]Failed to execute robot action[/red]")
-            #     continue
+
             success = execute_robot_action(control_response)
             if success:
+                evaluator.log_action(control_response, scene_desc)
                 executed_actions.append(control_response)
                 rich.print(f"[green]Executed action:[/green] {control_response}")
                 time.sleep(2)  # Allow time for action completion
             else:
-                # if safety_warning:
-                    # last_feedback = f"Safety warning: {safety_warning}. Choose a different action."
-                # rich.print(f"[red]Failed to execute robot action: {safety_warning}[/red]")
                 last_feedback = f"Failed to execute robot action: CHOOSE A DIFFERENT ACTION."
                 rich.print(f"[red]Failed to execute robot action: Safety issue[/red]")
                 continue
@@ -279,7 +285,6 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 rich.print(f"[red]Error reading feedback images: {e}[/red]")
                 continue
 
-            #TODO: Add scene descriptor to the get_feedback function it takes current image
             feedback = llm_controller.get_feedback(
                 initial_image=images['initial'],
                 current_image=images['current'],
@@ -310,7 +315,12 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 last_feedback = feedback  # Pass suggestion to next control iteration
                 continue
 
-        return current_subgoal_index >= len(subgoals)
+        # return current_subgoal_index >= len(subgoals)
+         # Task completed through all subgoals
+        success = current_subgoal_index >= len(subgoals)
+        evaluator.complete_task(success)
+        evaluator.generate_report("evaluation_results")
+        return success
 
     except Exception as e:
         rich.print(f"[red]Error in process_subgoals:[/red] {str(e)}")

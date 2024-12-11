@@ -82,6 +82,7 @@ class LLMController:
                     "temperature": 0.2
                 }
             )
+            print(f"scene descriptor: {response['message']['content'].strip()}")
             return response['message']['content'].strip()
         except Exception as e:
             rich.print(f"[red]Scene description failed:[/red] {str(e)}")
