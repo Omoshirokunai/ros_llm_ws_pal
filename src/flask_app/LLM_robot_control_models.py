@@ -58,15 +58,15 @@ class LLMController:
     def get_scene_description(self, image_path: str) -> str:
         """Generate semantic description of the current scene"""
         try:
-            system_prompt = """Describe the scene from a robot's perspective. Focus on:
+            system_prompt = """ Briefly describe the scene from a robot's perspective. Focus on:
             1. Notable objects and their relative positions
             2. Open spaces and pathways
             4. Spatial relationships (left, right, front, behind)
-            Be brief and precise.
             Examples
             - The scene shows a {object} on {object_location}
             - The scene shows a {object} in front
             - The scene partially shows a {object} on the {direction}
+            Be brief and precise.
             """
             message = [
                 {"role": "system", "content": system_prompt},
@@ -79,7 +79,9 @@ class LLMController:
                 messages=message,
                 stream=False,
                 options={
-                    "max_tokens": 100,
+                    'num_predict': 40,
+                    "max_output_tokens": 20,  # Restrict to short responses
+                    "max_tokens": 10,
                     "temperature": 0.2
                 }
             )
@@ -102,19 +104,6 @@ class LLMController:
 
                 if initial_image:
                     message.extend([
-            #             {
-            #     "role": "user",
-            #     "content": [
-            #         {
-            #             "type": "image",
-            #             "source": {
-            #                 "type": "base64",
-            #                 "media_type": "image/jpeg",
-            #                 "data": base64.b64encode(initial_image).decode('utf-8')
-            #             }
-            #         }
-            #     ]
-            # },
             {'role': 'user', 'content': 'Initial state:', 'images': [initial_image]
                 },
                         # {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
@@ -132,7 +121,7 @@ class LLMController:
                     **generation_config,
                     "max_output_tokens": 20,  # Restrict to short responses
                     "max_tokens" : 10,
-                    "temperature": 0.6,       # More deterministic
+                    "temperature": 0.2,       # More deterministic
                 }
                 )
                 if response and response['message']['content']:
@@ -151,39 +140,57 @@ class LLMController:
 
         with self.command_lock:
             try:
-                system_prompt_ = f"""
-            You are a robot controller tasked with completing: {self.current_goal}
-            To achieve this, you must complete the follwoing: {', '.join(all_subgoals)}
-            current scene shows: {scene_description}
-            Current Subtask: {subgoal}
-            Previous Actions: {', '.join(executed_actions[-5:]) if executed_actions else 'None'}
-            Last Feedback: {last_feedback if last_feedback else 'No feedback yet'}
+            #     system_prompt_ = f"""
+            # You are a robot controller tasked with completing: {self.current_goal}
+            # To achieve this, you must complete the follwoing: {', '.join(all_subgoals)}
+            # current scene shows: {scene_description}
+            # Current Subtask: {subgoal}
+            # Previous Actions: {', '.join(executed_actions[-5:]) if executed_actions else 'None'}
+            # Last Feedback: {last_feedback if last_feedback else 'No feedback yet'}
 
-            Compare the initial state to current state and choose any ONE of these actions to achieve the subtask:
-            - turn left
-            - move forward
-            - move backward
-            - turn right
+            # Compare the initial state to current state and choose ONE of these valid actions:
+            # - "turn left"
+            # - "move forward"
+            # - "move backward"
+            # - "turn right"
 
-            Success Criteria:
-            1. Progress toward goal location/object
-            2. Maintaining safe distance from obstacles
-            3. Efficient path selection
-            4. Response to feedback suggestions
+            # Success Criteria:
+            # 1. Progress toward goal location/object
+            # 2. Maintaining safe distance from obstacles
+            # 3. Efficient path selection
+            # 4. Response to feedback suggestions
 
-            RESPOND WITH EXACTLY ONE ACTION.
+            # RESPOND WITH EXACTLY ONE VALID ACTION.
+            # valid actions: turn left, move forward, move backward, turn right
+            # Invalid response:
+            # - To achieve the subtask of [subtask], you would need to [intruction].
+            # - the action that achieves
+
+            # """
+                system_prompt_ = f"""You are a robot controller that MUST output EXACTLY ONE of these four actions:
+            - "turn left"
+            - "move forward"
+            - "move backward"
+            - "turn right"
+
+            Current goal: {self.current_goal}
+            Current scene: {scene_description}
+            Current subtask: {subgoal}
+            Previous actions: {', '.join(executed_actions[-5:]) if executed_actions else 'None'}
+            Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
+
+            Rules:
+            1. Output ONLY ONE of the four valid actions listed above
+            2. No explanations or other text
+            3. Response must match exactly one valid action
+            4. Consider safety and obstacles
+            5. Progress toward goal location/object
             """
                 message = [
                 {"role": "system", "content": system_prompt_},
                 {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
 
                 {"role": "user", "content": "Current state:", 'images': [current_image]},
-
-                # {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
-                # {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
-                # {"role": "user", "content": "Previous state:"},
-                # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
-                # {"role": "user", "content": "Environment map:"},
                 {"role": "user", "content": f"Based on all images and {last_feedback if last_feedback else 'no'} feedback, what action achieves {subgoal}?"}
             ]
                 response = ollama.chat(
@@ -194,9 +201,10 @@ class LLMController:
                     stream=False,
                     options={
                     **generation_config,
-                    "max_output_tokens": 20,  # Restrict to short responses
-                    "max_tokens" : 10,
-                    "temperature": 0.3,       # More deterministic
+                    'num_predict': 4,
+                    "max_output_tokens": 4,  # Restrict to short responses
+                    "max_tokens" : 4,
+                    "temperature": 0.05,       # More deterministic
                 }
                 )
                 if response and response['message']['content']:

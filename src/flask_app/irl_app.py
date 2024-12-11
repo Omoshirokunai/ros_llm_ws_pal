@@ -240,7 +240,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
             #TODO: Add scene descriptor to the control_robot function it takes current image
             # control loop with context
-            scene_desc = llm_controller.get_scene_description(images['current'])
+            # scene_desc = llm_controller.get_scene_description(images['current'])
             control_response = llm_controller.control_robot(
                 subgoal=current_subgoal,
                 initial_image=images['initial'],
@@ -273,7 +273,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
             success = execute_robot_action(control_response)
             if success:
-                evaluator.log_action(control_response, scene_desc)
+                evaluator.log_action(control_response)
                 executed_actions.append(control_response)
                 rich.print(f"[green]Executed action:[/green] {control_response}")
                 time.sleep(2)  # Allow time for action completion
@@ -329,7 +329,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
          # Task completed through all subgoals
         success = current_subgoal_index >= len(subgoals)
         evaluator.complete_task(success)
-        evaluator.generate_report("evaluation_results")
+        evaluator.generate_report("src/flask_app/static/evaluation_results")
         return success
 
     except Exception as e:
