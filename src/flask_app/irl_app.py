@@ -207,7 +207,13 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
         while current_subgoal_index < len(subgoals):
             current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]  # Remove numbering
 
-#TOdo: if subtask.startswith(stop) end 
+            #TODO: if subtask.startswith(stop) end sucessfully
+            if current_subgoal.startswith("stop"):
+                rich.print(f"[red]Stopping task:[/red] {current_subgoal}")
+                evaluator.complete_task(True)
+                evaluator.generate_report("src/flask_app/static/evaluation_results")
+                return True
+
             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
 
             # Get current state images
@@ -215,12 +221,6 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 continue
 
             # Load all required images
-            # images = {
-            #     'initial': initial_image,
-            #     'current': None,
-            #     'previous': None,
-            #     'map': None
-            # }
             images = {
             'initial': initial_image,
             'current': 'src/flask_app/static/images/current.jpg',
@@ -385,8 +385,6 @@ def execute_robot_action(action):
         return False, "Action timed out"
     except Exception as e:
         return False, f"Action failed: {str(e)}"
-
-#TODO: check lidar if there is an obstacle and the next commad is to move {direction of obstacle} reprompt the llm telling it that there is an obstacle
 # endregion
 
 if __name__ == '__main__':
