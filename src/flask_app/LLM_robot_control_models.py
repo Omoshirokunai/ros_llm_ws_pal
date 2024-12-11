@@ -20,7 +20,7 @@ from sensor_data import LOCAL_PATHS, fetch_images
 
 class LLMController:
     def __init__(self):
-        self.model_name = 'llava-llama3'
+        self.model_name = 'llava:13b'
         self.command_lock = threading.Lock()
         self.debug = True  # Enable debug logging
         self.current_goal = None
@@ -55,7 +55,7 @@ class LLMController:
         return images
 
 
-    def get_scene_description(self, image: bytes) -> str:
+    def get_scene_description(self, image_path: str) -> str:
         """Generate semantic description of the current scene"""
         try:
             system_prompt = """Describe the scene from a robot's perspective. Focus on:
@@ -70,7 +70,8 @@ class LLMController:
             """
             message = [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": base64.b64encode(image).decode('utf-8'), "is_image": True}
+                {"role": "user", "content": "What does the robot see in this image?", 'images': [image_path]},
+                # {"role": "user", "content": base64.b64encode(image).decode('utf-8'), "is_image": True}
             ]
 
             response = ollama.chat(
@@ -88,7 +89,7 @@ class LLMController:
             rich.print(f"[red]Scene description failed:[/red] {str(e)}")
             return "Scene description unavailable"
 
-    def generate_subgoals(self, prompt: str, initial_image:bytes) -> Optional[list]:
+    def generate_subgoals(self, prompt: str, initial_image:str) -> Optional[list]:
         scene_description = self.get_scene_description(initial_image)
 
         self.current_goal = prompt
@@ -97,12 +98,26 @@ class LLMController:
                 message = [
                     {"role": "system", "content": goal_setter_system_prompt},
                     {"role": "system", "content": "if task is already complete respond with 'complete'"},
-
                 ]
 
                 if initial_image:
                     message.extend([
-                        {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
+            #             {
+            #     "role": "user",
+            #     "content": [
+            #         {
+            #             "type": "image",
+            #             "source": {
+            #                 "type": "base64",
+            #                 "media_type": "image/jpeg",
+            #                 "data": base64.b64encode(initial_image).decode('utf-8')
+            #             }
+            #         }
+            #     ]
+            # },
+            {'role': 'user', 'content': 'Initial state:', 'images': [initial_image]
+                },
+                        # {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
                         #scene_description
                         {"role": "user", "content": f"Currently the robot sees: {scene_description}"},
                         {"role": "user", "content": f"Generate subgoals based on this initial state and the following goal:"}
@@ -130,7 +145,7 @@ class LLMController:
                 rich.print(f"[red]Error in generate_subgoals[red]: {e}")
             return None
 
-    def control_robot(self, subgoal: str, initial_image: bytes, current_image: bytes, previous_image: bytes, map_image:bytes, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = []) -> str:
+    def control_robot(self, subgoal: str, initial_image: str, current_image: str, previous_image: str, map_image:str, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = []) -> str:
         self.current_subtask = subgoal
         scene_description = self.get_scene_description(current_image)
 
@@ -160,10 +175,11 @@ class LLMController:
             """
                 message = [
                 {"role": "system", "content": system_prompt_},
-                {"role": "user", "content": "Initial state when task started:"},
-                {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
-                {"role": "user", "content": "Current state:"},
-                {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
+                {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
+
+                {"role": "user", "content": "Current state:", 'images': [current_image]},
+
+                # {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
                 # {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
                 # {"role": "user", "content": "Previous state:"},
                 # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
@@ -193,7 +209,7 @@ class LLMController:
 
     # def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
     # def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None) -> str:
-    def get_feedback(self, initial_image: bytes, current_image: bytes, previous_image: bytes, map_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None, subgoals: list = None) -> str:
+    def get_feedback(self, initial_image: str, current_image: str, previous_image: str, map_image: str, current_subgoal: str, executed_actions: list, last_feedback: str = None, subgoals: list = None) -> str:
          # Get fresh images from remote
 
         print("getting feedback")
@@ -225,12 +241,51 @@ class LLMController:
                     """
                 message = [
             {"role": "system", "content": formatted_prompt},
-            {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
-            {"role": "user", "content": "Initial state:"},
-            {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
-            {"role": "user", "content": "Current state:"},
-            {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
-            {"role": "user", "content": "Previous state:"},
+            # {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
+            # {
+            #     "role": "user",
+            #     "content": [
+            #         {
+            #             "type": "image",
+            #             "source": {
+            #                 "type": "base64",
+            #                 "media_type": "image/jpeg",
+            #                 "data": base64.b64encode(initial_image).decode('utf-8')
+            #             }
+            #         }
+            #     ]
+            # },
+            {"role": "user", "content": "Initial state:", 'images': [initial_image]},
+            # {"role": "user", "content": base64.b64encode(current_image).decode('utf-8'), "is_image": True},
+            # {
+            #     "role": "user",
+            #     "content": [
+            #         {
+            #             "type": "image",
+            #             "source": {
+            #                 "type": "base64",
+            #                 "media_type": "image/jpeg",
+            #                 "data": base64.b64encode(current_image).decode('utf-8')
+            #             }
+            #         }
+            #     ]
+            # },
+            {"role": "user", "content": "Current state:", 'images': [current_image]},
+            # {"role": "user", "content": base64.b64encode(previous_image).decode('utf-8'), "is_image": True},
+            # {
+            #     "role": "user",
+            #     "content": [
+            #         {
+            #             "type": "image",
+            #             "source": {
+            #                 "type": "base64",
+            #                 "media_type": "image/jpeg",
+            #                 "data": base64.b64encode(previous_image).decode('utf-8')
+            #             }
+            #         }
+            #     ]
+            # },
+            {"role": "user", "content": "Previous state:", 'images': [previous_image]},
             # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
             # {"role": "user", "content": "Map:"},
             {"role": "user", "content": f"Evaluate progress after: {executed_actions[-1] if executed_actions else 'No action'}"}

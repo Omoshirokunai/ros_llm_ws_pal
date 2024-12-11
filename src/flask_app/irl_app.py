@@ -181,7 +181,8 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
     current_subgoal_index = 0
     executed_actions = []
     last_feedback = None
-    initial_image = None
+    initial_image = 'src/flask_app/static/images/initial.jpg'
+
 
     #Evaluator
     evaluator = TaskEvaluator()
@@ -193,11 +194,13 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             raise Exception("Failed to fetch initial images")
 
          # Save initial state for the entire task
-
         with open('src/flask_app/static/images/current.jpg', 'rb') as src:
-            with open('src/flask_app/static/images/initial.jpg', 'wb') as dst:
-                initial_image = src.read()
-                dst.write(initial_image)
+            with open(initial_image, 'wb') as dst:
+                dst.write(src.read())
+        # with open('src/flask_app/static/images/current.jpg', 'rb') as src:
+        #     with open('src/flask_app/static/images/initial.jpg', 'wb') as dst:
+        #         # initial_image = src.read()
+        #         dst.write(initial_image)
 
         rich.print(f"[blue]Processing {len(subgoals)} subgoals for goal:[/blue] {prompt}")
 
@@ -210,12 +213,19 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 continue
 
             # Load all required images
+            # images = {
+            #     'initial': initial_image,
+            #     'current': None,
+            #     'previous': None,
+            #     'map': None
+            # }
             images = {
-                'initial': initial_image,
-                'current': None,
-                'previous': None,
-                'map': None
-            }
+            'initial': initial_image,
+            'current': 'src/flask_app/static/images/current.jpg',
+            'previous': 'src/flask_app/static/images/previous.jpg',
+            'map': 'src/flask_app/static/images/map.jpg'
+        }
+
 
             try:
                 with open('src/flask_app/static/images/current.jpg', 'rb') as f:
