@@ -20,7 +20,7 @@ from sensor_data import LOCAL_PATHS, fetch_images
 
 class LLMController:
     def __init__(self):
-        self.model_name = 'llava-llama3'
+        self.model_name = 'llava:13b'
         self.command_lock = threading.Lock()
         self.debug = True  # Enable debug logging
         self.current_goal = None
