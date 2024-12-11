@@ -206,6 +206,8 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
         while current_subgoal_index < len(subgoals):
             current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]  # Remove numbering
+
+#TOdo: if subtask.startswith(stop) end 
             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
 
             # Get current state images
