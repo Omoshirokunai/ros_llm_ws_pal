@@ -18,7 +18,7 @@ class RobotControl:
 
     def move_forward(self):
         print("[green] excuting move forward [/green]")
-        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.5,0.0,0.0]' '[0.0, 0.0, 0.0]' --once"
+        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.5,0.0,0.0]' '[0.0, 0.0, 0.0]' -r 2"
         # self._execute_command_for_duration(command, 100)
         try:
             self.ssh_client.execute_command(command)
@@ -30,7 +30,7 @@ class RobotControl:
 
     def turn_right(self):
         print("[green] excuting turn right [/green]")
-        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.6]' --once"
+        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.6]' -r 2"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
         time.sleep(1)
@@ -39,7 +39,7 @@ class RobotControl:
 
     def turn_left(self):
         print("[green] excuting turn left [/green]")
-        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0, 0.0, 0.6]' --once"
+        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0, 0.0, 0.6]' -r 2"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
         time.sleep(1)
