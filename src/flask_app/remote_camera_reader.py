@@ -4,10 +4,10 @@
 import os
 
 import cv2
+import numpy as np
 import rospy
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-import numpy as np
 
 bridge = CvBridge()
 output_dir = "src/flask_app/static/images/"
@@ -22,6 +22,7 @@ def save_image_as_jpeg(image_data):
         # Define paths for current and previous images
         current_image_path = os.path.join(output_dir, "current.jpg")
         previous_image_path = os.path.join(output_dir, "previous.jpg")
+        initial_image_path = os.path.join(output_dir, "initial.jpg")
 
         # If current.jpg exists, move it to previous.jpg
         if os.path.exists(current_image_path):
@@ -29,10 +30,19 @@ def save_image_as_jpeg(image_data):
 
         # Save the new image as current.jpg
         cv2.imwrite(current_image_path, cv_image)
+         # Create initial.jpg if it doesn't exist
+        if not os.path.exists(initial_image_path):
+            cv2.imwrite(initial_image_path, cv_image)
+            print("Initial image saved")
+
+
+        print("images updated")
+
         image_received = True
         print(f"Image saved as {current_image_path}")
     except Exception as e:
         print(f"Failed to save image: {e}")
+
 
 def image_callback(msg):
     global image_received
