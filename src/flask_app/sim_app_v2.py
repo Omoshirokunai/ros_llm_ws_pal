@@ -1,164 +1,3 @@
-# # sim_app_v2.py
-
-# import base64
-# import threading
-# import time
-# from queue import Queue
-
-# import rich
-# import rospy
-# from cv_bridge import CvBridge, CvBridgeError
-# from flask import Flask, Response, jsonify, render_template, request, url_for
-# from sensor_data import fetch_images
-# from sensor_msgs.msg import Image, LaserScan
-
-# from flask_app.LLM_robot_control_models import LLMController
-# from flask_app.sim_robot_control import move_robot
-
-# # Initialize Flask app
-# app = Flask(__name__)
-
-# # Initialize components
-# llm_controller = LLMController()
-# bridge = CvBridge()
-
-# # Thread management
-# # executor = ThreadPoolExecutor(max_workers=3)
-# command_queue = Queue()
-# camera_thread = None
-# llm_thread = None
-
-# # Global variables
-# latest_frame = None
-# lidar_data = None
-# frame_lock = threading.Lock()
-# lidar_lock = threading.Lock()
-
-# # Valid robot actions
-# VALID_ACTIONS = ["move forward", "move backward", "turn left", "turn right"]
-
-# # ROS Initialization
-# rospy.init_node('sim_robot_control', anonymous=True)
-
-
-
-# def process_subgoals(prompt, subgoals):
-#     """Process subgoals for simulation robot"""
-#     current_subgoal_index = 0
-#     executed_actions = []
-#     last_feedback = None
-#     initial_image = None
-
-#     try:
-#         # Get initial state image
-#         if not fetch_images():
-#             raise Exception("Failed to fetch initial images")
-#         with open('static/images/current.jpg', 'rb') as f:
-#             initial_image = f.read()
-
-#         rich.print(f"[blue]Processing {len(subgoals)} subgoals for goal:[/blue] {prompt}")
-
-#         while current_subgoal_index < len(subgoals):
-#             current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]
-#             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
-
-#             if not fetch_images():
-#                 continue
-
-#             try:
-#                 with open('static/images/current.jpg', 'rb') as f:
-#                     current_image = f.read()
-#                 with open('static/images/previous.jpg', 'rb') as f:
-#                     previous_image = f.read()
-#                 with open('static/images/map.jpg', 'rb') as f:
-#                     map_image = f.read()
-#             except Exception as e:
-#                 rich.print(f"[red]Error reading images: {e}[/red]")
-#                 continue
-
-#             # Get control action
-#             control_response = llm_controller.control_robot(
-#                 subgoal=current_subgoal,
-#                 initial_image=initial_image,
-#                 current_image=current_image,
-#                 previous_image=previous_image,
-#                 map_image=map_image,
-#                 executed_actions=executed_actions,
-#                 last_feedback=last_feedback
-#             )
-
-#             if not validate_control_response(control_response):
-#                 rich.print(f"[red]Invalid control response:[/red] {control_response}")
-#                 continue
-
-#             # Save current as previous
-#             with open('static/images/current.jpg', 'rb') as src:
-#                 with open('static/images/previous.jpg', 'wb') as dst:
-#                     dst.write(src.read())
-
-#             # Execute action
-#             if execute_robot_action(control_response):
-#                 executed_actions.append(control_response)
-#                 rich.print(f"[green]Executed action:[/green] {control_response}")
-#                 time.sleep(2)
-#             else:
-#                 rich.print("[red]Failed to execute robot action[/red]")
-#                 continue
-
-#             # Get feedback
-#             if not fetch_images():
-#                 continue
-
-#             try:
-#                 with open('static/images/current.jpg', 'rb') as f:
-#                     new_current_image = f.read()
-#                 with open('static/images/previous.jpg', 'rb') as f:
-#                     new_previous_image = f.read()
-#             except Exception as e:
-#                 rich.print(f"[red]Error reading feedback images: {e}[/red]")
-#                 continue
-
-#             feedback = llm_controller.get_feedback(
-#                 initial_image=initial_image,
-#                 current_image=new_current_image,
-#                 previous_image=new_previous_image,
-#                 map_image=map_image,
-#                 current_subgoal=current_subgoal,
-#                 executed_actions=executed_actions,
-#                 last_feedback=last_feedback
-#             )
-
-#             rich.print(f"[purple]Feedback received:[/purple] {feedback}")
-#             last_feedback = feedback
-
-#             # Process feedback
-#             if feedback == "continue":
-#                 continue
-#             elif feedback == "subtask complete":
-#                 current_subgoal_index += 1
-#                 executed_actions = []
-#                 last_feedback = None
-#             elif feedback == "main goal complete":
-#                 return True
-#             elif feedback == "no progress":
-#                 last_feedback = "Previous action made no progress, try a different approach"
-#                 continue
-#             elif feedback.startswith("do"):
-#                 last_feedback = feedback
-#                 continue
-
-#         return current_subgoal_index >= len(subgoals)
-
-#     except Exception as e:
-#         rich.print(f"[red]Error in process_subgoals:[/red] {str(e)}")
-#         return False
-
-# ROS Subscribers
-
-
-
-
-
 # sim_app_v2.py
 
 import base64
@@ -166,15 +5,15 @@ import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from queue import Queue
 
 import cv2
 import rich
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
 from flask import Flask, Response, jsonify, render_template, request
-from sensor_msgs.msg import Image, LaserScan
-
 from LLM_robot_control_models import LLMController
+from sensor_msgs.msg import Image, LaserScan
 from sim_robot_control import move_robot
 
 # Initialize Flask app
@@ -184,13 +23,19 @@ app = Flask(__name__)
 llm_controller = LLMController()
 bridge = CvBridge()
 
+# Thread management
+executor = ThreadPoolExecutor(max_workers=3)
+command_queue = Queue()
+camera_thread = None
+llm_thread = None
+
 # Image paths
 IMAGE_DIR = 'static/images'
 IMAGE_PATHS = {
     'initial': os.path.join(IMAGE_DIR, 'initial.jpg'),
     'current': os.path.join(IMAGE_DIR, 'current.jpg'),
     'previous': os.path.join(IMAGE_DIR, 'previous.jpg'),
-    'map': os.path.join(IMAGE_DIR, 'map.jpg')
+    'map': os.path.join(IMAGE_DIR, 'sim_map.jpg')
 }
 
 # Global variables
@@ -272,6 +117,56 @@ def execute_robot_action(action):
         return move_robot('right')
     return False
 
+
+# @app.route('/send_llm_prompt', methods=['POST'])
+# def send_llm_prompt():
+#     prompt = request.form.get('prompt')
+#     if not prompt:
+#         return render_template('sim_index.html',
+#                              error="Please enter a prompt")
+
+#     try:
+#         rich.print(f"[blue]Received prompt:[/blue] {prompt}")
+#         subgoals = llm_controller.generate_subgoals(prompt)
+
+#         if not subgoals:
+#             return render_template('sim_index.html',
+#                                 error="Failed to generate subgoals",
+#                                 user_prompt=prompt)
+
+#         success = process_subgoals(prompt, subgoals)
+#         return render_template('sim_index.html',
+#                              user_prompt=prompt,
+#                              subgoals=subgoals,
+#                              success=success)
+
+#     except Exception as e:
+#         rich.print(f"[red]Error in send_llm_prompt:[/red] {str(e)}")
+#         return render_template('sim_index.html',
+#                              error=str(e),
+#                              user_prompt=prompt)
+
+# def save_current_frame(frame_data):
+#     """Save current frame and handle image rotation"""
+#     try:
+#         # Save as current
+#         with open(IMAGE_PATHS['current'], 'wb') as f:
+#             f.write(frame_data)
+
+#         # If initial doesn't exist, create it
+#         if not os.path.exists(IMAGE_PATHS['initial']):
+#             with open(IMAGE_PATHS['initial'], 'wb') as f:
+#                 f.write(frame_data)
+
+#         # Move current to previous if previous doesn't exist
+#         if not os.path.exists(IMAGE_PATHS['previous']):
+#             with open(IMAGE_PATHS['current'], 'rb') as src:
+#                 with open(IMAGE_PATHS['previous'], 'wb') as dst:
+#                     dst.write(src.read())
+
+#     except Exception as e:
+#         rich.print(f"[red]Error saving frame: {e}[/red]")
+
 @app.route('/send_llm_prompt', methods=['POST'])
 def send_llm_prompt():
     prompt = request.form.get('prompt')
@@ -281,7 +176,16 @@ def send_llm_prompt():
 
     try:
         rich.print(f"[blue]Received prompt:[/blue] {prompt}")
-        subgoals = llm_controller.generate_subgoals(prompt)
+
+        # Get initial image
+        images = load_images()
+        if not images:
+            return render_template('sim_index.html',
+                                error="Failed to load images",
+                                user_prompt=prompt)
+
+        # Generate subgoals with initial image context
+        subgoals = llm_controller.generate_subgoals(prompt, images['current'])
 
         if not subgoals:
             return render_template('sim_index.html',
@@ -301,38 +205,34 @@ def send_llm_prompt():
                              user_prompt=prompt)
 
 def save_current_frame(frame_data):
-    """Save current frame and handle image rotation"""
+    """Save current frame"""
     try:
-        # Save as current
         with open(IMAGE_PATHS['current'], 'wb') as f:
             f.write(frame_data)
-
-        # If initial doesn't exist, create it
-        if not os.path.exists(IMAGE_PATHS['initial']):
-            with open(IMAGE_PATHS['initial'], 'wb') as f:
-                f.write(frame_data)
-
-        # Move current to previous if previous doesn't exist
-        if not os.path.exists(IMAGE_PATHS['previous']):
-            with open(IMAGE_PATHS['current'], 'rb') as src:
-                with open(IMAGE_PATHS['previous'], 'wb') as dst:
-                    dst.write(src.read())
-
     except Exception as e:
-        rich.print(f"[red]Error saving frame: {e}[/red]")
+        rich.print(f"[red]Error saving frame:[/red] {str(e)}")
 
 def image_callback(msg):
     """Handle incoming camera frames"""
-    global latest_frame
     try:
         with frame_lock:
             cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
-            _, jpeg = cv2.imencode('.jpg', cv_image)
-            frame_data = jpeg.tobytes()
-            latest_frame = frame_data
-            save_current_frame(frame_data)
-    except CvBridgeError as e:
-        rich.print(f"[red]Camera error: {e}[/red]")
+            save_current_frame(cv_image)
+    except Exception as e:
+        rich.print(f"[red]Error in image callback:[/red] {str(e)}")
+
+# def image_callback(msg):
+#     """Handle incoming camera frames"""
+#     global latest_frame
+#     try:
+#         with frame_lock:
+#             cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
+#             _, jpeg = cv2.imencode('.jpg', cv_image)
+#             frame_data = jpeg.tobytes()
+#             latest_frame = frame_data
+#             save_current_frame(frame_data)
+#     except CvBridgeError as e:
+#         rich.print(f"[red]Camera error: {e}[/red]")
 
 def load_images():
     """Load all required images"""
@@ -350,11 +250,24 @@ def load_images():
         rich.print(f"[red]Error loading images: {e}[/red]")
         return None
 
+# def load_images():
+#     """Load all required images"""
+#     images = {}
+#     try:
+#         for img_type, path in IMAGE_PATHS.items():
+#             with open(path, 'rb') as f:
+#                 images[img_type] = f.read()
+#         return images
+#     except Exception as e:
+#         rich.print(f"[red]Error loading images:[/red] {str(e)}")
+#         return None
+
 def process_subgoals(prompt, subgoals):
     """Process subgoals for simulation robot"""
     current_subgoal_index = 0
     executed_actions = []
     last_feedback = None
+    initial_image = IMAGE_PATHS['initial']
 
     try:
         # Get initial state
@@ -362,10 +275,20 @@ def process_subgoals(prompt, subgoals):
         if not images:
             raise Exception("Failed to load initial images")
 
+        # Save initial state
+        with open(IMAGE_PATHS['current'], 'rb') as src:
+            with open(initial_image, 'wb') as dst:
+                dst.write(src.read())
+
         rich.print(f"[blue]Processing {len(subgoals)} subgoals for goal:[/blue] {prompt}")
 
         while current_subgoal_index < len(subgoals):
             current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]
+
+            if current_subgoal.startswith("stop"):
+                rich.print(f"[green]Task completed successfully[/green]")
+                return True
+
             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
 
             # Get fresh images
@@ -381,14 +304,15 @@ def process_subgoals(prompt, subgoals):
                 previous_image=images['previous'],
                 map_image=images['map'],
                 executed_actions=executed_actions,
-                last_feedback=last_feedback
+                last_feedback=last_feedback,
+                all_subgoals=subgoals
             )
 
             if not validate_control_response(control_response):
                 rich.print(f"[red]Invalid control response:[/red] {control_response}")
                 continue
 
-            # Save current as previous before executing new action
+            # Save current as previous before executing action
             with open(IMAGE_PATHS['current'], 'rb') as src:
                 with open(IMAGE_PATHS['previous'], 'wb') as dst:
                     dst.write(src.read())
@@ -397,7 +321,7 @@ def process_subgoals(prompt, subgoals):
             if execute_robot_action(control_response):
                 executed_actions.append(control_response)
                 rich.print(f"[green]Executed action:[/green] {control_response}")
-                time.sleep(2)  # Allow time for robot and camera update
+                time.sleep(2)
             else:
                 rich.print("[red]Failed to execute robot action[/red]")
                 continue
@@ -407,7 +331,7 @@ def process_subgoals(prompt, subgoals):
             if not images:
                 continue
 
-            # Get feedback with all 4 images
+            # Get feedback
             feedback = llm_controller.get_feedback(
                 initial_image=images['initial'],
                 current_image=images['current'],
@@ -415,18 +339,18 @@ def process_subgoals(prompt, subgoals):
                 map_image=images['map'],
                 current_subgoal=current_subgoal,
                 executed_actions=executed_actions,
-                last_feedback=last_feedback
+                last_feedback=last_feedback,
+                subgoals=subgoals
             )
 
             rich.print(f"[purple]Feedback received:[/purple] {feedback}")
-            last_feedback = feedback
 
             # Process feedback
             if feedback == "continue":
                 continue
             elif feedback == "subtask complete":
                 current_subgoal_index += 1
-                executed_actions = []  # Reset for new subtask
+                executed_actions = []
                 last_feedback = None
             elif feedback == "main goal complete":
                 return True
@@ -434,13 +358,39 @@ def process_subgoals(prompt, subgoals):
                 last_feedback = "Previous action made no progress, try a different approach"
                 continue
             elif feedback.startswith("do"):
-                last_feedback = feedback  # Pass suggestion to next control iteration
+                last_feedback = feedback
                 continue
 
         return current_subgoal_index >= len(subgoals)
 
     except Exception as e:
         rich.print(f"[red]Error in process_subgoals:[/red] {str(e)}")
+        return False
+
+
+def validate_control_response(response):
+    """Validate control response"""
+    valid_actions = ["move forward", "move backward", "turn left", "turn right", "completed"]
+    return response and response.lower() in valid_actions
+
+def execute_robot_action(action):
+    """Execute robot action in simulation"""
+    try:
+        if action == "move forward":
+            move_robot('forward')
+        elif action == "move backward":
+            move_robot('backward')
+        elif action == "turn left":
+            move_robot('left')
+        elif action == "turn right":
+            move_robot('right')
+        elif action == "completed":
+            return True
+        else:
+            return False
+        return True
+    except Exception as e:
+        rich.print(f"[red]Action failed:[/red] {str(e)}")
         return False
 
 # Routes and other functions remain mostly unchanged...
