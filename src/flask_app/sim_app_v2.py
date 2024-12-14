@@ -67,10 +67,13 @@ def image_callback(msg):
 
 def generate_frames():
     while True:
-        with frame_lock:
-            if latest_frame:
+        try:
+            with open(IMAGE_PATHS['current'], 'rb') as f:
+                frame = f.read()
                 yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + latest_frame + b'\r\n\r\n')
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        except Exception as e:
+            rich.print(f"[red]Error generating frames:[/red] {str(e)}")
         time.sleep(0.1)
 
 @app.route('/video_feed')
@@ -276,9 +279,13 @@ def process_subgoals(prompt, subgoals):
             raise Exception("Failed to load initial images")
 
         # Save initial state
-        with open(IMAGE_PATHS['current'], 'rb') as src:
-            with open(initial_image, 'wb') as dst:
-                dst.write(src.read())
+        # with open(IMAGE_PATHS['current'], 'rb') as src:
+        #     with open(initial_image, 'wb') as dst:
+        #         dst.write(src.read())
+        if not os.path.exists(IMAGE_PATHS['initial']):
+            with open(IMAGE_PATHS['current'], 'rb') as src:
+                with open(IMAGE_PATHS['initial'], 'wb') as dst:
+                    dst.write(src.read())
 
         rich.print(f"[blue]Processing {len(subgoals)} subgoals for goal:[/blue] {prompt}")
 
