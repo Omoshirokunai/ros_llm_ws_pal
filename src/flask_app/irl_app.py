@@ -33,7 +33,7 @@ from sensor_data import fetch_images, trigger_capture_script, trigger_stop_scrip
 
 app = Flask(__name__)
 robot_control = RobotControl()
-llm_controller = LLMController()
+llm_controller = LLMController(simulation=False)
 lidar_safety = LidarSafety()
 # Thread management
 executor = ThreadPoolExecutor(max_workers=3)

@@ -19,8 +19,18 @@ from sensor_data import LOCAL_PATHS, fetch_images
 # load_dotenv()
 
 class LLMController:
-    def __init__(self):
-        self.model_name = 'llava:13b'
+    def __init__(self, simulation: bool = True):
+        # self.model_name = 'llava:13b'
+        self.sim = simulation
+        # Select model based on simulation flag
+        if simulation:
+            self.model_name = "llava:7b"  # Simulation model
+            rich.print("[blue]Using simulation model: llava:8b[/blue]")
+        else:
+            self.model_name = "llava:13b"  # Real robot model
+            rich.print("[blue]Using real robot model: gpt-4-vision-preview[/blue]")
+
+
         self.command_lock = threading.Lock()
         self.debug = True  # Enable debug logging
         self.current_goal = None
@@ -77,7 +87,7 @@ class LLMController:
             ]
 
             response = ollama.chat(
-                model='llava:13b',
+                model= self.model_name,
                 messages=message,
                 stream=False,
                 options={
@@ -178,8 +188,7 @@ class LLMController:
             ]
                 response = ollama.chat(
                     # model=self.model_name,
-                    model='llava:13b',
-
+                    model= self.model_name,
                     messages=message,
                     stream=False,
                     options={
@@ -248,7 +257,7 @@ class LLMController:
                     # model=self.model_name,
                 response = ollama.chat(
                     messages=message,
-                    model='llava:13b',
+                    model= self.model_name,
                     stream=False,
                     options={
                     **generation_config,
@@ -269,7 +278,7 @@ class LLMController:
                     else:
                         response = ollama.chat(
                             messages=message + [{"role": "system", "content": f"{response} is not a valid response, please respond with one of the following: continue, subtask complete, main goal complete, no progress"}],
-                                model='llava:13b',
+                                model= self.model_name,
                             stream=False,
                             options={
                             **generation_config,

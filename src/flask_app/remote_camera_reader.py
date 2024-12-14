@@ -10,7 +10,7 @@ from sensor_msgs.msg import Image
 import numpy as np
 
 bridge = CvBridge()
-output_dir = "/home/hameed/ros_llm_ws_pal/src/flask_app/static/images/"  # Update to the directory where you want to save images
+output_dir = "src/flask_app/static/images/"
 image_received = False
 def save_image_as_jpeg(image_data):
     try:

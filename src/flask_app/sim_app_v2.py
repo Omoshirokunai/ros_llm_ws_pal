@@ -6,7 +6,8 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
-
+from evaluation_metrics import TaskEvaluator
+from lidar_safety import LidarSafety
 import cv2
 import rich
 import rospy
@@ -22,6 +23,8 @@ app = Flask(__name__)
 # Initialize components
 llm_controller = LLMController()
 bridge = CvBridge()
+# lidarSafety = LidarSafety()
+# evaluator = TaskEvaluator()
 
 # Thread management
 executor = ThreadPoolExecutor(max_workers=3)
@@ -30,7 +33,7 @@ camera_thread = None
 llm_thread = None
 
 # Image paths
-IMAGE_DIR = 'static/images'
+IMAGE_DIR = 'src/flask_app/static/images'
 IMAGE_PATHS = {
     'initial': os.path.join(IMAGE_DIR, 'initial.jpg'),
     'current': os.path.join(IMAGE_DIR, 'current.jpg'),
@@ -74,7 +77,7 @@ def generate_frames():
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         except Exception as e:
             rich.print(f"[red]Error generating frames:[/red] {str(e)}")
-        time.sleep(0.1)
+        time.sleep(0.2)
 
 @app.route('/video_feed')
 def video_feed():
@@ -149,43 +152,47 @@ def execute_robot_action(action):
 #                              error=str(e),
 #                              user_prompt=prompt)
 
-# def save_current_frame(frame_data):
-#     """Save current frame and handle image rotation"""
-#     try:
-#         # Save as current
-#         with open(IMAGE_PATHS['current'], 'wb') as f:
-#             f.write(frame_data)
+def save_current_frame(frame_data):
+    """Save current frame and handle image rotation"""
+    try:
+        # Save as current
+        with open(IMAGE_PATHS['current'], 'wb') as f:
+            f.write(frame_data)
 
-#         # If initial doesn't exist, create it
-#         if not os.path.exists(IMAGE_PATHS['initial']):
-#             with open(IMAGE_PATHS['initial'], 'wb') as f:
-#                 f.write(frame_data)
+        # If initial doesn't exist, create it
+        if not os.path.exists(IMAGE_PATHS['initial']):
+            with open(IMAGE_PATHS['initial'], 'wb') as f:
+                f.write(frame_data)
 
-#         # Move current to previous if previous doesn't exist
-#         if not os.path.exists(IMAGE_PATHS['previous']):
-#             with open(IMAGE_PATHS['current'], 'rb') as src:
-#                 with open(IMAGE_PATHS['previous'], 'wb') as dst:
-#                     dst.write(src.read())
+        # Move current to previous if previous doesn't exist
+        if not os.path.exists(IMAGE_PATHS['previous']):
+            with open(IMAGE_PATHS['current'], 'rb') as src:
+                with open(IMAGE_PATHS['previous'], 'wb') as dst:
+                    dst.write(src.read())
 
-#     except Exception as e:
-#         rich.print(f"[red]Error saving frame: {e}[/red]")
+    except Exception as e:
+        rich.print(f"[red]Error saving frame: {e}[/red]")
 
 @app.route('/send_llm_prompt', methods=['POST'])
 def send_llm_prompt():
-    prompt = request.form.get('prompt')
-    if not prompt:
-        return render_template('sim_index.html',
-                             error="Please enter a prompt")
 
     try:
+        prompt = request.form.get('prompt')
+        if not prompt:
+            return render_template('sim_index.html',
+                                error="Please enter a prompt")
+
         rich.print(f"[blue]Received prompt:[/blue] {prompt}")
 
         # Get initial image
         images = load_images()
-        if not images:
-            return render_template('sim_index.html',
-                                error="Failed to load images",
-                                user_prompt=prompt)
+        if os.path.exists(IMAGE_PATHS['initial']):
+            os.remove(IMAGE_PATHS['initial'])
+
+        # if not images:
+        #     return render_template('sim_index.html',
+        #                         error="Failed to load images",
+        #                         user_prompt=prompt)
 
         # Generate subgoals with initial image context
         subgoals = llm_controller.generate_subgoals(prompt, images['current'])
@@ -207,63 +214,66 @@ def send_llm_prompt():
                              error=str(e),
                              user_prompt=prompt)
 
-def save_current_frame(frame_data):
-    """Save current frame"""
-    try:
-        with open(IMAGE_PATHS['current'], 'wb') as f:
-            f.write(frame_data)
-    except Exception as e:
-        rich.print(f"[red]Error saving frame:[/red] {str(e)}")
-
-def image_callback(msg):
-    """Handle incoming camera frames"""
-    try:
-        with frame_lock:
-            cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
-            save_current_frame(cv_image)
-    except Exception as e:
-        rich.print(f"[red]Error in image callback:[/red] {str(e)}")
+# def save_current_frame(frame_data):
+#     """Save current frame"""
+#     try:
+#         with open(IMAGE_PATHS['current'], 'wb') as f:
+#             f.write(frame_data)
+#     except Exception as e:
+#         rich.print(f"[red]Error saving frame:[/red] {str(e)}")
 
 # def image_callback(msg):
 #     """Handle incoming camera frames"""
-#     global latest_frame
 #     try:
 #         with frame_lock:
 #             cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
-#             _, jpeg = cv2.imencode('.jpg', cv_image)
-#             frame_data = jpeg.tobytes()
-#             latest_frame = frame_data
-#             save_current_frame(frame_data)
-#     except CvBridgeError as e:
-#         rich.print(f"[red]Camera error: {e}[/red]")
+#             save_current_frame(cv_image)
+#     except Exception as e:
+#         rich.print(f"[red]Error in image callback:[/red] {str(e)}")
 
-def load_images():
-    """Load all required images"""
-    images = {}
+def image_callback(msg):
+    """Handle incoming camera frames"""
+    global latest_frame
     try:
-        for img_type, path in IMAGE_PATHS.items():
-            if os.path.exists(path):
-                with open(path, 'rb') as f:
-                    images[img_type] = f.read()
-            else:
-                rich.print(f"[yellow]Warning: {img_type} image not found[/yellow]")
-                return None
-        return images
-    except Exception as e:
-        rich.print(f"[red]Error loading images: {e}[/red]")
-        return None
+        with frame_lock:
+            cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
+            _, jpeg = cv2.imencode('.jpg', cv_image)
+            frame_data = jpeg.tobytes()
+            latest_frame = frame_data
+            save_current_frame(frame_data)
+            rospy.sleep(0.2)
+            # rospy.signal_shutdown('Image captured, shutting down node.')
+
+    except CvBridgeError as e:
+        rich.print(f"[red]Camera error: {e}[/red]")
 
 # def load_images():
 #     """Load all required images"""
 #     images = {}
 #     try:
 #         for img_type, path in IMAGE_PATHS.items():
-#             with open(path, 'rb') as f:
-#                 images[img_type] = f.read()
+#             if os.path.exists(path):
+#                 with open(path, 'rb') as f:
+#                     images[img_type] = f.read()
+#             else:
+#                 rich.print(f"[yellow]Warning: {img_type} image not found[/yellow]")
+#                 return None
 #         return images
 #     except Exception as e:
-#         rich.print(f"[red]Error loading images:[/red] {str(e)}")
+#         rich.print(f"[red]Error loading images: {e}[/red]")
 #         return None
+
+def load_images():
+    """Load all required images"""
+    images = {}
+    try:
+        for img_type, path in IMAGE_PATHS.items():
+            with open(path, 'rb') as f:
+                images[img_type] = f.read()
+        return images
+    except Exception as e:
+        rich.print(f"[red]Error loading images:[/red] {str(e)}")
+        return None
 
 def process_subgoals(prompt, subgoals):
     """Process subgoals for simulation robot"""
@@ -331,7 +341,7 @@ def process_subgoals(prompt, subgoals):
             if execute_robot_action(control_response):
                 executed_actions.append(control_response)
                 rich.print(f"[green]Executed action:[/green] {control_response}")
-                time.sleep(2)
+                time.sleep(0.1)
             else:
                 rich.print("[red]Failed to execute robot action[/red]")
                 continue

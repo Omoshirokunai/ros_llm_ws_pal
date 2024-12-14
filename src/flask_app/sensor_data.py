@@ -78,7 +78,7 @@ REMOTE_PATHS = {
 LOCAL_PATHS = {
     'current': os.getenv("LOCAL_IMAGE_PATH", "current.jpg"),
     'previous': os.getenv("LOCAL_PREVIOUS_PATH", "previous.jpg"),
-    'map': os.getenv("LOCAL_MAP_PATH", "map.jpg"),
+    'map': os.getenv("LOCAL_MAP_PATH","map.jpg"),
     'lidar': os.getenv("LOCAL_LIDAR_PATH", "lidar_data.json")
 }
 
