@@ -30,7 +30,7 @@ camera_thread = None
 llm_thread = None
 
 # Image paths
-IMAGE_DIR = 'static/images'
+IMAGE_DIR = 'src/flask_app/static/images'
 IMAGE_PATHS = {
     'initial': os.path.join(IMAGE_DIR, 'initial.jpg'),
     'current': os.path.join(IMAGE_DIR, 'current.jpg'),
