@@ -285,8 +285,11 @@ def process_subgoals(prompt, subgoals):
         while current_subgoal_index < len(subgoals):
             current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]
 
+            # if current_subgoal.startswith("stop"):
+            #     rich.print(f"[green]Task completed successfully[/green]")
+            #     return True
             if current_subgoal.startswith("stop"):
-                rich.print(f"[green]Task completed successfully[/green]")
+                rich.print(f"[red]Stopping task:[/red] {current_subgoal}")
                 return True
 
             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
