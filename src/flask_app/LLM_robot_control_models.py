@@ -28,7 +28,7 @@ class LLMController:
             rich.print("[blue]Using simulation model: llava:8b[/blue]")
         else:
             self.model_name = "llava:13b"  # Real robot model
-            rich.print("[blue]Using real robot model: gpt-4-vision-preview[/blue]")
+            rich.print("[blue]Using real robot model: llava:13b[/blue]")
 
 
         self.command_lock = threading.Lock()
@@ -68,21 +68,23 @@ class LLMController:
     def get_scene_description(self, image_path: str) -> str:
         """Generate semantic description of the current scene"""
         try:
-            system_prompt = """ You are a scene descriptor that provides a short useful description of a scene from a robot's perspective.
-            list objects seen in the image and their relative positions.
-            1. Notable objects and their relative positions
-            2. Open spaces and pathways
-            4. Spatial relationships (left, right, front, behind)
-            give list of at least 4 objects that are visible in the image
-            Examples
-            - The scene shows a {object} on {object_location}
-            - The scene shows a {object} in front
-            - The scene partially shows a {object} on the {direction}
-            Be brief and precise.
-            """
+            # system_prompt = """ You are a scene descriptor that provides a short useful description of a scene from a robot's perspective.
+            # list objects seen in the image and their relative positions.
+            # 1. Notable objects and their relative positions
+            # 2. Open spaces and pathways
+            # 4. Spatial relationships (left, right, front, behind)
+            # give list of at least 4 objects that are visible in the image
+            # Examples
+            # - The scene shows a {object} on {object_location}
+            # - The scene shows a {object} in front
+            # - The scene partially shows a {object} on the {direction}
+            # Be brief and precise.
+            # """
             message = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "What does the robot see in this image?", 'images': [image_path]},
+                {"role": "user", "content": "This is an image showing the following objects ", 'images': [image_path]},
+
+                # {"role": "system", "content": system_prompt},
+                # {"role": "user", "content": "What does the robot see in this image?", 'images': [image_path]},
                 # {"role": "user", "content": base64.b64encode(image).decode('utf-8'), "is_image": True}
             ]
 
@@ -91,10 +93,11 @@ class LLMController:
                 messages=message,
                 stream=False,
                 options={
-                    'num_predict': 40,
-                    "max_output_tokens": 20,  # Restrict to short responses
-                    "max_tokens": 10,
-                    "temperature": 0.2
+                    **generation_config,
+                    'num_predict': 100,
+                    "max_output_tokens": 100,  # Restrict to short responses
+                    "max_tokens": 40,
+                    "temperature": 0.1,
                 }
             )
             print(f"scene descriptor: {response['message']['content'].strip()}")
@@ -114,21 +117,6 @@ class LLMController:
                     {"role": "system", "content": goal_setter_system_prompt, 'images': [initial_image]},
                     {"role": "user", "content": prompt + f"\nBased on the image describe to be: {scene_description}"},
                 ]
-
-            #     if initial_image:
-            #         print("prompting subgoal_model")
-            #         message.extend([
-            # {'role': 'user', 'content': 'Initial state:', 'images': [initial_image]
-            #     },
-            #             # {"role": "user", "content": base64.b64encode(initial_image).decode('utf-8'), "is_image": True},
-            #             #scene_description
-            #             {"role": "user", "content": f"Currently the robot sees: {scene_description}"},
-            #             {"role": "user", "content": f"Generate subgoals based on this initial state and the following goal:"},
-            #         {"role": "system", "content": "if task is already complete respond with 'complete'"},
-
-            #         ])
-
-                # message.append({"role": "user", "content": prompt})
                 response = ollama.chat(
                     model=self.model_name,
                     messages=message,
@@ -137,7 +125,7 @@ class LLMController:
                     **generation_config,
                     "max_output_tokens": 20,  # Restrict to short responses
                     "max_tokens" : 10,
-                    "temperature": 0.2,       # More deterministic
+                    "temperature": 0.4,       # More deterministic
                 }
                 )
                 if response and response['message']['content']:
@@ -158,33 +146,41 @@ class LLMController:
             try:
 
                 system_prompt_ = f"""
-        You are a robot controller that makes valid function calls to a system.
-        Based on the given prompt, respond exclusively with one of the following functions:
+        I am a robot controller that makes valid function calls to a robot.
+        Based on the given goal, I will respond exclusively with one of the following control functions:
             - turn left
             - move forward
             - move backward
             - turn right
             - completed
 
-            Current goal: {self.current_goal}
-            Current scene: {scene_description}
-            Current subtask: {subgoal}
-            Previous actions: {', '.join(executed_actions) if executed_actions else 'None'}
-            Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
+        my goal is to achieve the following subgoals: {', '.join(all_subgoals)}.
+        I am Currently going to {self.current_goal}, my environment shows {scene_description}.
 
-            Rules:
-            1. Output ONLY ONE of the four valid actions listed above
-            2. No explanations or other text
-            3. Response must match exactly one valid action
-            4. DO NOT RESPOND WITH 'the action that achieves ...'
-            respond with only the action itself
+        My Previous actions: {', '.join(executed_actions) if executed_actions else 'None'}
+        have resulted In Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
+
+        The Rules are:
+        1. Output ONLY ONE of the four valid actions listed above
+        2. No explanations or other text
+        3. Response must match exactly one valid action
+        4. DO NOT RESPOND WITH ANYTHING ELSE
+
+        example:
+        goal: look for object on right
+        valid response: turn right
+        invalid response: to achive the ..
+
+        To achive the current subgoal {subgoal} I will:
+
             """
                 message = [
-                {"role": "system", "content": system_prompt_},
                 {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
 
                 {"role": "user", "content": "Current state:", 'images': [current_image]},
                 {"role": "user", "content": f"Based on all images and {last_feedback if last_feedback else 'no'} feedback, what action achieves {subgoal}?"}
+            ,
+                {"role": "system", "content": system_prompt_},
             ]
                 response = ollama.chat(
                     # model=self.model_name,
@@ -192,12 +188,12 @@ class LLMController:
                     messages=message,
                     stream=False,
                     options={
-                    **generation_config,
-                    'num_predict': 3,
-                    "max_output_tokens": 4,  # Restrict to short responses
-                    "max_tokens" : 4,
-                    "seed": 42,
-                    "temperature": 0.06,       # More deterministic
+                    "top_p": 0.3,
+                    "top_k": 20,
+                    "num_predict": 3,
+
+                    "max_tokens" : 10,
+                    "temperature": 0.4,
                 }
                 )
                 if response and response['message']['content']:
@@ -218,35 +214,35 @@ class LLMController:
         try:
                 # images = self.load_images()
                 # Load map for context
-                with open(LOCAL_PATHS['map'], 'rb') as f:
-                    map_context = base64.b64encode(f.read()).decode('utf-8')
+                # with open(LOCAL_PATHS['map'], 'rb') as f:
+                #     map_context = base64.b64encode(f.read()).decode('utf-8')
 
                 formatted_prompt = f"""
-                Give feedback on the robot's progress toward the completing the task of {self.current_goal}.
-                to achive that the robt will: {' → '.join(subgoals)}
+                I am a robot progress evaluator that provides feedback on the robot's progress.
+                Given the task of {self.current_goal} which will be achived by completing the following subgoals: {' → '.join(subgoals)}
+                I will evaluate the robot's progress based on the images provided.
+                The Current scene shows: {self.get_scene_description(current_image)}
+                The Current Task is to {current_subgoal}.
+                So far the robot has done: [{', '.join(executed_actions if executed_actions else 'None')}].
 
-                \n The Current scene shows: {self.get_scene_description(current_image)}
-                The Current Task is to {current_subgoal},
-                so far the robot has done: [{', '.join(executed_actions[-5:] if executed_actions else 'None')}].
-
-
-                    Compare initial, and current states to determine and respond with only one of the following:
+                I will Compare initial state and current state to determine and respond with only one of the following:
                     - continue
                     - subtask complete
                     - main goal complete
                     - no progress
 
-                    do not give any aditional information or explanation
-                    RESPOND WITH EXACTLY ONE OPTION
+                    I will not give any aditional information or explanation
+                    and will RESPOND WITH EXACTLY ONE OPTION
                     """
                 message = [
             {"role": "system", "content": formatted_prompt},
-            {"role": "user", "content": "Initial state:", 'images': [initial_image]},
-            {"role": "user", "content": "Current state:", 'images': [current_image]},
+            {"role": "user", "content": "Initial state image shows:", 'images': [initial_image]},
             # {"role": "user", "content": "Previous state:", 'images': [previous_image]},
+            # {"role": "user", "content": "Current state:", 'images': [current_image]},
+            {"role": "user", "content": f"Progress after completing: {executed_actions if executed_actions else 'No action'} shows ..."}
+
             # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
             # {"role": "user", "content": "Map:"},
-            {"role": "user", "content": f"Evaluate progress after: {executed_actions[-1] if executed_actions else 'No action'}"}
         ]
 
                 if self.debug:
@@ -260,11 +256,12 @@ class LLMController:
                     model= self.model_name,
                     stream=False,
                     options={
-                    **generation_config,
+                    "top_p": 0.5,
+                    "top_k": 40,
                     "num_predict": 5,
                     "max_output_tokens": 20,  # Restrict to short responses
                     "max_tokens" : 10,
-                    "temperature": 0.06,       # More deterministic
+                    "temperature": 0.4,
                 }
                 )
 
@@ -285,7 +282,7 @@ class LLMController:
                             "num_predict": 5,
                             "max_output_tokens": 20,  # Restrict to short responses
                             "max_tokens" : 10,
-                            "temperature": 0.05,       # More deterministic
+                            "temperature": 0.2,
                         }
                         )
                     return response['message']['content'].strip().lower()

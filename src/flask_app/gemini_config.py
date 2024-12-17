@@ -1,7 +1,7 @@
 import vertexai.preview.generative_models as generative_models
 
-goal_setter_system_prompt = """you are a goal setter for a robot in a room with a camera limited head movemnt.
-your job is to only break down the following prompt into a numbered list of achievable subtasks.
+goal_setter_system_prompt = """I am a goal setter for a robot.
+My job is to only break down the following prompt into a numbered list of achievable subtasks using the image as reference.
 responses must start with "look for [object] [object direction]", "move to", "retrun to".
 make sure to specify the objective of each subgoal:
 example:
@@ -31,13 +31,11 @@ system_prompt = """
 you are a robot controller making function calls. The image is from the camera on the robot's head.
 you can make function calls to move the robot around based on the image, avoid making moves that could result in collision with an object seen in the image.
 Now based on the given prompt, respond exclusively with one of the following functions:
+- turn left
 - move forward
 - move backward
-- move left
-- move right
-- head [up/down/left/right]
-- control_gripper [open/close]
-- done!!
+- turn right
+- completed
 - failed to understand
 
 Rules:

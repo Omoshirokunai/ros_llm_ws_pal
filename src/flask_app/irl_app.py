@@ -216,11 +216,11 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 return False
 
             #TODO: if subtask.startswith(stop) end sucessfully
-            if current_subgoal.startswith("stop"):
-                rich.print(f"[red]Stopping task:[/red] {current_subgoal}")
-                evaluator.complete_task(True)
-                evaluator.generate_report("src/flask_app/static/evaluation_results")
-                return True
+            # if current_subgoal.startswith("stop"):
+            #     rich.print(f"[red]Stopping task:[/red] {current_subgoal}")
+            #     evaluator.complete_task(True)
+            #     evaluator.generate_report("src/flask_app/static/evaluation_results")
+            #     return True
 
             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
 
@@ -228,16 +228,23 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             if not fetch_images():
                 continue
 
-            # Load all required images
-            images = {
-            'initial': initial_image,
-            'current': 'src/flask_app/static/images/current.jpg',
-            'previous': 'src/flask_app/static/images/previous.jpg',
-            'map': 'src/flask_app/static/images/map.jpg'
-        }
+        #     # Load all required images
+        #     images = {
+        #     'initial': initial_image,
+        #     'current': 'src/flask_app/static/images/current.jpg',
+        #     'previous': 'src/flask_app/static/images/previous.jpg',
+        #     'map': 'src/flask_app/static/images/map.jpg'
+        # }
 
 
             try:
+
+                images = {
+                    'initial': initial_image,
+                    'current': None,
+                    'previous': None,
+                    'map': None
+                }
                 with open('src/flask_app/static/images/current.jpg', 'rb') as f:
                     images['current'] = f.read()
                 with open('src/flask_app/static/images/previous.jpg', 'rb') as f:
