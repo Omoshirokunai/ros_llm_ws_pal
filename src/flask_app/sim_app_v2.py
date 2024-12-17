@@ -23,8 +23,8 @@ app = Flask(__name__)
 # Initialize components
 llm_controller = LLMController()
 bridge = CvBridge()
-# lidarSafety = LidarSafety()
-# evaluator = TaskEvaluator()
+lidar_safety = LidarSafety()
+evaluator = TaskEvaluator()
 
 # Thread management
 executor = ThreadPoolExecutor(max_workers=3)
@@ -282,6 +282,8 @@ def process_subgoals(prompt, subgoals):
     last_feedback = None
     initial_image = IMAGE_PATHS['initial']
 
+    # Start evaluation
+    evaluator.start_task(prompt, subgoals)
     try:
         # Get initial state
         images = load_images()
@@ -307,6 +309,7 @@ def process_subgoals(prompt, subgoals):
             #     return True
             if current_subgoal.startswith("stop"):
                 rich.print(f"[red]Stopping task:[/red] {current_subgoal}")
+                evaluator.generate_report("src/flask_app/static/evaluation_results")
                 return True
 
             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
@@ -337,8 +340,18 @@ def process_subgoals(prompt, subgoals):
                 with open(IMAGE_PATHS['previous'], 'wb') as dst:
                     dst.write(src.read())
 
+            # Check safety before execution
+            is_safe, warning = lidar_safety.check_direction_safety(control_response)
+            evaluator.log_safety_event(True, not is_safe)
+
+            if not is_safe:
+                rich.print(f"[red]Safety check failed:[/red] {warning}")
+                last_feedback = f"Safety warning: {warning}"
+                continue
+
             # Execute action
             if execute_robot_action(control_response):
+                evaluator.log_action(control_response) #evaluator log action
                 executed_actions.append(control_response)
                 rich.print(f"[green]Executed action:[/green] {control_response}")
                 time.sleep(0.1)
@@ -381,9 +394,18 @@ def process_subgoals(prompt, subgoals):
                 last_feedback = feedback
                 continue
 
-        return current_subgoal_index >= len(subgoals)
+        # return current_subgoal_index >= len(subgoals)
+        # Task completed
+        success = current_subgoal_index >= len(subgoals)
+        evaluator.complete_task(success)
+        evaluator.generate_report("static/evaluation_results")
+        return success
 
     except Exception as e:
+         # Ensure evaluation is saved even on error
+        evaluator.complete_task(False)
+        evaluator.generate_report("static/evaluation_results")
+
         rich.print(f"[red]Error in process_subgoals:[/red] {str(e)}")
         return False
 
@@ -396,6 +418,12 @@ def validate_control_response(response):
 def execute_robot_action(action):
     """Execute robot action in simulation"""
     try:
+
+         # Check safety first
+        is_safe, warning = lidar_safety.check_direction_safety(action)
+        if not is_safe:
+            return False
+
         if action == "move forward":
             move_robot('forward')
         elif action == "move backward":
@@ -408,6 +436,8 @@ def execute_robot_action(action):
             return True
         else:
             return False
+
+        rospy.sleep(0.1)  # Allow time for action
         return True
     except Exception as e:
         rich.print(f"[red]Action failed:[/red] {str(e)}")
@@ -416,6 +446,20 @@ def execute_robot_action(action):
 # Routes and other functions remain mostly unchanged...
 
 rospy.Subscriber("/xtion/rgb/image_raw", Image, image_callback)
+
+# Add signal handler for clean shutdown
+import signal
+import sys
+
+def signal_handler(sig, frame):
+    """Ensure evaluation is saved on exit"""
+    if evaluator.current_task:
+        evaluator.complete_task(False)
+        evaluator.generate_report("src/flask_app/static/evaluation_results")
+    rich.print("[yellow]Shutting down...[/yellow]")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
