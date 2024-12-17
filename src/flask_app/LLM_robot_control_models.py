@@ -226,10 +226,10 @@ class LLMController:
                 So far the robot has done: [{', '.join(executed_actions if executed_actions else 'None')}].
 
                 I will Compare initial state and current state to determine and respond with only one of the following:
-                    - continue
-                    - subtask complete
-                    - main goal complete
-                    - no progress
+                    - continue (if some progress has been made but not complete)
+                    - subtask complete (if the current subtask is complete)
+                    - main goal complete (if the overall goal is achieved)
+                    - no progress (if real progress has been made towards completing the goal)
 
                     I will not give any aditional information or explanation
                     and will RESPOND WITH EXACTLY ONE OPTION
@@ -256,10 +256,9 @@ class LLMController:
                     model= self.model_name,
                     stream=False,
                     options={
-                    "top_p": 0.5,
-                    "top_k": 40,
+                    "top_p": 0.3,
+                    "top_k": 10,
                     "num_predict": 5,
-                    "max_output_tokens": 20,  # Restrict to short responses
                     "max_tokens" : 10,
                     "temperature": 0.4,
                 }

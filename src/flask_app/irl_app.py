@@ -212,7 +212,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
             if stop_llm:
                 evaluator.complete_task(False)
-                evaluator.generate_report("static/evaluation_results")
+                evaluator.generate_report("src/flask_app/static/evaluation_results")
                 return False
 
             #TODO: if subtask.startswith(stop) end sucessfully
@@ -324,6 +324,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             )
 
             rich.print(f"[purple]Feedback received:[/purple] {feedback}")
+            evaluator.log_feedback(current_subgoal, feedback)
             last_feedback = feedback
 
             # Process feedback
@@ -333,10 +334,12 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 current_subgoal_index += 1
                 executed_actions = []  # Reset for new subtask
                 last_feedback = None
+                evaluator.log_subgoal_completion(current_subgoal, True)
             elif feedback == "main goal complete":
                 return True
             elif feedback == "no progress":
                 last_feedback = "Previous action made no progress, try a different approach"
+                evaluator.current_task.stuck_count += 1
                 continue
             elif feedback.startswith("do") or feedback.startswith("based"):
                 last_feedback = feedback  # Pass suggestion to next control iteration

@@ -2,23 +2,25 @@
 
 import base64
 import os
+
+# Add signal handler for clean shutdown
+import signal
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
-from evaluation_metrics import TaskEvaluator
-from lidar_safety import LidarSafety
+
 import cv2
 import rich
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
+from evaluation_metrics import TaskEvaluator
 from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
+from lidar_safety import LidarSafety
 from LLM_robot_control_models import LLMController
 from sensor_msgs.msg import Image, LaserScan
 from sim_robot_control import move_robot
-# Add signal handler for clean shutdown
-import signal
-import sys
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -384,13 +386,13 @@ def process_subgoals(prompt, subgoals):
         # Task completed
         success = current_subgoal_index >= len(subgoals)
         evaluator.complete_task(success)
-        evaluator.generate_report("static/evaluation_results")
+        evaluator.generate_report("src/flask_app/static/evaluation_results")
         return success
 
     except Exception as e:
          # Ensure evaluation is saved even on error
         evaluator.complete_task(False)
-        evaluator.generate_report("static/evaluation_results")
+        evaluator.generate_report("src/flask_app/static/evaluation_results")
 
         rich.print(f"[red]Error in process_subgoals:[/red] {str(e)}")
         return False
