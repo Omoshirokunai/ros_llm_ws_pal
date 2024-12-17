@@ -147,6 +147,15 @@
             <textarea name="prompt" rows="5" placeholder="Enter your command...">{{ prompt or '' }}</textarea>
             <button type="submit" class="success-btn">Send to LLM</button>
         </form>
+
+        <form action="{{ url_for('stop_llm') }}" method="post">
+            <button type="submit" class="danger-btn">Stop LLM Control</button>
+        </form>
+
+        <!-- Add report status -->
+        {% if evaluation_saved %}
+            <p class="success">Evaluation report saved</p>
+        {% endif %}
     </div>
 </div>
 

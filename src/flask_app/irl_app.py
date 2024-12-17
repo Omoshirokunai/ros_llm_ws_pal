@@ -40,6 +40,7 @@ executor = ThreadPoolExecutor(max_workers=3)
 command_queue = Queue()
 camera_thread = None
 llm_thread = None
+evaluator = TaskEvaluator()
 
 
 # region home
@@ -176,6 +177,7 @@ def send_llm_prompt():
                              error=str(e),
                              user_prompt=prompt)
 
+
 def process_subgoals(prompt, subgoals, robot_control, llm_controller):
     """Process subgoals for both simulation and real robot"""
     current_subgoal_index = 0
@@ -183,9 +185,10 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
     last_feedback = None
     initial_image = 'src/flask_app/static/images/initial.jpg'
 
+    global stop_llm
+    stop_llm = False
 
     #Evaluator
-    evaluator = TaskEvaluator()
     evaluator.start_task(prompt, subgoals)
 
     try:
@@ -206,6 +209,11 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
         while current_subgoal_index < len(subgoals):
             current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]  # Remove numbering
+
+            if stop_llm:
+                evaluator.complete_task(False)
+                evaluator.generate_report("static/evaluation_results")
+                return False
 
             #TODO: if subtask.startswith(stop) end sucessfully
             if current_subgoal.startswith("stop"):
@@ -386,6 +394,29 @@ def execute_robot_action(action):
     except Exception as e:
         return False, f"Action failed: {str(e)}"
 # endregion
+# Update error handlers
+@app.errorhandler(Exception)
+def handle_error(e):
+    if evaluator.current_task:
+        evaluator.complete_task(False)
+        evaluator.generate_report("src/flask_app/static/evaluation_results")
+    return render_template('irl_index.html',
+                         error=f"An error occurred: {str(e)}")
 
+stop_llm = False
+
+@app.route('/stop_llm', methods=['POST'])
+def stop_llm_control():
+    """Stop LLM control and generate evaluation report"""
+    global stop_llm
+    stop_llm = True
+
+    # Generate report if task in progress
+    if evaluator.current_task:
+        evaluator.complete_task(False)
+        evaluator.generate_report("src/flask_app/static/evaluation_results")
+        rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
+
+    return redirect(url_for('index'))
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

@@ -12,10 +12,13 @@ import cv2
 import rich
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
-from flask import Flask, Response, jsonify, render_template, request
+from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
 from LLM_robot_control_models import LLMController
 from sensor_msgs.msg import Image, LaserScan
 from sim_robot_control import move_robot
+# Add signal handler for clean shutdown
+import signal
+import sys
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -31,6 +34,8 @@ executor = ThreadPoolExecutor(max_workers=3)
 command_queue = Queue()
 camera_thread = None
 llm_thread = None
+stop_llm = False
+
 
 # Image paths
 IMAGE_DIR = 'src/flask_app/static/images'
@@ -123,34 +128,6 @@ def execute_robot_action(action):
         return move_robot('right')
     return False
 
-
-# @app.route('/send_llm_prompt', methods=['POST'])
-# def send_llm_prompt():
-#     prompt = request.form.get('prompt')
-#     if not prompt:
-#         return render_template('sim_index.html',
-#                              error="Please enter a prompt")
-
-#     try:
-#         rich.print(f"[blue]Received prompt:[/blue] {prompt}")
-#         subgoals = llm_controller.generate_subgoals(prompt)
-
-#         if not subgoals:
-#             return render_template('sim_index.html',
-#                                 error="Failed to generate subgoals",
-#                                 user_prompt=prompt)
-
-#         success = process_subgoals(prompt, subgoals)
-#         return render_template('sim_index.html',
-#                              user_prompt=prompt,
-#                              subgoals=subgoals,
-#                              success=success)
-
-#     except Exception as e:
-#         rich.print(f"[red]Error in send_llm_prompt:[/red] {str(e)}")
-#         return render_template('sim_index.html',
-#                              error=str(e),
-#                              user_prompt=prompt)
 
 def save_current_frame(frame_data):
     """Save current frame and handle image rotation"""
@@ -281,6 +258,8 @@ def process_subgoals(prompt, subgoals):
     executed_actions = []
     last_feedback = None
     initial_image = IMAGE_PATHS['initial']
+    global stop_llm
+    stop_llm = False
 
     # Start evaluation
     evaluator.start_task(prompt, subgoals)
@@ -307,6 +286,13 @@ def process_subgoals(prompt, subgoals):
             # if current_subgoal.startswith("stop"):
             #     rich.print(f"[green]Task completed successfully[/green]")
             #     return True
+
+
+            if stop_llm:
+                evaluator.complete_task(False)
+                evaluator.generate_report("static/evaluation_results")
+                return False
+
             if current_subgoal.startswith("stop"):
                 rich.print(f"[red]Stopping task:[/red] {current_subgoal}")
                 evaluator.generate_report("src/flask_app/static/evaluation_results")
@@ -447,9 +433,7 @@ def execute_robot_action(action):
 
 rospy.Subscriber("/xtion/rgb/image_raw", Image, image_callback)
 
-# Add signal handler for clean shutdown
-import signal
-import sys
+
 
 def signal_handler(sig, frame):
     """Ensure evaluation is saved on exit"""
@@ -459,7 +443,31 @@ def signal_handler(sig, frame):
     rich.print("[yellow]Shutting down...[/yellow]")
     sys.exit(0)
 
-signal.signal(signal.SIGINT, signal_handler)
+# signal.signal(signal.SIGINT, signal_handler)
+
+
+@app.route('/stop_llm', methods=['POST'])
+def stop_llm_control():
+    """Stop LLM control and generate evaluation report"""
+    global stop_llm
+    stop_llm = True
+
+    # Generate report if task in progress
+    if evaluator.current_task:
+        evaluator.complete_task(False)
+        evaluator.generate_report("static/evaluation_results")
+        rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
+
+    return redirect(url_for('index'))
+
+# Update error handlers
+@app.errorhandler(Exception)
+def handle_error(e):
+    if evaluator.current_task:
+        evaluator.complete_task(False)
+        evaluator.generate_report("src/flask_app/static/evaluation_results")
+    return render_template('sim_index.html',
+                         error=f"An error occurred: {str(e)}")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
