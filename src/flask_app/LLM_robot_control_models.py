@@ -94,10 +94,10 @@ class LLMController:
                 stream=False,
                 options={
                     **generation_config,
-                    'num_predict': 100,
-                    "max_output_tokens": 100,  # Restrict to short responses
+                    'num_predict': 40,
+                    "max_output_tokens": 40,  # Restrict to short responses
                     "max_tokens": 40,
-                    "temperature": 0.1,
+                    "temperature": 0.3,
                 }
             )
             print(f"scene descriptor: {response['message']['content'].strip()}")
@@ -156,7 +156,7 @@ class LLMController:
             - completed
 
         my goal is to achieve the following subgoals: {', '.join(all_subgoals)}.
-        I am Currently going to {self.current_goal}, my environment shows {scene_description}.
+        I am Currently trying to {self.current_goal}, my environment shows {scene_description}.
 
         My Previous actions: {', '.join(executed_actions) if executed_actions else 'None'}
         have resulted In Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
@@ -165,14 +165,21 @@ class LLMController:
         1. Output ONLY ONE of the four valid actions listed above
         2. No explanations or other text
         3. Response must match exactly one valid action
-        4. DO NOT RESPOND WITH ANYTHING ELSE
+        4 Check image for obstacles before movement
+
             """
                 message = [
-                {"role": "system", "content": system_prompt_},
+                    {"role": "system", "content": system_prompt_},
                 {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
-
                 {"role": "user", "content": "Current environment shows this image:", 'images': [current_image]},
-                {"role": "user", "content": f"Based on all images and the last feedback being: {last_feedback if last_feedback else 'no feedback'},\n my next action = "},
+                {"role": "user", "content": f"if the last feedback being for my last action was: {last_feedback if last_feedback else 'no feedback'},\n my next action is"},
+
+                # {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
+                # {"role": "user", "content": "the intitial environment state vs Current environment shows this image:", 'images': [initial_image, current_image]},
+                # # {"role": "user", "content": "image showing lidar map showing obstacles in the environment", 'images': [map_image]},
+
+                # {"role": "user", "content": f"Based on all image and the feedback on my last action being to: {last_feedback if last_feedback else 'no feedback'},\n my next action = "},
+                # {"role": "system", "content": system_prompt_},
             ]
                 response = ollama.chat(
                     # model=self.model_name,
@@ -180,12 +187,10 @@ class LLMController:
                     messages=message,
                     stream=False,
                     options={
-                    "top_p": 0.3,
-                    "top_k": 20,
+                    "top_p": 0.5,
+                    "top_k": 10,
                     "num_predict": 3,
-
-                    "max_tokens" : 10,
-                    "temperature": 0.4,
+                    "temperature": 0.5,
                 }
                 )
                 if response and response['message']['content']:
@@ -215,7 +220,7 @@ class LLMController:
                 I will evaluate the robot's progress based on the images provided.
                 The Current scene shows: {self.get_scene_description(current_image)}
                 The Current Task is to {current_subgoal}.
-                So far the robot has done: [{', '.join(executed_actions if executed_actions else 'None')}].
+                So far the robot has made the following moves: [{', '.join(executed_actions if executed_actions else 'None')}].
 
                 I will Compare initial state and current state to determine and respond with only one of the following:
                     - continue (if some progress has been made but not complete)
@@ -228,10 +233,10 @@ class LLMController:
                     """
                 message = [
             {"role": "system", "content": formatted_prompt},
-            {"role": "user", "content": "Initial state image shows:", 'images': [initial_image]},
+            {"role": "user", "content": "Initial and current state image shows:", 'images': [initial_image, current_image]},
             # {"role": "user", "content": "Previous state:", 'images': [previous_image]},
-            {"role": "user", "content": "Current scene image:", 'images': [current_image]},
-            {"role": "user", "content": f"Progress after completing: {executed_actions if executed_actions else 'No action'} shows ..."}
+            # {"role": "user", "content": "Current scene image:", 'images': [current_image]},
+            # {"role": "user", "content": f"Progress after completing: {executed_actions if executed_actions else 'No action'} "}
 
             # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
             # {"role": "user", "content": "Map:"},

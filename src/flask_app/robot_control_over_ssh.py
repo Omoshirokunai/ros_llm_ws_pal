@@ -16,17 +16,34 @@ class RobotControl:
         # self._execute_command_for_duration(command, 3)
         return True
 
+    def stop_robot(self):
+        command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0, 0.0, 0.0]' --once"
+        self.ssh_client.execute_command(command)
+        return True
+
+    # def _execute_timed_command(self, command, duration=2):
+    #     try:
+    #         self.ssh_client.execute_command(command)
+    #         time.sleep(duration)
+    #         self.stop_robot()  # Stop after duration
+    #     except Exception as e:
+    #         print(f"Failed to execute command: {e}")
+    #         raise e
+
     def move_forward(self):
         print("[green] excuting move forward [/green]")
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.5,0.0,0.0]' '[0.0, 0.0, 0.0]' --once"
-        # self._execute_command_for_duration(command, 100)
-        try:
-            self.ssh_client.execute_command(command)
-            time.sleep(1)
-        except Exception as e:
-            print(f"Failed to connect to SSH: {e}")
-            raise e
+        self.ssh_client.execute_command(command)
+        time.sleep(1)
         return True
+        # try:
+        #     self.ssh_client.execute_command(command)
+        #     time.sleep(4)
+
+        # except Exception as e:
+        #     print(f"Failed to connect to SSH: {e}")
+        #     raise e
+        # return True
 
     def turn_right(self):
         print("[green] excuting turn right [/green]")

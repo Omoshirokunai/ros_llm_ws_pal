@@ -221,6 +221,8 @@ class TaskEvaluator:
                         prompt_metrics[prompt_type] = []
 
                     # Calculate metrics
+                    prediction_metrics = self._calculate_prediction_metrics(task)
+
                     metrics_dict = {
                         "success": bool(task.completed),
                         "ground_truth_success": bool(task.ground_truth_success),
@@ -230,8 +232,12 @@ class TaskEvaluator:
                         "safety_violations": int(task.safety_violations),
                         "subtask_completion_rate": float(task.subtask_completion_rate),
                         "stuck_count": int(task.stuck_count),
-                        "subgoal_accuracy": self._calculate_subgoal_accuracy(task)
-                        **self._calculate_prediction_metrics(task)
+                        "subgoal_accuracy": self._calculate_subgoal_accuracy(task),
+                         "true_positives": prediction_metrics["true_positives"],
+                    "false_positives": prediction_metrics["false_positives"],
+                    "true_negatives": prediction_metrics["true_negatives"],
+                    "false_negatives": prediction_metrics["false_negatives"],
+                    "prediction_accuracy": prediction_metrics["prediction_accuracy"]
                     }
                     prompt_metrics[prompt_type].append(metrics_dict)
                 except Exception as e:
@@ -239,13 +245,14 @@ class TaskEvaluator:
                     continue
 
             # Generate plots with improved visualization
-            self._generate_metric_plots(prompt_metrics, output_dir)
+            if prompt_metrics:
+                self._generate_metric_plots(prompt_metrics, output_dir)
 
-            # Generate summary report
-            self._generate_summary_report(prompt_metrics, output_dir)
+                # Generate summary report
+                self._generate_summary_report(prompt_metrics, output_dir)
 
-            # Generate confusion matrix
-            self._plot_confusion_matrix(prompt_metrics, output_dir)
+                # Generate confusion matrix
+                self._plot_confusion_matrix(prompt_metrics, output_dir)
 
         except Exception as e:
             rich.print(f"[red]Error in generate_report:[/red] {e}")
@@ -355,36 +362,44 @@ class TaskEvaluator:
     def _generate_summary_report(self, prompt_metrics: Dict, output_dir: str):
         """Generate summary report with aggregate metrics"""
         try:
+            if not self.tasks:
+                rich.print("[yellow]No tasks to generate summary report from[/yellow]")
+                return
+
             report = {
-                "overall_metrics": {
-                    "total_tasks": len(self.tasks),
-                    "success_rate": sum(1 for t in self.tasks if t.completed) / len(self.tasks),
-                    "ground_truth_success_rate": sum(1 for t in self.tasks if t.ground_truth_success) / len(self.tasks),
-                    "prediction_accuracy": sum(1 for t in self.tasks
-                                            if t.completed == t.ground_truth_success) / len(self.tasks)
-                },
-                "metrics_by_task_type": {}
-            }
+            "overall_metrics": {
+                "total_tasks": len(self.tasks),
+                "success_rate": sum(1 for t in self.tasks if t.completed) / max(len(self.tasks), 1),
+                "ground_truth_success_rate": sum(1 for t in self.tasks if t.ground_truth_success) / max(len(self.tasks), 1),
+                "prediction_accuracy": sum(1 for t in self.tasks
+                                        if t.completed == t.ground_truth_success) / max(len(self.tasks), 1)
+            },
+            "metrics_by_task_type": {}
+        }
 
             # Calculate per task type metrics
             for prompt_type, metrics in prompt_metrics.items():
+
+                if not metrics:
+                    continue
+
                 report["metrics_by_task_type"][prompt_type] = {
-                    "total_tasks": len(metrics),
-                    "success_rate": sum(m["success"] for m in metrics) / len(metrics),
-                    "ground_truth_success_rate": sum(m["ground_truth_success"] for m in metrics) / len(metrics),
-                    "avg_duration": float(np.mean([m["duration"] for m in metrics])),
-                    "avg_actions": float(np.mean([m["action_count"] for m in metrics])),
-                    "avg_smoothness": float(np.mean([m["path_smoothness"] for m in metrics])),
-                    "avg_safety_violations": float(np.mean([m["safety_violations"] for m in metrics])),
-                    "avg_subtask_completion": float(np.mean([m["subtask_completion_rate"] for m in metrics])),
-                    "prediction_metrics": {
-                        "true_positives": sum(m["true_positives"] for m in metrics),
-                        "false_positives": sum(m["false_positives"] for m in metrics),
-                        "true_negatives": sum(m["true_negatives"] for m in metrics),
-                        "false_negatives": sum(m["false_negatives"] for m in metrics),
-                        "prediction_accuracy": float(np.mean([m["prediction_accuracy"] for m in metrics]))
-                    }
+                "total_tasks": len(metrics),
+                "success_rate": sum(m["success"] for m in metrics) / max(len(metrics), 1),
+                "ground_truth_success_rate": sum(m["ground_truth_success"] for m in metrics) / max(len(metrics), 1),
+                "avg_duration": float(np.mean([m["duration"] for m in metrics])),
+                "avg_actions": float(np.mean([m["action_count"] for m in metrics])),
+                "avg_smoothness": float(np.mean([m["path_smoothness"] for m in metrics])),
+                "avg_safety_violations": float(np.mean([m["safety_violations"] for m in metrics])),
+                "avg_subtask_completion": float(np.mean([m["subtask_completion_rate"] for m in metrics])),
+                "prediction_metrics": {
+                    "true_positives": sum(m["true_positives"] for m in metrics),
+                    "false_positives": sum(m["false_positives"] for m in metrics),
+                    "true_negatives": sum(m["true_negatives"] for m in metrics),
+                    "false_negatives": sum(m["false_negatives"] for m in metrics),
+                    "prediction_accuracy": float(np.mean([m["prediction_accuracy"] for m in metrics]))
                 }
+            }
 
             # Save report
             with open(os.path.join(output_dir, "evaluation_report.json"), "w") as f:

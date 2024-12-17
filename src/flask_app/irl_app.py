@@ -33,7 +33,7 @@ from sensor_data import fetch_images, trigger_capture_script, trigger_stop_scrip
 
 app = Flask(__name__)
 robot_control = RobotControl()
-llm_controller = LLMController(simulation=True) #!! using Llava:7b model
+llm_controller = LLMController(simulation=False)
 lidar_safety = LidarSafety()
 # Thread management
 executor = ThreadPoolExecutor(max_workers=3)
@@ -128,6 +128,11 @@ def turn_left():
     # return jsonify({"status": "success", "action": "turn_left"})
     return '', 204
 
+@app.route('/stop_robot', methods=['POST', 'GET'])
+def stop_robot():
+    robot_control.stop_robot()
+    # return jsonify({"status": "success", "action": "stop_robot"})
+    return '', 204
 # endregion
 
 # region LLM control

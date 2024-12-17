@@ -41,9 +41,6 @@ Now based on the given prompt, respond exclusively with one of the following fun
 Rules:
 - Use EXACTLY one of these commands
 - Check image for obstacles before movement
-- Ensure arm is tucked before base movement
-- Consider camera view limitations
-- Moving head will adjust the camera view
 """
 # do not use any words outside these thirteen options, note that 6 conescutive turns in one direction is essentially a 180 turn.
 
