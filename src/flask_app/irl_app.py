@@ -33,7 +33,7 @@ from sensor_data import fetch_images, trigger_capture_script, trigger_stop_scrip
 
 app = Flask(__name__)
 robot_control = RobotControl()
-llm_controller = LLMController(simulation=False)
+llm_controller = LLMController(simulation=True) #!! using Llava:7b model
 lidar_safety = LidarSafety()
 # Thread management
 executor = ThreadPoolExecutor(max_workers=3)
@@ -428,5 +428,36 @@ def stop_llm_control():
         rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
 
     return redirect(url_for('index'))
+
+@app.route('/ground_truth')
+def ground_truth_form():
+    return render_template('ground_truth.html')
+
+@app.route('/update_ground_truth', methods=['POST'])
+def update_ground_truth():
+    """Update ground truth success for task completion"""
+    try:
+        data = request.json
+        task_id = data.get('task_id')
+        subgoal = data.get('subgoal')
+        success = data.get('success')
+
+        # Find matching task
+        for task in evaluator.tasks:
+            if task.task_id == task_id:
+                if subgoal:
+                    task.ground_truth_subgoal_successes[subgoal] = success
+                else:
+                    task.ground_truth_success = success
+                return jsonify({"status": "success"})
+
+        if evaluator.update_ground_truth(task_id, subgoal, success):
+            return jsonify({"status": "success"})
+        return jsonify({"status": "error", "message": "Task not found"}), 404
+
+        # return jsonify({"status": "error", "message": "Task not found"}), 404
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

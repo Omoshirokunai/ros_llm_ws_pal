@@ -26,7 +26,11 @@ class TaskMetrics:
     completed: bool = False
     scene_descriptions: List[str] = field(default_factory=list)
 
-    # New tracking fields
+      # New success tracking fields
+    ground_truth_success: bool = False  # User input for actual task success
+    model_predicted_successes: Dict[str, bool] = field(default_factory=dict)  # Track model success claims per subgoal
+    ground_truth_subgoal_successes: Dict[str, bool] = field(default_factory=dict)  # Track actual success per subgoal
+
     run_id: str = field(default_factory=lambda: f"run_{int(time.time())}")
     completed_subgoals: List[str] = field(default_factory=list)
     failed_subgoals: List[str] = field(default_factory=list)
@@ -148,6 +152,18 @@ class TaskEvaluator:
                 "timestamp": time.time()
             })
 
+    def log_subgoal_completion(self, subgoal: str, success: bool):
+        """Log subgoal completion status"""
+        if self.current_task:
+            if success:
+                self.current_task.completed_subgoals.append(subgoal)
+                self.current_task.subgoal_completion_times[subgoal] = time.time()
+                # Track model's prediction
+                self.current_task.model_predicted_successes[subgoal] = True
+            else:
+                self.current_task.failed_subgoals.append(subgoal)
+                self.current_task.model_predicted_successes[subgoal] = False
+
     def complete_task(self, success: bool):
         """Mark current task as complete and store metrics"""
         if self.current_task:
@@ -156,12 +172,42 @@ class TaskEvaluator:
             self.tasks.append(self.current_task)
             self.current_task = None
 
+        # Check success rates in reporting
+    def calculate_accuracy_metrics(self):
+        """Calculate model prediction accuracy"""
+        if not self.tasks:
+            return {}
+
+        correct_predictions = 0
+        total_predictions = 0
+
+        for task in self.tasks:
+            if task.ground_truth_success is not None:
+                total_predictions += 1
+                if task.completed == task.ground_truth_success:
+                    correct_predictions += 1
+
+        return {
+            "accuracy": correct_predictions / total_predictions if total_predictions > 0 else 0,
+            "total_tasks": len(self.tasks)
+        }
+
+    def update_ground_truth(self, task_id: str, subgoal: str = None, success: bool = False):
+        """Update ground truth and recalculate metrics"""
+        for task in self.tasks:
+            if task.task_id == task_id:
+                if subgoal:
+                    task.ground_truth_subgoal_successes[subgoal] = success
+                else:
+                    task.ground_truth_success = success
+                # Regenerate report after update
+                self.generate_report("src/flask_app/static/evaluation_results")
+                return True
+        return False
     def generate_report(self, output_dir: str):
         """Generate evaluation visualizations and metrics"""
-
         try:
             os.makedirs(output_dir, exist_ok=True)
-            # Guard against empty tasks list
             if not self.tasks:
                 rich.print("[yellow]No tasks to generate report from[/yellow]")
                 return
@@ -170,107 +216,179 @@ class TaskEvaluator:
             prompt_metrics = {}
             for task in self.tasks:
                 try:
-                    # prompt_type = task.prompt.split()[0]  # e.g., "find", "move", etc.
-                    # if prompt_type not in prompt_metrics:
-                    #     prompt_metrics[prompt_type] = []
-
-                    prompt_type = task.prompt.split()[0]  # e.g., "find", "move", etc.
+                    prompt_type = task.prompt.split()[0]
                     if prompt_type not in prompt_metrics:
                         prompt_metrics[prompt_type] = []
 
-                    # Convert metrics to basic types to avoid unhashable lists
+                    # Calculate metrics
                     metrics_dict = {
                         "success": bool(task.completed),
+                        "ground_truth_success": bool(task.ground_truth_success),
                         "duration": float(task.duration),
                         "action_count": int(task.action_count),
-                        "reversals": int(task.reversal_count),
                         "path_smoothness": float(task.path_smoothness),
                         "safety_violations": int(task.safety_violations),
-                        "run_id": task.run_id,
-                "completed_subgoals": len(task.completed_subgoals),
-                "failed_subgoals": len(task.failed_subgoals),
-                "subgoal_attempts": task.subgoal_attempts,
-                "subtask_completion_rate": float(task.subtask_completion_rate),
-                "avg_attempts_per_subgoal": sum(task.subgoal_attempts.values()) / len(task.subgoals) if task.subgoals else 0
-
+                        "subtask_completion_rate": float(task.subtask_completion_rate),
+                        "stuck_count": int(task.stuck_count),
+                        "subgoal_accuracy": self._calculate_subgoal_accuracy(task)
+                        **self._calculate_prediction_metrics(task)
                     }
-
                     prompt_metrics[prompt_type].append(metrics_dict)
-
                 except Exception as e:
                     rich.print(f"[red]Error processing task metrics:[/red] {e}")
                     continue
 
-                 # Plot metrics with error handling
-            metrics_to_plot = ["action_count", "reversals", "path_smoothness", "safety_violations"]
-            for metric in metrics_to_plot:
-                try:
-                    plt.figure(figsize=(10, 6))
-                    data = []
-                    labels = []
-                    for prompt_type, metrics in prompt_metrics.items():
-                        metric_values = [m[metric] for m in metrics]
-                        data.extend(metric_values)
-                        labels.extend([prompt_type] * len(metric_values))
+            # Generate plots with improved visualization
+            self._generate_metric_plots(prompt_metrics, output_dir)
 
-                    if data and labels:
-                        sns.boxplot(x=labels, y=data)
-                        plt.title(f"{metric.replace('_', ' ').title()} by Task Type")
-                        plt.savefig(os.path.join(output_dir, f"{metric}_comparison.png"))
-                    plt.close()
-                except Exception as e:
-                    rich.print(f"[red]Error generating plot for {metric}:[/red] {e}")
-                    continue
-            # Generate summary report with error handling
-            try:
-                    report = {
-                        "overall_success_rate": sum(1 for t in self.tasks if t.completed) / len(self.tasks),
-                        "metrics_by_task_type": {}
-                    }
+            # Generate summary report
+            self._generate_summary_report(prompt_metrics, output_dir)
 
-                    for prompt_type, metrics in prompt_metrics.items():
-                        report["metrics_by_task_type"][prompt_type] = {
-                            "success_rate": sum(m["success"] for m in metrics) / len(metrics),
-                            "avg_duration": float(np.mean([m["duration"] for m in metrics])),
-                            "avg_actions": float(np.mean([m["action_count"] for m in metrics])),
-                            "avg_smoothness": float(np.mean([m["path_smoothness"] for m in metrics]))
-                        }
-
-                    with open(os.path.join(output_dir, "evaluation_report.json"), "w") as f:
-                        json.dump(report, f, indent=2)
-
-            except Exception as e:
-                    rich.print(f"[red]Error generating summary report:[/red] {e}")
+            # Generate confusion matrix
+            self._plot_confusion_matrix(prompt_metrics, output_dir)
 
         except Exception as e:
             rich.print(f"[red]Error in generate_report:[/red] {e}")
-        # # Plot metrics
-        # for metric in ["action_count", "reversals", "path_smoothness", "safety_violations"]:
-        #     plt.figure(figsize=(10, 6))
-        #     data = []
-        #     labels = []
-        #     for prompt_type, metrics in prompt_metrics.items():
-        #         data.append([m[metric] for m in metrics])
-        #         labels.extend([prompt_type] * len(metrics))
 
-        #     sns.boxplot(x=labels, y=data)
-        #     plt.title(f"{metric.replace('_', ' ').title()} by Task Type")
-        #     plt.savefig(os.path.join(output_dir, f"{metric}_comparison.png"))
-        #     plt.close()
+    def _calculate_subgoal_accuracy(self, task):
+        """Calculate accuracy of model's subgoal completion predictions"""
+        if not task.ground_truth_subgoal_successes:
+            return 0.0
+        correct = sum(1 for sg, pred in task.model_predicted_successes.items()
+                     if sg in task.ground_truth_subgoal_successes
+                     and pred == task.ground_truth_subgoal_successes[sg])
+        total = len(task.ground_truth_subgoal_successes)
+        return correct / total if total > 0 else 0.0
 
-        # # Generate summary report
-        # report = {
-        #     "overall_success_rate": sum(t.completed for t in self.tasks) / len(self.tasks),
-        #     "metrics_by_task_type": {
-        #         prompt_type: {
-        #             "success_rate": sum(m["success"] for m in metrics) / len(metrics),
-        #             "avg_duration": np.mean([m["duration"] for m in metrics]),
-        #             "avg_actions": np.mean([m["action_count"] for m in metrics]),
-        #             "avg_smoothness": np.mean([m["path_smoothness"] for m in metrics])
-        #         }
-        #         for prompt_type, metrics in prompt_metrics.items()
-        #     }
-        # }
+    def _calculate_prediction_metrics(self, task):
+        """Calculate confusion matrix metrics for model predictions vs ground truth"""
+        metrics = {
+            "true_positives": 0,  # Model predicted success correctly
+            "false_positives": 0, # Model predicted success incorrectly
+            "true_negatives": 0,  # Model predicted failure correctly
+            "false_negatives": 0, # Model predicted failure incorrectly
+            "prediction_accuracy": 0.0
+        }
 
-        # with open(os.path.join(output_dir, "evaluation_report.json"), "w") as f:
-        #     json.dump(report, f, indent=2)
+        # Overall task completion accuracy
+        if task.ground_truth_success is not None:
+            if task.completed and task.ground_truth_success:
+                metrics["true_positives"] += 1
+            elif task.completed and not task.ground_truth_success:
+                metrics["false_positives"] += 1
+            elif not task.completed and not task.ground_truth_success:
+                metrics["true_negatives"] += 1
+            elif not task.completed and task.ground_truth_success:
+                metrics["false_negatives"] += 1
+
+        # Calculate per-subgoal accuracy
+        total = len(task.ground_truth_subgoal_successes)
+        if total > 0:
+            correct = sum(1 for sg, pred in task.model_predicted_successes.items()
+                        if sg in task.ground_truth_subgoal_successes
+                        and pred == task.ground_truth_subgoal_successes[sg])
+            metrics["prediction_accuracy"] = correct / total
+
+        return metrics
+
+    def _generate_metric_plots(self, prompt_metrics, output_dir):
+        """Generate visualizations for key metrics"""
+        metrics_to_plot = [
+            ("success", "Task Success Rate"),
+            ("path_smoothness", "Path Smoothness"),
+            ("safety_violations", "Safety Violations"),
+            ("subtask_completion_rate", "Subtask Completion Rate"),
+            ("subgoal_accuracy", "Subgoal Prediction Accuracy"),
+            ("prediction_accuracy", "Model Prediction Accuracy"),
+        ]
+
+        for metric, title in metrics_to_plot:
+            try:
+                plt.figure(figsize=(10, 6))
+                data = []
+                labels = []
+
+                for prompt_type, metrics in prompt_metrics.items():
+                    metric_values = [m[metric] for m in metrics]
+                    data.extend(metric_values)
+                    labels.extend([prompt_type] * len(metric_values))
+
+                if data and labels:
+                    sns.boxplot(x=labels, y=data)
+                    plt.title(title)
+                    plt.ylabel(title)
+                    plt.xlabel("Task Type")
+                    plt.xticks(rotation=45)
+                    plt.tight_layout()
+                    plt.savefig(os.path.join(output_dir, f"{metric}_comparison.png"))
+                plt.close()
+            except Exception as e:
+                rich.print(f"[red]Error generating plot for {metric}:[/red] {e}")
+                continue
+
+    # Add confusion matrix plot
+    def _plot_confusion_matrix(self, prompt_metrics, output_dir):
+        """Generate confusion matrix visualization"""
+        try:
+            plt.figure(figsize=(8, 6))
+
+            tp = sum(m["true_positives"] for metrics in prompt_metrics.values() for m in metrics)
+            fp = sum(m["false_positives"] for metrics in prompt_metrics.values() for m in metrics)
+            tn = sum(m["true_negatives"] for metrics in prompt_metrics.values() for m in metrics)
+            fn = sum(m["false_negatives"] for metrics in prompt_metrics.values() for m in metrics)
+
+            cm = [[tp, fp], [fn, tn]]
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['Predicted Success', 'Predicted Failure'],
+                    yticklabels=['Actual Success', 'Actual Failure'])
+
+            plt.title('Model Prediction Confusion Matrix')
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, "confusion_matrix.png"))
+            plt.close()
+        except Exception as e:
+            rich.print(f"[red]Error generating confusion matrix plot:[/red] {e}")
+
+
+# evaluation_metrics.py
+
+    def _generate_summary_report(self, prompt_metrics: Dict, output_dir: str):
+        """Generate summary report with aggregate metrics"""
+        try:
+            report = {
+                "overall_metrics": {
+                    "total_tasks": len(self.tasks),
+                    "success_rate": sum(1 for t in self.tasks if t.completed) / len(self.tasks),
+                    "ground_truth_success_rate": sum(1 for t in self.tasks if t.ground_truth_success) / len(self.tasks),
+                    "prediction_accuracy": sum(1 for t in self.tasks
+                                            if t.completed == t.ground_truth_success) / len(self.tasks)
+                },
+                "metrics_by_task_type": {}
+            }
+
+            # Calculate per task type metrics
+            for prompt_type, metrics in prompt_metrics.items():
+                report["metrics_by_task_type"][prompt_type] = {
+                    "total_tasks": len(metrics),
+                    "success_rate": sum(m["success"] for m in metrics) / len(metrics),
+                    "ground_truth_success_rate": sum(m["ground_truth_success"] for m in metrics) / len(metrics),
+                    "avg_duration": float(np.mean([m["duration"] for m in metrics])),
+                    "avg_actions": float(np.mean([m["action_count"] for m in metrics])),
+                    "avg_smoothness": float(np.mean([m["path_smoothness"] for m in metrics])),
+                    "avg_safety_violations": float(np.mean([m["safety_violations"] for m in metrics])),
+                    "avg_subtask_completion": float(np.mean([m["subtask_completion_rate"] for m in metrics])),
+                    "prediction_metrics": {
+                        "true_positives": sum(m["true_positives"] for m in metrics),
+                        "false_positives": sum(m["false_positives"] for m in metrics),
+                        "true_negatives": sum(m["true_negatives"] for m in metrics),
+                        "false_negatives": sum(m["false_negatives"] for m in metrics),
+                        "prediction_accuracy": float(np.mean([m["prediction_accuracy"] for m in metrics]))
+                    }
+                }
+
+            # Save report
+            with open(os.path.join(output_dir, "evaluation_report.json"), "w") as f:
+                json.dump(report, f, indent=2)
+
+        except Exception as e:
+            rich.print(f"[red]Error generating summary report:[/red] {e}")

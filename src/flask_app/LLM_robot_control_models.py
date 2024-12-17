@@ -122,10 +122,11 @@ class LLMController:
                     messages=message,
                     stream=False,
                     options={
-                    **generation_config,
-                    "max_output_tokens": 20,  # Restrict to short responses
+                    "top_p": 0.2,
+                    "top_k": 10,
+                    "max_output_tokens": 10,  # Restrict to short responses
                     "max_tokens" : 10,
-                    "temperature": 0.4,       # More deterministic
+                    "temperature": 0.3,       # More deterministic
                 }
                 )
                 if response and response['message']['content']:
@@ -165,22 +166,13 @@ class LLMController:
         2. No explanations or other text
         3. Response must match exactly one valid action
         4. DO NOT RESPOND WITH ANYTHING ELSE
-
-        example:
-        goal: look for object on right
-        valid response: turn right
-        invalid response: to achive the ..
-
-        To achive the current subgoal {subgoal} I will:
-
             """
                 message = [
+                {"role": "system", "content": system_prompt_},
                 {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
 
-                {"role": "user", "content": "Current state:", 'images': [current_image]},
-                {"role": "user", "content": f"Based on all images and {last_feedback if last_feedback else 'no'} feedback, what action achieves {subgoal}?"}
-            ,
-                {"role": "system", "content": system_prompt_},
+                {"role": "user", "content": "Current environment shows this image:", 'images': [current_image]},
+                {"role": "user", "content": f"Based on all images and the last feedback being: {last_feedback if last_feedback else 'no feedback'},\n my next action = "},
             ]
                 response = ollama.chat(
                     # model=self.model_name,
@@ -238,7 +230,7 @@ class LLMController:
             {"role": "system", "content": formatted_prompt},
             {"role": "user", "content": "Initial state image shows:", 'images': [initial_image]},
             # {"role": "user", "content": "Previous state:", 'images': [previous_image]},
-            # {"role": "user", "content": "Current state:", 'images': [current_image]},
+            {"role": "user", "content": "Current scene image:", 'images': [current_image]},
             {"role": "user", "content": f"Progress after completing: {executed_actions if executed_actions else 'No action'} shows ..."}
 
             # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},

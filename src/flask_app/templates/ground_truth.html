@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <title>Update Ground Truth</title>
+</head>
+<body>
+    <h2>Update Ground Truth</h2>
+    <form id="groundTruthForm">
+        <label>Task ID:</label><br>
+        <input type="text" id="taskId" required><br>
+
+        <label>Subgoal (optional):</label><br>
+        <input type="text" id="subgoal"><br>
+
+        <label>Success:</label><br>
+        <select id="success" required>
+            <option value="true">True</option>
+            <option value="false">False</option>
+        </select><br><br>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <!-- return home -->
+    <form action="/" method="get">
+        <button type="submit">Home</button>
+    </form>
+
+    <script>
+        document.getElementById('groundTruthForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            fetch('/update_ground_truth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    task_id: document.getElementById('taskId').value,
+                    subgoal: document.getElementById('subgoal').value || null,
+                    success: document.getElementById('success').value === 'true'
+                })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.status))
+            .catch(error => alert('Error: ' + error));
+        };
+    </script>
+</body>
+</html>
