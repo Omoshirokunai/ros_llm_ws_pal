@@ -8,7 +8,7 @@ import numpy as np
 
 class LidarSafety:
     def __init__(self):
-        self.safety_threshold = 0.001  # 50cm minimum safe distance
+        self.safety_threshold = 0.02  # 50cm minimum safe distance
         self.field_of_view = 180  # degrees
         self.lidar_path = os.path.join('src/flask_app/static/images/lidar_data.json')
         # Add metric tracking

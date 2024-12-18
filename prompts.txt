@@ -1,15 +1,12 @@
 find the black backpack on the table to your right and stop if you see it
 
 there is a bag on the table to your right, when you see the bag then stop
+
 find the black bag on the table to your left and stop
 
-there is a bag on the table on the right, when you see the bag then stop
-\
-turn right when you see a bag on the table stop
+there are some tables on your left, there is black bag on it turn to the bag and stop
 
-turn right when you see a black bag on a white table, stop
- move to the - where you can see the 
- 
-avoid 
+there is a bag on the table on the right, when you see the bag then stop
+
 
 

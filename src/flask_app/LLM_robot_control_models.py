@@ -148,7 +148,7 @@ class LLMController:
 
                 system_prompt_ = f"""
         I am a robot controller that makes valid function calls to a robot.
-        Based on the given goal, I will respond exclusively with one of the following control functions:
+        I will respond exclusively with one of the following control functions:
             - turn left
             - move forward
             - move backward
@@ -159,20 +159,19 @@ class LLMController:
         I am Currently trying to {self.current_goal}, my environment shows {scene_description}.
 
         My Previous actions: {', '.join(executed_actions) if executed_actions else 'None'}
-        have resulted In Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
+        have resulted In Last feedback being: {last_feedback if last_feedback else 'No feedback yet'}
 
         The Rules are:
-        1. Output ONLY ONE of the four valid actions listed above
-        2. No explanations or other text
-        3. Response must match exactly one valid action
-        4 Check image for obstacles before movement
+        1. Response must match exactly one valid action
+        2. I will not provide any additional information or explanation
+        3. I will avoid obstacles shown in the current environment image
 
             """
                 message = [
                     {"role": "system", "content": system_prompt_},
                 {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
                 {"role": "user", "content": "Current environment shows this image:", 'images': [current_image]},
-                {"role": "user", "content": f"if the last feedback being for my last action was: {last_feedback if last_feedback else 'no feedback'},\n my next action is"},
+                {"role": "user", "content": f"my next control function = "},
 
                 # {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
                 # {"role": "user", "content": "the intitial environment state vs Current environment shows this image:", 'images': [initial_image, current_image]},
@@ -236,9 +235,9 @@ class LLMController:
                     """
                 message = [
             {"role": "system", "content": formatted_prompt},
-            {"role": "user", "content": "Initial and current state image shows:", 'images': [initial_image, current_image]},
+            {"role": "user", "content": "Initial image before executing any action shows:", 'images': [initial_image]},
             # {"role": "user", "content": "Previous state:", 'images': [previous_image]},
-            # {"role": "user", "content": "Current scene image:", 'images': [current_image]},
+            {"role": "user", "content": "Current scene image after executing the action:", 'images': [current_image]},
             # {"role": "user", "content": f"Progress after completing: {executed_actions if executed_actions else 'No action'} "}
 
             # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},

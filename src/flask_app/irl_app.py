@@ -215,7 +215,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]  # Remove numbering
 
                 if stop_llm:
-                    experiment_logger.complete_session(False)
+                    experiment_logger.complete_session(False, time.time()- experiment_logger.session_start_time)
                     return False
 
                 rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
@@ -347,7 +347,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
         # return current_subgoal_index >= len(subgoals)
          # Task completed through all subgoals
         success = current_subgoal_index >= len(subgoals)
-        experiment_logger.complete_session(True)
+        experiment_logger.complete_session(True, time.time()- experiment_logger.session_start_time)
         return success
 
     except Exception as e:
@@ -411,7 +411,7 @@ def stop_llm_control():
 
     # Generate report if task in progress
     if experiment_logger.current_session:
-        experiment_logger.complete_session(False)
+        experiment_logger.complete_session(False, time.time()- experiment_logger.session_start_time)
         rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
 
     return redirect(url_for('index'))
