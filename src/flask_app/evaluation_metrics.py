@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import uuid
 from datetime import datetime
@@ -11,7 +12,15 @@ class ExperimentLogger:
         self.log_file = log_file
         self.current_session: Optional[str] = None
         self.current_subgoal: Optional[str] = None
+        self.session_start_time: Optional[float] = None
+
+        # Create logs directory if it doesn't exist
+        log_dir = os.path.dirname(self.log_file)
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
         self.logs = self._load_existing_logs()
+
 
     def _load_existing_logs(self) -> Dict:
         """Load existing logs or create new structure"""
@@ -29,6 +38,7 @@ class ExperimentLogger:
     def start_session(self, prompt: str, model_name: str):
         """Start a new experiment session"""
         self.current_session = str(uuid.uuid4())
+        self.session_start_time = time.time()
         session = {
             "session_id": self.current_session,
             "timestamp": datetime.now().isoformat(),
@@ -109,6 +119,11 @@ class ExperimentLogger:
         session = self._get_current_session()
         session["task_success"] = success
         session["total_duration"] = duration
+
+        # Calculate duration if not provided
+        if duration is None and self.session_start_time is not None:
+            duration = time.time() - self.session_start_time
+
         self._save_logs()
 
     def _get_current_session(self) -> Dict:

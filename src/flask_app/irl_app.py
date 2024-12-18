@@ -159,11 +159,9 @@ def send_llm_prompt():
         # Generate subgoals with initial image context
         # TODO: add scene description to the generate subgoal model
         session_id = experiment_logger.start_session(prompt, llm_controller.model_name)
-        global start_time
 
-        start_time = time.time()
         subgoals = llm_controller.generate_subgoals(prompt, initial_image)
-        experiment_logger.log_subgoals(subgoals, time.time()-start_time)
+        experiment_logger.log_subgoals(subgoals, time.time()- experiment_logger.session_start_time)
         # Generate subgoals
         # subgoals = llm_controller.generate_subgoals(prompt)
         # Log the response
@@ -220,7 +218,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]  # Remove numbering
 
             if stop_llm:
-                experiment_logger.complete_session(False, time.time()-start_time)
+                experiment_logger.complete_session(False)
                 return False
 
             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
@@ -354,7 +352,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
         # return current_subgoal_index >= len(subgoals)
          # Task completed through all subgoals
         success = current_subgoal_index >= len(subgoals)
-        experiment_logger.complete_session(True, time.time()-start_time)
+        experiment_logger.complete_session(True)
         return success
 
     except Exception as e:
