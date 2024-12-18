@@ -188,9 +188,12 @@ class LLMController:
                     stream=False,
                     options={
                     "top_p": 0.5,
-                    "top_k": 10,
+                    "min_p": 0.3,
+                    "top_k": 50,
                     "num_predict": 3,
                     "temperature": 0.5,
+                    "mirostat": 1,
+                    "mirostat_eta": 0.3,
                 }
                 )
                 if response and response['message']['content']:

@@ -1,6 +1,8 @@
 find the black backpack on the table to your right and stop if you see it
 
 there is a bag on the table to your right, when you see the bag then stop
+find the black bag on the table to your left and stop
+
 there is a bag on the table on the right, when you see the bag then stop
 \
 turn right when you see a bag on the table stop
