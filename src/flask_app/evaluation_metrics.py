@@ -30,6 +30,15 @@ class ExperimentLogger:
         except (FileNotFoundError, json.JSONDecodeError):
             return {"sessions": []}
 
+    def _clean_subgoal_string(self, subgoal: str) -> str:
+        """Remove numbering and clean subgoal string"""
+        try:
+            # Remove leading numbers and dots (e.g., "1. ", "2. ", etc.)
+            cleaned = subgoal.split(" ", 1)[1] if subgoal.split(" ", 1)[0].rstrip('.').isdigit() else subgoal
+            return cleaned.strip()
+        except Exception:
+            return subgoal.strip()
+
     def _save_logs(self):
         """Save logs to file"""
         with open(self.log_file, 'w') as f:
@@ -57,7 +66,7 @@ class ExperimentLogger:
     def log_subgoals(self, subgoals: List[str], generation_time: float):
         """Log generated subgoals and their generation time"""
         session = self._get_current_session()
-        session["subgoals"] = [{"subgoal": sg,
+        session["subgoals"] = [{"subgoal": self._clean_subgoal_string(sg),
                                "actions": [],
                                "scene_descriptions": [],
                                "feedbacks": [],
@@ -131,6 +140,7 @@ class ExperimentLogger:
 
     def _get_current_session(self) -> Dict:
         """Get current session data"""
+
         if not self.current_session:
             raise ValueError("No active session")
         return next(s for s in self.logs["sessions"]
@@ -140,18 +150,44 @@ class ExperimentLogger:
         """Get current subgoal data"""
         try:
             session = self._get_current_session()
-            return next(sg for sg in session["subgoals"]
-                    if sg["subgoal"] == subgoal)or {
-                            "actions": [],
-                            "scene_descriptions": [],
-                            "feedbacks": [],
-                            "invalid_controls": [],
-                            "safety_triggers": [],
-                            "completion_status": False
-                        }
+            clean_subgoal = self._clean_subgoal_string(subgoal)
+
+
+            # Fix the syntax and make the lookup more robust
+            matching_subgoal = next(
+                (sg for sg in session["subgoals"] if sg["subgoal"] == clean_subgoal),
+                None
+            )
+            if matching_subgoal:
+                return matching_subgoal
+            else:
+                # Create new subgoal entry if not found
+                new_subgoal = {
+                    "subgoal": clean_subgoal,
+                    "actions": [],
+                    "scene_descriptions": [],
+                    "feedbacks": [],
+                    "invalid_controls": [],
+                    "safety_triggers": [],
+                    "completion_status": False
+                }
+                session["subgoals"].append(new_subgoal)
+                self._save_logs()
+                return new_subgoal
+
+            # return next(sg for sg in session["subgoals"]
+            #         if sg["subgoal"] == subgoal)or {
+            #                 "actions": [],
+            #                 "scene_descriptions": [],
+            #                 "feedbacks": [],
+            #                 "invalid_controls": [],
+            #                 "safety_triggers": [],
+            #                 "completion_status": False
+            #             }
         except Exception as e:
             print(f"Error getting current subgoal: {e}")
             return {
+                "subgoal": self._clean_subgoal_string(subgoal),
                 "actions": [],
                 "scene_descriptions": [],
                 "feedbacks": [],

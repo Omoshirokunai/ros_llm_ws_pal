@@ -408,12 +408,10 @@ stop_llm = False
 @app.route('/stop_llm', methods=['POST'])
 def stop_llm_control():
     """Stop LLM control and generate evaluation report"""
-    global stop_llm
-    stop_llm = True
 
     # Generate report if task in progress
     if experiment_logger.current_session:
-        experiment_logger.complete_session(False, time.time()- start_time)
+        experiment_logger.complete_session(False)
         rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
 
     return redirect(url_for('index'))
