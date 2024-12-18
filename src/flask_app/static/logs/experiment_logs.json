@@ -752,6 +752,1469 @@
       "task_success": false,
       "ground_truth_success": false,
       "description": "collision"
+    },
+    {
+      "session_id": "08987510-e88f-4dac-9870-8f51b2ff4879",
+      "timestamp": "2024-12-18T13:35:07.934308",
+      "prompt": "there are some tables on your left, there is black bag on it turn to the bag and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on left",
+          "actions": [
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:35:39.248332"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:36:27.903644"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T13:37:09.456441"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:37:49.941385"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:38:26.274847"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:39:03.374080"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:39:40.151721"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:40:39.706543"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:41:18.548508"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:41:58.026278"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:42:36.870640"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:43:16.977853"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:43:52.964689"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:44:29.131344"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:45:06.056776"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:45:46.322359"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:46:24.342447"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:47:05.716513"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:47:44.920305"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:48:27.715493"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:49:09.329493"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:49:48.268440"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:50:37.008490"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:51:56.640731"
+            },
+            {
+              "action": "completed",
+              "timestamp": "2024-12-18T13:52:31.047187"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:53:10.898217"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:53:50.209551"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:54:29.144317"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:55:08.708028"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T13:56:23.952318"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "no progress",
+              "timestamp": "2024-12-18T13:35:57.758740",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "no progress",
+              "timestamp": "2024-12-18T13:36:46.485134",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:37:29.085472",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:38:08.260687",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:38:44.183471",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:39:21.919201",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:39:57.985954",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:40:58.504608",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:41:38.177508",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:42:17.673959",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:42:56.225987",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:43:35.254378",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:44:11.560018",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:44:47.417887",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:45:26.828677",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:46:04.688917",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:46:44.053702",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:47:26.029365",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:48:06.111834",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:48:48.732615",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:49:28.734482",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:50:06.661201",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:50:55.383818",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:52:17.517157",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:52:51.271786",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:53:31.463641",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:54:10.424550",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:54:48.625586",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T13:55:30.107844",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T13:36:09.936329"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T13:40:09.701798"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T13:40:21.650910"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T13:50:18.958833"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T13:51:08.297328"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T13:51:22.181191"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T13:51:35.655913"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T13:55:44.501100"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T13:56:00.570462"
+            }
+          ],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move close to the bag",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 12.595206260681152,
+      "total_duration": 1274.6392862796783,
+      "task_success": false,
+      "ground_truth_success": null
+    },
+    {
+      "session_id": "fc7d034d-4683-41fc-b7d2-da35e635a0f9",
+      "timestamp": "2024-12-18T14:05:54.682890",
+      "prompt": "find the black bag on the table to your left and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table to left",
+          "actions": [
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:06:24.695375"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:07:01.213351"
+            },
+            {
+              "action": "completed",
+              "timestamp": "2024-12-18T14:07:29.442891"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:08:05.330517"
+            },
+            {
+              "action": "completed",
+              "timestamp": "2024-12-18T14:08:47.447507"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:09:28.899660"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:10:06.380304"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:10:53.476322"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:11:26.738430"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:12:05.113035"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:13:06.704041"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:13:43.733209"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:14:20.268413"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:14:57.388274"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T14:15:37.901118"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:16:16.680404"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:16:53.620309"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:17:32.431883"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:18:12.400595"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:18:50.501781"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:06:44.607140",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:07:18.590709",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:07:48.627428",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:08:22.517283",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:09:08.270729",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:09:49.623897",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:10:23.802573",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:11:10.307515",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:11:47.352711",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:12:21.913623",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:13:26.858557",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:14:00.513421",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:14:38.789266",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:15:18.371910",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:15:56.347807",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:16:35.316431",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:17:12.820842",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:17:51.199309",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:18:31.604527",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:19:11.572850",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [
+            {
+              "action": "the image you",
+              "timestamp": "2024-12-18T14:08:33.370104"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T14:10:36.450925"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T14:12:34.926198"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T14:12:47.645794"
+            }
+          ],
+          "safety_triggers": [
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:19:25.809126"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:19:42.699459"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:19:57.360434"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:20:12.148562"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:20:25.212132"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:20:38.358233"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:20:51.729976"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:21:05.956074"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:21:21.580636"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:21:37.573272"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:21:52.066159"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:22:05.578258"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:22:19.002368"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:22:32.420792"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:22:46.783703"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:23:00.366328"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:23:15.008115"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:23:30.167304"
+            }
+          ],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move close to the black bag",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 10.670122385025024,
+      "total_duration": 1055.4866724014282,
+      "task_success": false,
+      "ground_truth_success": null
+    },
+    {
+      "session_id": "5974845c-1648-4044-bb08-4f27a88ccd4b",
+      "timestamp": "2024-12-18T14:25:58.671811",
+      "prompt": "find the black bag on the table to your left and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table to left",
+          "actions": [
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:26:25.403345"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:26:58.388335"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:27:37.598582"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:28:12.608215"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:28:46.055701"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:29:22.058857"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:29:55.282019"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:30:33.858679"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:31:10.329547"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:32:14.420815"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:33:36.883348"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T14:34:15.742968"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:35:10.964040"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:35:49.878110"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:36:27.376332"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:37:07.030759"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:37:47.281707"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:38:27.688236"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:39:06.353880"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:26:42.399346",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:27:18.364834",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the image provided shows a",
+              "timestamp": "2024-12-18T14:27:55.646849",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:28:28.878912",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:29:02.282059",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "no progress",
+              "timestamp": "2024-12-18T14:29:39.124637",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:30:15.418923",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:30:50.771062",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:31:30.036884",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:32:32.763884",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:33:55.463910",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:34:34.479913",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:35:29.809763",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:36:08.441532",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:36:47.629252",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:37:26.577142",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:38:06.980317",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:38:46.754928",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:39:27.527926",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [
+            {
+              "action": "given the current",
+              "timestamp": "2024-12-18T14:31:43.936569"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T14:32:45.453921"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T14:32:58.462342"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T14:33:11.759007"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T14:34:47.489910"
+            }
+          ],
+          "safety_triggers": [
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:31:56.260989"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:39:39.124809"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:39:54.210196"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:40:08.047915"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:40:21.511716"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:40:34.709430"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:40:47.959382"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:40:58.718926"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:41:11.611776"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:41:25.594798"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:41:39.950188"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:41:53.558937"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:42:06.627579"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:42:20.247349"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:42:35.603526"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:42:48.960364"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:43:02.240168"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:43:15.728933"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:43:30.256099"
+            },
+            {
+              "warning": "Obstacle detected 0.0020m ahead",
+              "timestamp": "2024-12-18T14:43:44.699460"
+            }
+          ],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move close to the desk",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 8.133756399154663,
+      "total_duration": 1066.0299787521362,
+      "task_success": false,
+      "ground_truth_success": null
+    },
+    {
+      "session_id": "15e7f6da-4dc9-4779-a497-a383282ffb48",
+      "timestamp": "2024-12-18T14:45:55.808146",
+      "prompt": "find the black bag on the table to your left and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table to left",
+          "actions": [
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:46:25.195440"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:47:01.354384"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:47:40.463553"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:48:19.352333"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T14:48:58.529518"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:50:07.207986"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:50:45.310480"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:51:27.078748"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:52:09.654558"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:53:04.483786"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:53:47.306416"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:54:28.138279"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T14:55:07.287344"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:56:02.621600"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:56:42.824318"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T14:57:48.389920"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:58:30.462465"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T14:59:12.916243"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:00:04.188913"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:00:42.601447"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:01:20.914309"
+            },
+            {
+              "action": "completed",
+              "timestamp": "2024-12-18T15:01:52.663203"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:02:47.308189"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:03:29.128619"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T15:04:26.333818"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:05:08.018027"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:05:47.948604"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:06:28.427321"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:07:07.907446"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:07:50.162661"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:09:18.875847"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T15:10:07.411835"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:10:47.906947"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:11:43.774606"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:12:22.679565"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T15:13:33.447193"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:14:16.051343"
+            },
+            {
+              "action": "turn left",
+              "timestamp": "2024-12-18T15:14:58.055024"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:16:04.535766"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:16:45.279921"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-18T15:17:36.535250"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:46:42.433064",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:47:20.239797",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:47:59.280448",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:48:39.413400",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:49:18.539080",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:50:27.094628",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:51:05.289747",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:51:48.687504",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:52:29.945867",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the image provided shows a",
+              "timestamp": "2024-12-18T14:53:25.362012",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:54:07.805926",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:54:48.457272",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:55:26.983150",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:56:22.500742",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:57:02.253064",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:58:09.423536",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:58:50.686959",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T14:59:32.078200",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:00:24.617036",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:01:02.400907",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:01:38.949770",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:02:13.410557",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:03:09.212926",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:03:50.095181",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:04:47.655678",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:05:27.641872",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:06:08.400867",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:06:47.997722",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:07:29.152819",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:08:11.684281",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:09:40.115015",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:10:27.038699",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the image shows an empty",
+              "timestamp": "2024-12-18T15:11:08.493969",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:12:03.317533",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:12:42.370015",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:13:54.707386",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:14:37.936916",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:15:18.890978",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:16:24.309794",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:17:04.676148",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-18T15:17:58.415144",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T14:49:31.523646"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T14:49:44.644656"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T14:52:43.575687"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T14:55:39.609449"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T14:57:15.370256"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T14:57:28.331873"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T14:59:45.311198"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:02:27.412149"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:04:04.916855"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:08:25.315032"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:08:39.862585"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:08:53.102693"
+            },
+            {
+              "action": "based on the",
+              "timestamp": "2024-12-18T15:11:22.153592"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:12:57.024986"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:13:12.591836"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:15:30.832703"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:15:44.137806"
+            },
+            {
+              "action": "the image shows",
+              "timestamp": "2024-12-18T15:17:17.379573"
+            }
+          ],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move close to the table",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 11.14038610458374,
+      "total_duration": 1922.6114308834076,
+      "task_success": false,
+      "ground_truth_success": null
     }
   ]
 }

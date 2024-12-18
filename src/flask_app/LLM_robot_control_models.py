@@ -81,7 +81,7 @@ class LLMController:
             # Be brief and precise.
             # """
             message = [
-                {"role": "user", "content": "This is an image showing the following objects ", 'images': [image_path]},
+                {"role": "user", "content": "Give a short 40 word description of what is in this image", 'images': [image_path]},
 
                 # {"role": "system", "content": system_prompt},
                 # {"role": "user", "content": "What does the robot see in this image?", 'images': [image_path]},
@@ -165,7 +165,6 @@ class LLMController:
         1. Response must match exactly one valid action
         2. I will not provide any additional information or explanation
         3. I will avoid obstacles shown in the current environment image
-
             """
                 message = [
                     {"role": "system", "content": system_prompt_},
@@ -186,9 +185,9 @@ class LLMController:
                     messages=message,
                     stream=False,
                     options={
-                    "top_p": 0.5,
+                    "top_p": 0.6,
                     "min_p": 0.3,
-                    "top_k": 50,
+                    "top_k": 30,
                     "num_predict": 3,
                     "temperature": 0.5,
                     "mirostat": 1,
@@ -236,7 +235,7 @@ class LLMController:
                 message = [
             {"role": "system", "content": formatted_prompt},
             {"role": "user", "content": "Initial image before executing any action shows:", 'images': [initial_image]},
-            # {"role": "user", "content": "Previous state:", 'images': [previous_image]},
+            {"role": "user", "content": "Previous scene image before the actionwas executed:", 'images': [previous_image]},
             {"role": "user", "content": "Current scene image after executing the action:", 'images': [current_image]},
             # {"role": "user", "content": f"Progress after completing: {executed_actions if executed_actions else 'No action'} "}
 

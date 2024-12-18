@@ -216,6 +216,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
                 if stop_llm:
                     experiment_logger.complete_session(False, time.time()- experiment_logger.session_start_time)
+
                     return False
 
                 rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
@@ -408,43 +409,22 @@ stop_llm = False
 @app.route('/stop_llm', methods=['POST'])
 def stop_llm_control():
     """Stop LLM control and generate evaluation report"""
-
     # Generate report if task in progress
-    if experiment_logger.current_session:
-        experiment_logger.complete_session(False, time.time()- experiment_logger.session_start_time)
-        rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
-
-    return redirect(url_for('index'))
-
-@app.route('/ground_truth')
-def ground_truth_form():
-    return render_template('ground_truth.html')
-
-@app.route('/update_ground_truth', methods=['POST'])
-def update_ground_truth():
-    """Update ground truth success for task completion"""
+    global stop_llm
     try:
-        data = request.json
-        task_id = data.get('task_id')
-        subgoal = data.get('subgoal')
-        success = data.get('success')
+        if experiment_logger.current_session:
+            session_duration = time.time() - experiment_logger.session_start_time
+            stop_llm = True
+            experiment_logger.complete_session(False, session_duration)
+            rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
+            rich.print(f"[blue]Session duration: {session_duration:.2f}s[/blue]")
 
-        # Find matching task
-        for task in evaluator.tasks:
-            if task.task_id == task_id:
-                if subgoal:
-                    task.ground_truth_subgoal_successes[subgoal] = success
-                else:
-                    task.ground_truth_success = success
-                return jsonify({"status": "success"})
-
-        if evaluator.update_ground_truth(task_id, subgoal, success):
-            return jsonify({"status": "success"})
-        return jsonify({"status": "error", "message": "Task not found"}), 404
-
-        # return jsonify({"status": "error", "message": "Task not found"}), 404
+        return redirect(url_for('index'))
 
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        rich.print(f"[red]Error stopping LLM: {str(e)}[/red]")
+        # Log the error for debugging
+        return redirect(url_for('index'))
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
