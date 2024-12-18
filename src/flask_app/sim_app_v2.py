@@ -29,7 +29,7 @@ app = Flask(__name__)
 llm_controller = LLMController()
 bridge = CvBridge()
 lidar_safety = LidarSafety()
-evaluator = TaskEvaluator()
+# evaluator = TaskEvaluator()
 
 # Thread management
 executor = ThreadPoolExecutor(max_workers=3)

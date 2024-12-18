@@ -7,7 +7,7 @@ from queue import Queue
 
 import rich
 from dotenv import load_dotenv
-from evaluation_metrics import TaskEvaluator
+from evaluation_metrics import ExperimentLogger
 
 # import cv2
 from flask import (
@@ -40,7 +40,7 @@ executor = ThreadPoolExecutor(max_workers=3)
 command_queue = Queue()
 camera_thread = None
 llm_thread = None
-evaluator = TaskEvaluator()
+experiment_logger = ExperimentLogger()
 
 
 # region home
@@ -158,7 +158,12 @@ def send_llm_prompt():
 
         # Generate subgoals with initial image context
         # TODO: add scene description to the generate subgoal model
+        session_id = experiment_logger.start_session(prompt, llm_controller.model_name)
+        global start_time
+
+        start_time = time.time()
         subgoals = llm_controller.generate_subgoals(prompt, initial_image)
+        experiment_logger.log_subgoals(subgoals, time.time()-start_time)
         # Generate subgoals
         # subgoals = llm_controller.generate_subgoals(prompt)
         # Log the response
@@ -193,8 +198,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
     global stop_llm
     stop_llm = False
 
-    #Evaluator
-    evaluator.start_task(prompt, subgoals)
+    #
 
     try:
         # Get initial state image
@@ -216,16 +220,8 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]  # Remove numbering
 
             if stop_llm:
-                evaluator.complete_task(False)
-                evaluator.generate_report("src/flask_app/static/evaluation_results")
+                experiment_logger.complete_session(False, time.time()-start_time)
                 return False
-
-            #TODO: if subtask.startswith(stop) end sucessfully
-            # if current_subgoal.startswith("stop"):
-            #     rich.print(f"[red]Stopping task:[/red] {current_subgoal}")
-            #     evaluator.complete_task(True)
-            #     evaluator.generate_report("src/flask_app/static/evaluation_results")
-            #     return True
 
             rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
 
@@ -276,14 +272,17 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
             if not validate_control_response(control_response):
                 rich.print(f"[red]Invalid control response:[/red] {control_response}")
+                experiment_logger.log_invalid_control(current_subgoal, control_response)
                 continue
 
             # Check safety before execution
             is_safe, warning = lidar_safety.check_direction_safety(control_response)
-            evaluator.log_safety_event(True, not is_safe)
+            # evaluator.log_safety_event(True, not is_safe)
 
             if not is_safe:
                 last_feedback = f"Safety warning: {warning}"
+                experiment_logger.log_safety_trigger(current_subgoal, warning)
+
                 continue
 
 
@@ -295,12 +294,14 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
             success = execute_robot_action(control_response)
             if success:
-                evaluator.log_action(control_response)
+                # evaluator.log_action(control_response)
                 executed_actions.append(control_response)
+                experiment_logger.log_action(current_subgoal, control_response)
                 rich.print(f"[green]Executed action:[/green] {control_response}")
                 time.sleep(2)  # Allow time for action completion
             else:
                 last_feedback = f"Failed to execute robot action: CHOOSE A DIFFERENT ACTION."
+                experiment_logger.log_invalid_control(current_subgoal, control_response)
                 rich.print(f"[red]Failed to execute robot action: Safety issue[/red]")
                 continue
 
@@ -329,7 +330,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
             )
 
             rich.print(f"[purple]Feedback received:[/purple] {feedback}")
-            evaluator.log_feedback(current_subgoal, feedback)
+            experiment_logger.log_feedback(current_subgoal, feedback)
             last_feedback = feedback
 
             # Process feedback
@@ -339,12 +340,12 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 current_subgoal_index += 1
                 executed_actions = []  # Reset for new subtask
                 last_feedback = None
-                evaluator.log_subgoal_completion(current_subgoal, True)
+                experiment_logger.log_feedback(current_subgoal, "subtask complete")
             elif feedback == "main goal complete":
                 return True
             elif feedback == "no progress":
                 last_feedback = "Previous action made no progress, try a different approach"
-                evaluator.current_task.stuck_count += 1
+
                 continue
             elif feedback.startswith("do") or feedback.startswith("based"):
                 last_feedback = feedback  # Pass suggestion to next control iteration
@@ -353,8 +354,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
         # return current_subgoal_index >= len(subgoals)
          # Task completed through all subgoals
         success = current_subgoal_index >= len(subgoals)
-        evaluator.complete_task(success)
-        evaluator.generate_report("src/flask_app/static/evaluation_results")
+        experiment_logger.complete_session(True, time.time()-start_time)
         return success
 
     except Exception as e:
@@ -409,14 +409,6 @@ def execute_robot_action(action):
     except Exception as e:
         return False, f"Action failed: {str(e)}"
 # endregion
-# Update error handlers
-@app.errorhandler(Exception)
-def handle_error(e):
-    if evaluator.current_task:
-        evaluator.complete_task(False)
-        evaluator.generate_report("src/flask_app/static/evaluation_results")
-    return render_template('irl_index.html',
-                         error=f"An error occurred: {str(e)}")
 
 stop_llm = False
 
@@ -427,9 +419,8 @@ def stop_llm_control():
     stop_llm = True
 
     # Generate report if task in progress
-    if evaluator.current_task:
-        evaluator.complete_task(False)
-        evaluator.generate_report("src/flask_app/static/evaluation_results")
+    if experiment_logger.current_session:
+        experiment_logger.complete_session(False, time.time()- start_time)
         rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
 
     return redirect(url_for('index'))
