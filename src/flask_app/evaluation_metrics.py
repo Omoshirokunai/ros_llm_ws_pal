@@ -98,12 +98,15 @@ class ExperimentLogger:
 
     def log_invalid_control(self, subgoal: str, invalid_action: str):
         """Log invalid control actions"""
-        subgoal_data = self._get_current_subgoal(subgoal)
-        subgoal_data["invalid_controls"].append({
-            "action": invalid_action,
-            "timestamp": datetime.now().isoformat()
-        })
-        self._save_logs()
+        try:
+            subgoal_data = self._get_current_subgoal(subgoal)
+            subgoal_data["invalid_controls"].append({
+                "action": invalid_action,
+                "timestamp": datetime.now().isoformat()
+            })
+            self._save_logs()
+        except Exception as e:
+            print(f"Error logging invalid control: {e}")
 
     def log_safety_trigger(self, subgoal: str, warning: str):
         """Log safety system triggers"""
@@ -135,6 +138,24 @@ class ExperimentLogger:
 
     def _get_current_subgoal(self, subgoal: str) -> Dict:
         """Get current subgoal data"""
-        session = self._get_current_session()
-        return next(sg for sg in session["subgoals"]
-                   if sg["subgoal"] == subgoal)
+        try:
+            session = self._get_current_session()
+            return next(sg for sg in session["subgoals"]
+                    if sg["subgoal"] == subgoal)or {
+                            "actions": [],
+                            "scene_descriptions": [],
+                            "feedbacks": [],
+                            "invalid_controls": [],
+                            "safety_triggers": [],
+                            "completion_status": False
+                        }
+        except Exception as e:
+            print(f"Error getting current subgoal: {e}")
+            return {
+                "actions": [],
+                "scene_descriptions": [],
+                "feedbacks": [],
+                "invalid_controls": [],
+                "safety_triggers": [],
+                "completion_status": False
+            }
