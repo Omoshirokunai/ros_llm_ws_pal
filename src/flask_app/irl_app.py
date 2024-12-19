@@ -242,6 +242,8 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                     continue
 
                 # Get control response
+                safety_context = lidar_safety.get_safety_context()
+
                 control_response = llm_controller.control_robot(
                     subgoal=current_subgoal,
                     initial_image=images['initial'],
@@ -250,7 +252,9 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                     map_image=images['map'],
                     executed_actions=executed_actions,
                     last_feedback=last_feedback,
-                    all_subgoals = subgoals
+                    all_subgoals = subgoals,
+                    safety_warning=None,
+                    safety_context=safety_context
                 )
 
                 # handle invalid control response
@@ -267,6 +271,32 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 if not is_safe:
                     last_feedback = f"Safety warning: {warning}"
                     experiment_logger.log_safety_trigger(current_subgoal, warning)
+
+                    # Update safety context
+                    safety_context = lidar_safety.get_safety_context()
+
+                    # Get new Control with safty warning
+                    control_response = llm_controller.control_robot(
+                                    subgoal=current_subgoal,
+                                    initial_image=images['initial'],
+                                    current_image=images['current'],
+                                    previous_image=images['previous'],
+                                    map_image=images['map'],
+                                    executed_actions=executed_actions,
+                                    last_feedback=last_feedback,
+                                    all_subgoals=subgoals,
+                                    safety_warning=warning,
+                                    safety_context=safety_context
+                                )
+
+                    if not validate_control_response(control_response):
+                        rich.print(f"[red]Invalid control response:[/red] {control_response}")
+                        experiment_logger.log_invalid_control(current_subgoal, control_response)
+                        last_feedback = f"{control_response} is an Invalid action to generate"
+                        continue
+
+                    # Log recovery attempt
+                    experiment_logger.log_safety_recovery(current_subgoal, control_response)
 
                     continue
 
@@ -319,7 +349,11 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 last_feedback = feedback
 
                 # Process feedback
-                if feedback == "continue":
+                if feedback.startswith("adjust:"):
+                    adjustment = feedback.split(":", 1)[1]
+                    last_feedback = f"Previous approach ineffective: {adjustment}"
+                    continue
+                elif feedback == "continue":
                     continue
                 elif feedback == "subtask complete":
                     current_subgoal_index += 1

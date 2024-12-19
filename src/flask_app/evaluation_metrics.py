@@ -142,13 +142,31 @@ class ExperimentLogger:
         except Exception as e:
             print(f"Error logging invalid control: {e}")
 
+    def log_safety_recovery(self, current_subgoal, control_response):
+        """Log safety recovery actions"""
+        subgoal_data = self._get_current_subgoal(current_subgoal)
+        subgoal_data["safety_recovery"] = control_response
+        self._save_logs()
+
     def log_safety_trigger(self, subgoal: str, warning: str):
         """Log safety system triggers"""
-        subgoal_data = self._get_current_subgoal(subgoal)
-        subgoal_data["safety_triggers"].append({
+        # subgoal_data = self._get_current_subgoal(subgoal)
+        # subgoal_data["safety_triggers"].append({
+        #     "warning": warning,
+        #     "timestamp": datetime.now().isoformat()
+        # })
+        # self._save_logs()
+
+        trigger_data = {
             "warning": warning,
-            "timestamp": datetime.now().isoformat()
-        })
+            "timestamp": datetime.now().isoformat(),
+            "distance": self._extract_distance(warning),
+            "command_type": self._get_command_type(subgoal),
+            "criticality": "CRITICAL" if "Critical" in warning else "WARNING"
+        }
+
+        subgoal_data = self._get_current_subgoal(subgoal)
+        subgoal_data["safety_triggers"].append(trigger_data)
         self._save_logs()
 
     def complete_session(self, success: bool, duration: float):

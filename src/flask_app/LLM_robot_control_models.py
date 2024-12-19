@@ -160,9 +160,9 @@ class LLMController:
                 rich.print(f"[red]Error in generate_subgoals[red]: {e}")
             return None
 
-    def control_robot(self, subgoal: str, initial_image: str, current_image: str, previous_image: str, map_image:str, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = []) -> str:
+    def control_robot(self, subgoal: str, initial_image: str, current_image: str, previous_image: str, map_image:str, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = [], safety_warning:str = None, safety_context:dict = None) -> str:
         self.current_subtask = subgoal
-        scene_description = self.get_scene_description(current_image)
+        # scene_description = self.get_scene_description(current_image)
 
         with self.command_lock:
             try:
@@ -175,7 +175,6 @@ class LLMController:
     - move forward
     - turn left
     - turn right
-    - completed
 
     Parameterized Commands:
     - move forward X meters at Y m/s (X: 0.1-2.0, Y: 0.1-0.5)
@@ -184,9 +183,14 @@ class LLMController:
 
 
     Current task: {', '.join(all_subgoals)}.
-    Environment: {scene_description}
-    Previous actions: {executed_actions if executed_actions else 'No action'}
+    Environment: {self.get_scene_description(current_image)}
+    Previous actions: {executed_actions[-5:] if executed_actions else 'No action'}
     Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
+    Safety Status: {safety_warning if safety_warning else 'No safety warnings'}
+    Safety Context:
+        - Recent Violations: {safety_context['recent_violations']}
+        - Clearance Trend: {safety_context['clearance_trend']:.2f}m
+        - High Risk Directions: {safety_context['high_risk_directions']}
 
     Rules:
     1. Response must match exactly one valid action format
@@ -194,6 +198,7 @@ class LLMController:
     3. Avoid obstacles shown in current environment
     4. Use parameterized commands for precise movements
     5. Use basic commands for simple adjustments
+    6. Avoid high risk directions
             """
                 message = [
                     {"role": "system", "content": system_prompt_},
@@ -257,7 +262,7 @@ class LLMController:
     # def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
     # def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None) -> str:
 
-    def get_feedback(self, initial_image: str, current_image: str, previous_image: str, map_image: str, current_subgoal: str, executed_actions: list, last_feedback: str = None, subgoals: list = None) -> str:
+    def get_feedback(self, initial_image: str, current_image: str, previous_image: str, map_image: str, current_subgoal: str, executed_actions: list, last_feedback: str = None, subgoals: list = None, safety_context: dict = None) -> str:
          # Get fresh images from remote
 
         print("getting feedback")
@@ -283,6 +288,12 @@ class LLMController:
     Actions: [{', '.join(executed_actions if executed_actions else 'None')}]
     Last Feedback: {last_feedback if last_feedback else 'No feedback'}
 
+    SAFETY METRICS:
+    - Recent Safety Violations: {safety_context['recent_violations']}
+    - Current Clearance: {safety_context['clearance_trend']:.2f}m
+    - Risky Directions: {safety_context['high_risk_directions']}
+
+
     EVALUATION CRITERIA:
     1. Spatial Progress:
        - Distance to goal change
@@ -299,13 +310,20 @@ class LLMController:
        - Command precision
        - Resource usage
 
-    RESPONSE OPTIONS (select exactly one):
-    - continue (measurable progress detected but subtask incomplete)
-    - subtask complete (current subtask success criteria met)
-    - main goal complete (overall goal state achieved)
-    - no progress (no measurable improvement toward goal)
+    4. Safety Performance:
+       - Clearance maintenance
+       - Violation avoidance
+       - Recovery effectiveness
 
-    STRICTLY RESPOND WITH ONE OPTION ONLY
+    RESPONSE OPTIONS (select exactly one):
+    1. continue (progress detected, continue current approach)
+    2. subtask complete (current subtask requirements met)
+    3. main goal complete (overall goal achieved)
+    4. no progress (no improvement toward goal)
+    5. adjust:<specific_suggestion> (e.g. "adjust:try smaller turns" or "adjust:back up and reorient")
+
+
+    Respond with single option. For option 5, include brief guidance after colon.
                     """
             message = [
             {"role": "system", "content": formatted_prompt},
@@ -351,6 +369,7 @@ class LLMController:
                         options={
                         "top_p": 0.2,
                         "top_k": 10,
+                        "num_predict": 6,
                         "max_output_tokens": 20,  # Restrict to short responses
                         "max_tokens" : 10,
                         "temperature": 0.3,
