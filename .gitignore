@@ -17,7 +17,6 @@ run_sim_headless.sh
 static/images/current.jpg
 static/images/previous.jpg
 src/flask_app/static/images/current.jpg
-src/flask_app/static/images/initial.jpg
 src/flask_app/static/images/lidar_data.json
 src/flask_app/static/images/map.jpg
 src/flask_app/static/images/previous.jpg
