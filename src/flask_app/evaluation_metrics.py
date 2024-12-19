@@ -78,13 +78,38 @@ class ExperimentLogger:
         self._save_logs()
 
     def log_action(self, subgoal: str, action: str):
-        """Log a robot control action"""
-        subgoal_data = self._get_current_subgoal(subgoal)
-        subgoal_data["actions"].append({
+        """Log executed action with parameter analysis"""
+        timestamp = time.time() - self.session_start_time
+
+        # Parse if parameterized command
+        is_parameterized = len(action.split()) > 2
+        params = {}
+        if is_parameterized:
+            try:
+                parts = action.split()
+                params = {
+                    "type": "parameterized",
+                    "value": float(parts[2]),
+                    "unit": parts[3],
+                    "speed": float(parts[5].rstrip("m/s"))
+                }
+            except:
+                params = {"type": "basic"}
+
+        self.action_log.append({
+            "timestamp": timestamp,
+            "subgoal": subgoal,
             "action": action,
-            "timestamp": datetime.now().isoformat()
+            "parameters": params
         })
-        self._save_logs()
+    # def log_action(self, subgoal: str, action: str):
+    #     """Log a robot control action"""
+    #     subgoal_data = self._get_current_subgoal(subgoal)
+    #     subgoal_data["actions"].append({
+    #         "action": action,
+    #         "timestamp": datetime.now().isoformat()
+    #     })
+    #     self._save_logs()
 
     def log_scene_description(self, subgoal: str, description: str):
         """Log scene description"""
@@ -117,13 +142,31 @@ class ExperimentLogger:
         except Exception as e:
             print(f"Error logging invalid control: {e}")
 
+    def log_safety_recovery(self, current_subgoal, control_response):
+        """Log safety recovery actions"""
+        subgoal_data = self._get_current_subgoal(current_subgoal)
+        subgoal_data["safety_recovery"] = control_response
+        self._save_logs()
+
     def log_safety_trigger(self, subgoal: str, warning: str):
         """Log safety system triggers"""
-        subgoal_data = self._get_current_subgoal(subgoal)
-        subgoal_data["safety_triggers"].append({
+        # subgoal_data = self._get_current_subgoal(subgoal)
+        # subgoal_data["safety_triggers"].append({
+        #     "warning": warning,
+        #     "timestamp": datetime.now().isoformat()
+        # })
+        # self._save_logs()
+
+        trigger_data = {
             "warning": warning,
-            "timestamp": datetime.now().isoformat()
-        })
+            "timestamp": datetime.now().isoformat(),
+            "distance": self._extract_distance(warning),
+            "command_type": self._get_command_type(subgoal),
+            "criticality": "CRITICAL" if "Critical" in warning else "WARNING"
+        }
+
+        subgoal_data = self._get_current_subgoal(subgoal)
+        subgoal_data["safety_triggers"].append(trigger_data)
         self._save_logs()
 
     def complete_session(self, success: bool, duration: float):
