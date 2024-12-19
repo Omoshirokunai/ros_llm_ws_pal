@@ -244,6 +244,8 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 # Get control response
                 safety_context = lidar_safety.get_safety_context()
 
+                safety_context = lidar_safety.get_safety_context()
+
                 control_response = llm_controller.control_robot(
                     subgoal=current_subgoal,
                     initial_image=images['initial'],
@@ -252,6 +254,9 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                     map_image=images['map'],
                     executed_actions=executed_actions,
                     last_feedback=last_feedback,
+                    all_subgoals = subgoals,
+                    safety_warning=None,
+                    safety_context=safety_context
                     all_subgoals = subgoals,
                     safety_warning=None,
                     safety_context=safety_context
@@ -271,6 +276,32 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                 if not is_safe:
                     last_feedback = f"Safety warning: {warning}"
                     experiment_logger.log_safety_trigger(current_subgoal, warning)
+
+                    # Update safety context
+                    safety_context = lidar_safety.get_safety_context()
+
+                    # Get new Control with safty warning
+                    control_response = llm_controller.control_robot(
+                                    subgoal=current_subgoal,
+                                    initial_image=images['initial'],
+                                    current_image=images['current'],
+                                    previous_image=images['previous'],
+                                    map_image=images['map'],
+                                    executed_actions=executed_actions,
+                                    last_feedback=last_feedback,
+                                    all_subgoals=subgoals,
+                                    safety_warning=warning,
+                                    safety_context=safety_context
+                                )
+
+                    if not validate_control_response(control_response):
+                        rich.print(f"[red]Invalid control response:[/red] {control_response}")
+                        experiment_logger.log_invalid_control(current_subgoal, control_response)
+                        last_feedback = f"{control_response} is an Invalid action to generate"
+                        continue
+
+                    # Log recovery attempt
+                    experiment_logger.log_safety_recovery(current_subgoal, control_response)
 
                     # Update safety context
                     safety_context = lidar_safety.get_safety_context()
@@ -404,6 +435,14 @@ def validate_control_response(response):
         "turn right": ("turn_right", None),
         "completed": ("completed", None)
     }
+
+    basic_actions = {
+        "move forward": ("move_forward", None),
+        "move backward": ("move_backward", None),
+        "turn left": ("turn_left", None),
+        "turn right": ("turn_right", None),
+        "completed": ("completed", None)
+    }
     # check whole response if it is in the valid actions
     # return response in valid_actions
     # return response and response.lower() in valid_actions
@@ -487,6 +526,68 @@ def execute_robot_action(action, current_subgoal):
 
     except Exception as e:
         return False, f"Action failed: {str(e)}"
+    # try:
+    #     is_valid, command_data = validate_control_response(action)
+    #     if not is_valid:
+    #         return False, "Invalid command format"
+
+    #     command, params = command_data
+    #     start_time = time.time()
+
+    #     while time.time() - start_time < ACTION_TIMEOUT:
+    #         is_safe, warning = lidar_safety.check_direction_safety(command)
+    #         if not is_safe:
+    #             return False, f"Safety warning: {warning}"
+
+    #         if params is None:  # Basic commands
+    #             if command == "move_forward":
+    #                 return robot_control.move_forward()
+    #             elif command == "turn_left":
+    #                 return robot_control.turn_left()
+    #             elif command == "turn_right":
+    #                 return robot_control.turn_right()
+    #             elif command == "completed":
+    #                 return True, "Task completed"
+    #         else:  # Parameterized commands
+    #             if command == "move_forward_by":
+    #                 distance, speed = params
+    #                 return robot_control.move_forward_by(distance, speed)
+    #             elif command == "turn_by_angle":
+    #                 angle, speed = params
+    #                 return robot_control.turn_by_angle(angle, speed)
+    #     return False, "Action timed out"
+    # except Exception as e:
+    #     return False, f"Action failed: {str(e)}"
+
+    #     start_time = time.time()
+    #     while time.time() - start_time < ACTION_TIMEOUT:
+    #         is_safe, warning = lidar_safety.check_direction_safety(action)
+
+    #         if not is_safe:
+    #             rich.print(f"[red]Safety check failed:[/red] {warning}")
+    #             return False, f"Safety warning: {warning}"
+
+    #         if action == "move forward":
+    #             return robot_control.move_forward()
+    #             # return True
+
+    #         elif action == "move backward":
+    #             return robot_control.move_backward()
+    #             # return True
+
+    #         elif action == "turn left":
+    #             return robot_control.turn_left()
+
+    #         elif action == "turn right":
+    #             return robot_control.turn_right()
+    #         elif action == "completed":
+    #             return True
+    #         else:
+    #             print(f"Invalid action: {action}")
+    #             return False , "Invalid action"
+    #     return False, "Action timed out"
+    # except Exception as e:
+    #     return False, f"Action failed: {str(e)}"
     # try:
     #     is_valid, command_data = validate_control_response(action)
     #     if not is_valid:

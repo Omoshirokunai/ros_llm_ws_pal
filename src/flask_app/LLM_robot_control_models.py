@@ -103,7 +103,41 @@ class LLMController:
     SAFE_ACTIONS: {list of possible safe movements}
             Be brief and precise.
             """
+            system_prompt = """ You are a robot's visual system analyzing scenes. Describe:
+
+    1. Distances and Measurements:
+    - Estimate distances to objects (in meters)
+    - Identify clear paths and their approximate widths
+    - Note spatial gaps between objects
+
+    2. Spatial Layout:
+    - Forward path analysis (clear/blocked/narrow)
+    - Clear paths and their directions
+    - Side clearances (left/right spaces)
+    - Distances (near, medium, far) to visible objects
+    - Obstacles and their positions (coordinates relative to robot)
+
+    3. Navigation Details:
+    - Available turning radius
+    - Potential collision risks
+    - Safe passage widths
+
+    4. Critical Safety Information:
+    - Minimum clearance to nearest obstacle
+    - Blocked directions
+    - Dynamic elements (if any)
+
+    Format your response as:
+    FORWARD: {status} ({distance}m clear path)
+    LEFT: {clearance}m space
+    RIGHT: {clearance}m space
+    NEAREST_OBSTACLE: {direction} at {distance}m
+    SAFE_ACTIONS: {list of possible safe movements}
+            Be brief and precise.
+            """
             message = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": "Analyze the spatial layout and safety considerations for robot navigation", 'images': [image_path]}
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": "Analyze the spatial layout and safety considerations for robot navigation", 'images': [image_path]}
                 # {"role": "user", "content": "What does the robot see in this image?", 'images': [image_path]},
@@ -115,6 +149,9 @@ class LLMController:
                 messages=message,
                 stream=False,
                 options={
+                    "top_p": 0.2,
+                    "top_k": 10,
+                    'num_predict': 100,
                     "top_p": 0.2,
                     "top_k": 10,
                     'num_predict': 100,
@@ -162,8 +199,9 @@ class LLMController:
             return None
 
     def control_robot(self, subgoal: str, initial_image: str, current_image: str, previous_image: str, map_image:str, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = [], safety_warning:str = None, safety_context:dict = None) -> str:
+    def control_robot(self, subgoal: str, initial_image: str, current_image: str, previous_image: str, map_image:str, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = [], safety_warning:str = None, safety_context:dict = None) -> str:
         self.current_subtask = subgoal
-        scene_description = self.get_scene_description(current_image)
+        # scene_description = self.get_scene_description(current_image)
 
         with self.command_lock:
             try:
@@ -295,6 +333,7 @@ class LLMController:
     Respond with single option. For option 5, include brief guidance after colon.
                     """
             message = [
+            message = [
             {"role": "system", "content": formatted_prompt},
             {"role": "user", "content": "Initial image before executing any action shows:", 'images': [initial_image]},
             {"role": "user", "content": "Previous scene image before the action was executed:", 'images': [previous_image]},
@@ -345,6 +384,12 @@ class LLMController:
         except Exception as e:
             rich.print(f"[red]Error in get_feedback[red]: {e}")
             return "failed to understand"
+
+    def clear_cache(self):
+        """Clear scene description cache"""
+        self.scene_cache = {}
+        self.initial_scene_description = None
+        self.last_scene_description = None
 
     def clear_cache(self):
         """Clear scene description cache"""

@@ -39,6 +39,20 @@ class LidarSafety:
             "min_distances": []
         }
 
+        # Sector definitions (in degrees)
+        self.sectors = {
+            "forward": (80, 100),    # 20° forward cone
+            "left": (150, 170),      # 20° left cone
+            "right": (10, 30),       # 20° right cone
+            "periphery": (30, 150)    # Wider awareness zone
+        }
+
+        self.safety_metrics = {
+            "violations": {"forward": 0, "left": 0, "right": 0},
+            "close_calls": {"forward": 0, "left": 0, "right": 0},
+            "min_distances": []
+        }
+
     def load_lidar_data(self):
         """Load latest LIDAR readings from file"""
 

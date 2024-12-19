@@ -163,6 +163,12 @@ class ExperimentLogger:
         subgoal_data["safety_recovery"] = control_response
         self._save_logs()
 
+    def log_safety_recovery(self, current_subgoal, control_response):
+        """Log safety recovery actions"""
+        subgoal_data = self._get_current_subgoal(current_subgoal)
+        subgoal_data["safety_recovery"] = control_response
+        self._save_logs()
+
     def log_safety_trigger(self, subgoal: str, warning: str):
         """Log safety system triggers"""
         # subgoal_data = self._get_current_subgoal(subgoal)
@@ -253,3 +259,4 @@ class ExperimentLogger:
                 "safety_triggers": [],
                 "completion_status": False
             }
+
