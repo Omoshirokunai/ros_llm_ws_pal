@@ -1496,6 +1496,411 @@
       "task_success": false,
       "ground_truth_success": false,
       "description": "collision"
+    },
+    {
+      "session_id": "7767110f-e3ba-4252-8b15-b04e5797d19e",
+      "timestamp": "2024-12-19T15:36:19.381635",
+      "prompt": "avoid the chairs to your left, there is a black bag on the table in front of you, go to the bag and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table in front of you",
+          "actions": [
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:37:00.090559"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:37:49.909248"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:38:34.683161"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:39:15.141175"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:39:59.648397"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:40:45.828575"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:41:30.859751"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:42:06.652359"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:42:46.515008"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:43:49.337463"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:44:31.174969"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:45:10.010830"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:45:49.955264"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:46:28.955433"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:47:07.901521"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:47:46.528153"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:48:27.961387"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:49:08.057341"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:49:50.707766"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:50:30.020207"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:51:13.946229"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:51:56.687875"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:52:35.259992"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:53:30.716522"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:54:09.340172"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:55:05.716169"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:55:48.780722"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:56:47.233544"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:57:28.757047"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:58:24.063080"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T15:59:19.212212"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:00:05.235139"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:01:24.839235"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:02:07.970349"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:02:50.776476"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:03:39.088037"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:04:32.624902"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:05:58.421330"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:07:07.654691"
+            },
+            {
+              "action": "move forward 3 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:08:01.737876"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:37:21.793099",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:38:11.514754",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:38:55.583641",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:39:36.601500",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:40:23.333256",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:41:13.226890",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:41:50.003258",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:42:26.814448",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:43:11.051095",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:44:11.436400",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:44:53.421427",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:45:30.626065",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:46:10.838359",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:46:49.585118",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:47:28.956569",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:48:06.344196",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:48:49.509690",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:49:29.357635",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:50:12.429089",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:50:51.769818",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:51:37.536950",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:52:17.929613",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:53:12.615484",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:53:52.834864",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:54:43.658184",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:55:29.716815",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:56:11.297607",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:57:08.213654",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:58:02.187826",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:58:52.334124",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T15:59:46.617337",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:00:30.963405",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:01:50.053073",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:02:30.785913",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:03:13.634392",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:04:01.912568",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:05:22.304086",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:06:45.193930",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:07:29.837026",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "the feedback provided in the image is \"no feedback.\" this means that there has been no immediate response or indication of progress towards the goal after executing the action.",
+              "timestamp": "2024-12-19T16:08:33.425306",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move forward to the table",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop when you see the bag",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 16.313831090927124,
+      "total_duration": 1941.201243877411,
+      "task_success": false,
+      "ground_truth_success": false,
+      "description": "collision with table"
     }
   ]
 }

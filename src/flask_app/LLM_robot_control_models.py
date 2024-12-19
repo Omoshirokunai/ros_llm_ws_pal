@@ -128,16 +128,14 @@ class LLMController:
     - Dynamic elements (if any)
 
     Format your response as:
-    FORWARD: {status} ({distance}m clear path)
-    LEFT: {clearance}m space
-    RIGHT: {clearance}m space
-    NEAREST_OBSTACLE: {direction} at {distance}m
-    SAFE_ACTIONS: {list of possible safe movements}
+    FORWARD: {Yes/No} obstacle
+    LEFT: {Yes/No} obstacle
+    RIGHT: {Yes/No} obstacle
+    NEAREST_OBSTACLE: {direction}
+    SAFE_ACTIONS: {suggested best actions to take to avoid obstacles}
             Be brief and precise.
             """
             message = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "Analyze the spatial layout and safety considerations for robot navigation", 'images': [image_path]}
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": "Analyze the spatial layout and safety considerations for robot navigation", 'images': [image_path]}
                 # {"role": "user", "content": "What does the robot see in this image?", 'images': [image_path]},
@@ -199,9 +197,8 @@ class LLMController:
             return None
 
     def control_robot(self, subgoal: str, initial_image: str, current_image: str, previous_image: str, map_image:str, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = [], safety_warning:str = None, safety_context:dict = None) -> str:
-    def control_robot(self, subgoal: str, initial_image: str, current_image: str, previous_image: str, map_image:str, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = [], safety_warning:str = None, safety_context:dict = None) -> str:
         self.current_subtask = subgoal
-        # scene_description = self.get_scene_description(current_image)
+        scene_description = self.get_scene_description(current_image)
 
         with self.command_lock:
             try:
@@ -217,13 +214,13 @@ class LLMController:
     - Complete
 
     Parameterized Commands:
+    - turn right X degrees at Y rad/s (X: 1-140, Y: 0.1-0.5)
     - move forward X meters at Y m/s (X: 0.1-2.0, Y: 0.1-0.5)
     - turn left X degrees at Y rad/s (X: 1-140, Y: 0.1-0.5)
-    - turn right X degrees at Y rad/s (X: 1-140, Y: 0.1-0.5)
 
     Example valid outputs:
-    - move forward X meters at Y m/s (X: between 0.1 and 2.0 meters, Y: between 0.1 and 0.5)
     - turn left X degrees at Y rad/s (X: between 1 and 140 degrees, Y: between 0.1 and 0.5)
+    - move forward X meters at Y m/s (X: between 0.1 and 2.0 meters, Y: between 0.1 and 0.5)
     - turn right [angle] degrees at [turn rate] rad/s
 
     Example invalid outputs:
@@ -253,6 +250,7 @@ class LLMController:
                     {"role": "system", "content": system_prompt_},
                 {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
                 {"role": "user", "content": "Current environment shows this image:", 'images': [current_image]},
+                {"role": "user", "content": "lidar map of the environment white circles showing obstacles:", 'images': [map_image]},
                 {"role": "user", "content": f"Command: "},
             ]
                 response = ollama.chat(
@@ -290,7 +288,7 @@ class LLMController:
             #     self.initial_scene_description = self.cache_scene_description(initial_image)
 
             formatted_prompt = f"""
-    I am a robot progress evaluator analyzing task completion through spatial and behavioral metrics.
+    I am a robot progress evaluator analyzing task completion based on the changes in the images and the lidar map.
 
     TASK CONTEXT:
     Main Goal: {self.current_goal}
@@ -330,15 +328,18 @@ class LLMController:
     5. adjust:<specific_suggestion> (e.g. "adjust:try smaller turns" or "adjust:back up and reorient")
 
 
-    Respond with single option. For option 5, include brief guidance after colon.
+    Rules:
+    - Output exactly ONE command with no additional text
+    - Respond with single option. For option 5, include brief guidance after colon.
                     """
-            message = [
+
             message = [
             {"role": "system", "content": formatted_prompt},
             {"role": "user", "content": "Initial image before executing any action shows:", 'images': [initial_image]},
             {"role": "user", "content": "Previous scene image before the action was executed:", 'images': [previous_image]},
             {"role": "user", "content": "Current scene image after executing the action:", 'images': [current_image]},
-            {"role": "user", "content": "what is the feedback?"}
+            {"role": "user", "content": "Lidar map of the environment white circles showing obstacles:", 'images': [map_image]},
+            {"role": "user", "content": "The valid feedback option is:"}
         ]
 
             if self.debug:
@@ -352,11 +353,11 @@ class LLMController:
                 model= self.model_name,
                 stream=False,
                 options={
-                "top_p": 0.3,
-                "top_k": 10,
-                "num_predict": 40,
-                "max_tokens" : 10,
-                "temperature": 0.3,
+                "top_p": 0.4,
+                    "min_p": 0.1,
+                    "top_k": 30,
+                    "num_predict": 16,
+                    "temperature": 0.3,
             }
             )
 
@@ -391,10 +392,5 @@ class LLMController:
         self.initial_scene_description = None
         self.last_scene_description = None
 
-    def clear_cache(self):
-        """Clear scene description cache"""
-        self.scene_cache = {}
-        self.initial_scene_description = None
-        self.last_scene_description = None
 
 

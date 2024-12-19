@@ -201,7 +201,7 @@ class RobotControl:
         print("[green] excuting move forward [/green]")
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.5,0.0,0.0]' '[0.0, 0.0, 0.0]' --once"
         self.ssh_client.execute_command(command)
-        time.sleep(1)
+        time.sleep(0.1)
         return True
 
 
@@ -210,7 +210,7 @@ class RobotControl:
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0 ,0.0, -0.5]' --once"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
-        time.sleep(1)
+        time.sleep(0.1)
         return True
 
 
@@ -219,7 +219,7 @@ class RobotControl:
         command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0, 0.0, 0.5]' --once"
         # self._execute_command_for_duration(command, duration)
         self.ssh_client.execute_command(command)
-        time.sleep(1)
+        time.sleep(0.1)
 
         return True
 

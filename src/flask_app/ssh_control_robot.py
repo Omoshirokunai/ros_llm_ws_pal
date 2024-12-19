@@ -64,4 +64,4 @@ if __name__ == "__main__":
     command = "rostopic pub /mobile_base_controller/cmd_vel geometry_msgs/Twist '[0.0,0.0,0.0]' '[0.0, 0.0, 0.4]' --once"
 
     run_command(command)
-    time.sleep(1)
+    time.sleep(0.1)

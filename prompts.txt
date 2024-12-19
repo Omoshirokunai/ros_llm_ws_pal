@@ -2,6 +2,8 @@ find the black bag on the table to your left and stop
 
 there are some white tables on your left, there is a black bag on the table, find the bag and stop
 
+avoid the chairs to your left, there is a black bag on the table in front of you, go to the bag and stop
+
 there is a bag on the table on the right, when you see the bag then stop
 
 

@@ -92,7 +92,7 @@ def generate_frames():
                 image = image_file.read()
                 yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n\r\n')
-        time.sleep(12)
+        time.sleep(1)
 
 @app.route('/video_feed')
 def video_feed():
@@ -340,7 +340,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                     # evaluator.log_action(control_response)
                     executed_actions.append(control_response)
                     rich.print(f"[green]Executed action:[/green] {control_response}")
-                    time.sleep(2)  # Allow time for action completion
+                    time.sleep(0.1)  # Allow time for action completion
                 else:
                     last_feedback = f"Failed to execute robot action: CHOOSE A DIFFERENT ACTION."
                     experiment_logger.log_invalid_control(current_subgoal, control_response)

@@ -107,10 +107,10 @@ def fetch_images():
                         break
                 except FileNotFoundError:
                     print(f"{img_type} image not found on remote system")
-                    time.sleep(1)
+                    time.sleep(0.1)
                 except Exception as e:
                     print(f"Error fetching {img_type} image: {e}")
-                    time.sleep(1)
+                    time.sleep(0.1)
                 if attempt == max_retries - 1:
                     raise Exception(f"Failed to fetch {img_type} image after {max_retries} attempts")
 
