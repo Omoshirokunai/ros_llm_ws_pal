@@ -2094,6 +2094,533 @@
       "total_duration": 342.6971652507782,
       "task_success": false,
       "ground_truth_success": null
+    },
+    {
+      "session_id": "68870a67-1289-44b9-8742-3afe0e5e17b6",
+      "timestamp": "2024-12-19T16:36:46.011398",
+      "prompt": "avoid the chairs to your left, there is a black bag on the table in front of you, go to the bag and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table in front of you",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T16:37:27.654913"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T16:37:47.517540"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T16:38:02.241838"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T16:38:19.846174"
+            }
+          ],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move forward with caution, avoiding the obstacle on the left",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 14.126492500305176,
+      "total_duration": null,
+      "task_success": false,
+      "ground_truth_success": null
+    },
+    {
+      "session_id": "70c8486d-744e-4973-8b50-b8ea65a43f36",
+      "timestamp": "2024-12-19T16:38:31.658354",
+      "prompt": "avoid the chairs to your left, there is a black bag on the table in front of you, go to the bag and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table in front of you",
+          "actions": [
+            {
+              "action": "move forward 2 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:39:08.568472"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "adjust:try going forward",
+              "timestamp": "2024-12-19T16:39:36.874336",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move forward to the table",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop when you reach the bag",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 15.28834319114685,
+      "total_duration": null,
+      "task_success": false,
+      "ground_truth_success": null
+    },
+    {
+      "session_id": "f0a09ecc-6ba2-4d9b-9096-a2b247ef5e4b",
+      "timestamp": "2024-12-19T16:40:51.449575",
+      "prompt": "avoid the chairs to your left, there is a black bag on the table in front of you, go to the bag and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table in front of you",
+          "actions": [
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:41:31.575645"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:42:11.211973"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:42:56.409772"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:43:34.435007"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "adjust:try going forward",
+              "timestamp": "2024-12-19T16:41:56.227084",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try going forward",
+              "timestamp": "2024-12-19T16:42:38.411693",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try going forward",
+              "timestamp": "2024-12-19T16:43:16.752303",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move forward with caution, avoiding the obstacle on the left",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 14.568152904510498,
+      "total_duration": null,
+      "task_success": false,
+      "ground_truth_success": null
+    },
+    {
+      "session_id": "c2a17a37-5179-42ea-95a1-97328c9f5e02",
+      "timestamp": "2024-12-19T16:44:10.613784",
+      "prompt": "avoid the chairs to your left, there is a black bag on the table in front of you, go to the bag and stop",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table in front of you",
+          "actions": [
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:45:00.703015"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:45:39.442203"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:46:13.633844"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:46:52.608337"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:47:27.456629"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:48:08.315806"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:48:45.819292"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:49:22.051425"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:45:23.128863",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:45:58.638870",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:46:35.927738",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:47:12.665365",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:47:51.919176",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:48:31.814665",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:49:07.003005",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:49:42.476670",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move forward to the table",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop when you reach the table",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 13.300413608551025,
+      "total_duration": 331.86854791641235,
+      "task_success": false,
+      "ground_truth_success": null
+    },
+    {
+      "session_id": "bc94aa28-cea3-42a8-868c-46840d127cf4",
+      "timestamp": "2024-12-19T16:50:05.828632",
+      "prompt": "go to the person sitting down",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for person sitting down",
+          "actions": [
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:50:38.775490"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:51:16.274734"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:51:56.259973"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:52:32.839119"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:53:13.778099"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:53:50.417001"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:54:56.081432"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:55:38.173404"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:56:32.041725"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:57:17.620876"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:58:12.492943"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T16:59:42.395259"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T17:00:18.850416"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T17:01:16.873971"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T17:02:23.346354"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T17:03:43.793454"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T17:04:45.935077"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T17:06:45.302101"
+            },
+            {
+              "action": "move forward",
+              "timestamp": "2024-12-19T17:08:19.493047"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:50:59.649690",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:51:39.107310",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:52:16.924289",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:52:52.909263",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "continue",
+              "timestamp": "2024-12-19T16:53:34.834807",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "failed to understand",
+              "timestamp": "2024-12-19T16:54:06.365322",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try going forward",
+              "timestamp": "2024-12-19T16:55:19.636285",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T16:55:58.264194",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T16:56:54.143153",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T16:57:45.776256",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T16:58:43.271464",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T17:00:01.693813",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust: try turning left",
+              "timestamp": "2024-12-19T17:00:53.435276",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T17:01:45.072402",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T17:03:18.733932",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T17:04:05.627785",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T17:05:37.610100",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T17:07:43.006391",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try turning left",
+              "timestamp": "2024-12-19T17:08:46.484240",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T16:54:23.493296"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T16:54:40.346610"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T16:56:15.242715"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T17:02:03.721308"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T17:05:57.165338"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T17:06:29.893004"
+            },
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T17:08:02.326064"
+            }
+          ],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move forward to the person",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop when you reach them",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 13.187463521957397,
+      "total_duration": 1120.6611454486847,
+      "task_success": false,
+      "ground_truth_success": null
     }
   ]
 }

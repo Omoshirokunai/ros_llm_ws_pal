@@ -128,9 +128,9 @@ class LLMController:
     - Dynamic elements (if any)
 
     Format your response as:
-    FORWARD: {Yes/No} there is {an/no} obstacle
-    LEFT: {Yes/No} there is {an/no} obstacle
-    RIGHT: {Yes/No} there is {an/no} obstacle
+    FORWARD: there is {an/no} obstacle
+    LEFT: there is {an/no} obstacle
+    RIGHT: there is {an/no} obstacle
     NEAREST_OBSTACLE: {direction}
     SAFE_ACTIONS: {suggested best actions to take to avoid obstacles}
             Be brief and precise.
@@ -214,14 +214,13 @@ class LLMController:
     - Complete
 
     Parameterized Commands:
-    - turn right X degrees at Y rad/s (X: 1-140, Y: 0.1-0.5)
     - move forward X meters at Y m/s (X: 0.1-2.0, Y: 0.1-0.5)
-    - turn left X degrees at Y rad/s (X: 1-140, Y: 0.1-0.5)
+
 
     Example valid outputs:
-    - turn left X degrees at Y rad/s (X: between 1 and 140 degrees, Y: between 0.1 and 0.5)
+    - turn left
     - move forward X meters at Y m/s (X: between 0.1 and 2.0 meters, Y: between 0.1 and 0.5)
-    - turn right [angle] degrees at [turn rate] rad/s
+    - turn right
 
     Example invalid outputs:
     - based on the image provided, ...
