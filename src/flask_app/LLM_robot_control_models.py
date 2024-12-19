@@ -31,23 +31,15 @@ class LLMController:
             rich.print("[blue]Using real robot model: llava:13b[/blue]")
 
 
+        self.scene_cache = {}
+        self.inital_scene_description = None
+        self.last_scene_description = None
         self.command_lock = threading.Lock()
         self.debug = True  # Enable debug logging
         self.current_goal = None
         self.current_subtask = None
         self.feedback_history = [] #track feedback
 
-
-    # def get_map_context(self):
-    #     print("Getting map context")
-    #     """Get the current map as base64 string for LLM context"""
-    #     # map_path = os.path.join(os.path.dirname(__file__), 'maps/map.jpg')
-    #     map_path = os.getenv("LOCAL_MAP_PATH")
-    #     if os.path.exists(map_path):
-    #         with open(map_path, 'rb') as f:
-    #             map_bytes = f.read()
-    #             return base64.b64encode(map_bytes).decode('utf-8')
-    #     return None
 
     def load_images(self):
         """Fetch and load all required images"""
@@ -65,25 +57,54 @@ class LLMController:
         return images
 
 
+
+    def cache_scene_description(self, image_path: str) -> str:
+        """Get scene description with caching"""
+        if image_path in self.scene_cache:
+            return self.scene_cache[image_path]
+
+        description = self.get_scene_description_from_llm(image_path)
+        self.scene_cache[image_path] = description
+        return description
+
     def get_scene_description(self, image_path: str) -> str:
         """Generate semantic description of the current scene"""
         try:
-            # system_prompt = """ You are a scene descriptor that provides a short useful description of a scene from a robot's perspective.
-            # list objects seen in the image and their relative positions.
-            # 1. Notable objects and their relative positions
-            # 2. Open spaces and pathways
-            # 4. Spatial relationships (left, right, front, behind)
-            # give list of at least 4 objects that are visible in the image
-            # Examples
-            # - The scene shows a {object} on {object_location}
-            # - The scene shows a {object} in front
-            # - The scene partially shows a {object} on the {direction}
-            # Be brief and precise.
-            # """
-            message = [
-                {"role": "user", "content": "Give a short 40 word description of what is in this image", 'images': [image_path]},
+            system_prompt = """ You are a robot's visual system analyzing scenes. Describe:
 
-                # {"role": "system", "content": system_prompt},
+    1. Distances and Measurements:
+    - Estimate distances to objects (in meters)
+    - Identify clear paths and their approximate widths
+    - Note spatial gaps between objects
+
+    2. Spatial Layout:
+    - Forward path analysis (clear/blocked/narrow)
+    - Clear paths and their directions
+    - Side clearances (left/right spaces)
+    - Distances (near, medium, far) to visible objects
+    - Obstacles and their positions (coordinates relative to robot)
+
+    3. Navigation Details:
+    - Available turning radius
+    - Potential collision risks
+    - Safe passage widths
+
+    4. Critical Safety Information:
+    - Minimum clearance to nearest obstacle
+    - Blocked directions
+    - Dynamic elements (if any)
+
+    Format your response as:
+    FORWARD: {status} ({distance}m clear path)
+    LEFT: {clearance}m space
+    RIGHT: {clearance}m space
+    NEAREST_OBSTACLE: {direction} at {distance}m
+    SAFE_ACTIONS: {list of possible safe movements}
+            Be brief and precise.
+            """
+            message = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": "Analyze the spatial layout and safety considerations for robot navigation", 'images': [image_path]}
                 # {"role": "user", "content": "What does the robot see in this image?", 'images': [image_path]},
                 # {"role": "user", "content": base64.b64encode(image).decode('utf-8'), "is_image": True}
             ]
@@ -93,9 +114,9 @@ class LLMController:
                 messages=message,
                 stream=False,
                 options={
-                    **generation_config,
-                    'num_predict': 40,
-                    "max_output_tokens": 40,  # Restrict to short responses
+                    "top_p": 0.2,
+                    "top_k": 10,
+                    'num_predict': 100,
                     "max_tokens": 40,
                     "temperature": 0.3,
                 }
@@ -147,24 +168,32 @@ class LLMController:
             try:
 
                 system_prompt_ = f"""
-        I am a robot controller that makes valid function calls to a robot.
-        I will respond exclusively with one of the following control functions:
-            - turn left
-            - move forward
-            - move backward
-            - turn right
-            - completed
+    You are a robot controller that makes valid function calls to a robot.
+    You will respond with exactly one of these command formats:
 
-        my goal is to achieve the following subgoals: {', '.join(all_subgoals)}.
-        I am Currently trying to {self.current_goal}, my environment shows {scene_description}.
+    Basic Commands:
+    - move forward
+    - turn left
+    - turn right
+    - completed
 
-        My Previous actions: {', '.join(executed_actions) if executed_actions else 'None'}
-        have resulted In Last feedback being: {last_feedback if last_feedback else 'No feedback yet'}
+    Parameterized Commands:
+    - move forward X meters at Y m/s (X: 0.1-2.0, Y: 0.1-0.5)
+    - turn left X degrees at Y rad/s (X: 1-180, Y: 0.1-0.5)
+    - turn right X degrees at Y rad/s (X: 1-180, Y: 0.1-0.5)
 
-        The Rules are:
-        1. Response must match exactly one valid action
-        2. I will not provide any additional information or explanation
-        3. I will avoid obstacles shown in the current environment image
+
+    Current task: {', '.join(all_subgoals)}.
+    Environment: {scene_description}
+    Previous actions: {executed_actions if executed_actions else 'No action'}
+    Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
+
+    Rules:
+    1. Response must match exactly one valid action format
+    2. Parameters must be within safety limits
+    3. Avoid obstacles shown in current environment
+    4. Use parameterized commands for precise movements
+    5. Use basic commands for simple adjustments
             """
                 message = [
                     {"role": "system", "content": system_prompt_},
@@ -188,10 +217,9 @@ class LLMController:
                     "top_p": 0.6,
                     "min_p": 0.3,
                     "top_k": 30,
-                    "num_predict": 3,
+                    "num_predict": 9,
                     "temperature": 0.5,
-                    "mirostat": 1,
-                    "mirostat_eta": 0.3,
+
                 }
                 )
                 if response and response['message']['content']:
@@ -202,37 +230,84 @@ class LLMController:
                 rich.print(f"[red]Error in control_robot[red]: {e}")
             return "failed to understand"
 
+    # def validate_control_response(response):
+    #     """Extended validation for parameterized commands"""
+    #     try:
+    #         # Parse more complex commands like:
+    #         # "move forward 0.5 meters at 0.3 m/s"
+    #         # "turn left 45 degrees at 0.2 rad/s"
+
+
+
+    #         command_parts = response.lower().split()
+    #         if len(command_parts) >= 4:
+    #             action = " ".join(command_parts[0:2])
+    #             value = float(command_parts[2])
+    #             units = command_parts[3]
+
+    #             if action == "move forward" and units == "meters":
+    #                 return True, ("move_forward", value)
+    #             elif (action == "turn left" or action == "turn right") and units == "degrees":
+    #                 return True, ("turn", value if action == "turn left" else -value)
+
+    #     except:
+    #         pass
+
+    #     return False, None
     # def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
     # def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None) -> str:
+
     def get_feedback(self, initial_image: str, current_image: str, previous_image: str, map_image: str, current_subgoal: str, executed_actions: list, last_feedback: str = None, subgoals: list = None) -> str:
          # Get fresh images from remote
 
         print("getting feedback")
         # with self.command_lock:
         try:
-                # images = self.load_images()
-                # Load map for context
-                # with open(LOCAL_PATHS['map'], 'rb') as f:
-                #     map_context = base64.b64encode(f.read()).decode('utf-8')
 
-                formatted_prompt = f"""
-                I am a robot progress evaluator that provides feedback on the robot's progress.
-                Given the task of {self.current_goal} which will be achived by completing the following subgoals: {' → '.join(subgoals)}
-                I will evaluate the robot's progress based on the images provided.
-                The Current scene shows: {self.get_scene_description(current_image)}
-                The Current Task is to {current_subgoal}.
-                So far the robot has made the following moves: [{', '.join(executed_actions if executed_actions else 'None')}].
+            if self.initial_scene_description is None:
+                self.initial_scene_description = self.cache_scene_description(initial_image)
 
-                I will Compare initial state and current state to determine and respond with only one of the following:
-                    - continue (if some progress has been made but not complete)
-                    - subtask complete (if the current subtask is complete)
-                    - main goal complete (if the overall goal is achieved)
-                    - no progress (if real progress has been made towards completing the goal)
+            formatted_prompt = f"""
+    I am a robot progress evaluator analyzing task completion through spatial and behavioral metrics.
 
-                    I will not give any aditional information or explanation
-                    and will RESPOND WITH EXACTLY ONE OPTION
+    TASK CONTEXT:
+    Main Goal: {self.current_goal}
+    Subgoal Sequence: {' → '.join(subgoals)}
+    Current Subtask: {current_subgoal}
+
+    SPATIAL ANALYSIS:
+    Initial Scene: {self.initial_scene_description}
+    Current Scene: {self.get_scene_description(current_image)}
+
+    EXECUTION HISTORY:
+    Actions: [{', '.join(executed_actions if executed_actions else 'None')}]
+    Last Feedback: {last_feedback if last_feedback else 'No feedback'}
+
+    EVALUATION CRITERIA:
+    1. Spatial Progress:
+       - Distance to goal change
+       - Orientation alignment
+       - Obstacle clearance
+
+    2. Task Completion:
+       - Subtask requirements met
+       - Goal state alignment
+       - Safety constraints maintained
+
+    3. Action Efficiency:
+       - Movement optimality
+       - Command precision
+       - Resource usage
+
+    RESPONSE OPTIONS (select exactly one):
+    - continue (measurable progress detected but subtask incomplete)
+    - subtask complete (current subtask success criteria met)
+    - main goal complete (overall goal state achieved)
+    - no progress (no measurable improvement toward goal)
+
+    STRICTLY RESPOND WITH ONE OPTION ONLY
                     """
-                message = [
+            message = [
             {"role": "system", "content": formatted_prompt},
             {"role": "user", "content": "Initial image before executing any action shows:", 'images': [initial_image]},
             {"role": "user", "content": "Previous scene image before the actionwas executed:", 'images': [previous_image]},
@@ -243,48 +318,57 @@ class LLMController:
             # {"role": "user", "content": "Map:"},
         ]
 
-                if self.debug:
-                    rich.print("[yellow]Sending feedback request:[/yellow]")
-                    rich.print(f"Current goal: {self.current_goal}")
-                    rich.print(f"Subtask: {self.current_subtask}")
-                    rich.print("Images included: Previous and Current")
-                    # model=self.model_name,
-                response = ollama.chat(
-                    messages=message,
-                    model= self.model_name,
-                    stream=False,
-                    options={
-                    "top_p": 0.3,
-                    "top_k": 10,
-                    "num_predict": 5,
-                    "max_tokens" : 10,
-                    "temperature": 0.4,
-                }
-                )
+            if self.debug:
+                rich.print("[yellow]Sending feedback request:[/yellow]")
+                rich.print(f"Current goal: {self.current_goal}")
+                rich.print(f"Subtask: {self.current_subtask}")
+                rich.print("Images included: Previous and Current")
+                # model=self.model_name,
+            response = ollama.chat(
+                messages=message,
+                model= self.model_name,
+                stream=False,
+                options={
+                "top_p": 0.3,
+                "top_k": 10,
+                "num_predict": 5,
+                "max_tokens" : 10,
+                "temperature": 0.4,
+            }
+            )
 
-                #check if repsonse if valid else reprompt the model and ask for feedback again
-                valid_responses = ["continue", "subtask complete", "main goal complete", "no progress"]
-                if response and response['message']['content']:\
+            #check if repsonse if valid else reprompt the model and ask for feedback again
+            valid_responses = ["continue", "subtask complete", "main goal complete", "no progress"]
+            if response and response['message']['content']:
+                response = response['message']['content'].strip().lower()
+                if response in valid_responses:
+                    return response
+                else:
+                    response = ollama.chat(
+                        messages=message + [{"role": "system", "content": f"{response} is not a valid response, please respond with one of the following: continue, subtask complete, main goal complete, no progress"}],
+                            model= self.model_name,
+                        stream=False,
+                        options={
+                        "top_p": 0.2,
+                        "top_k": 10,
+                        "max_output_tokens": 20,  # Restrict to short responses
+                        "max_tokens" : 10,
+                        "temperature": 0.3,
+                    }
+                    )
 
-                    response = response['message']['content'].strip().lower()
-                    if response in valid_responses:
-                        return response
-                    else:
-                        response = ollama.chat(
-                            messages=message + [{"role": "system", "content": f"{response} is not a valid response, please respond with one of the following: continue, subtask complete, main goal complete, no progress"}],
-                                model= self.model_name,
-                            stream=False,
-                            options={
-                            **generation_config,
-                            "num_predict": 5,
-                            "max_output_tokens": 20,  # Restrict to short responses
-                            "max_tokens" : 10,
-                            "temperature": 0.2,
-                        }
-                        )
-                    return response['message']['content'].strip().lower()
+                    if response == 'Main goal complete':
+                        self.clear_cache()
+                        return response['message']['content'].strip().lower()
+                return response['message']['content'].strip().lower()
         except Exception as e:
             rich.print(f"[red]Error in get_feedback[red]: {e}")
         return "failed to understand"
+
+    def clear_cache(self):
+        """Clear scene description cache"""
+        self.scene_cache = {}
+        self.initial_scene_description = None
+        self.last_scene_description = None
 
 

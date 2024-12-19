@@ -1,23 +1,22 @@
-# VLMs for Robots *(Tiago Pal)*
+# VLMs for Robots:  Analyzing Limitations of Zero-Shot VLM-Based Robot Control*(Tiago Pal)*
 
 [![YouTube Video](https://img.youtube.com/vi/oC8lpK0tnGA/0.jpg)](https://www.youtube.com/watch?v=oC8lpK0tnGA "Gemini, LLMs for Robots")
 
 ## Table of Contents
 
-- [VLMs for Robots *(Tiago Pal)*](#vlms-for-robots-tiago-pal)
+- [VLMs for Robots:  Analyzing Limitations of Zero-Shot VLM-Based Robot Control\*(Tiago Pal)\*](#vlms-for-robots--analyzing-limitations-of-zero-shot-vlm-based-robot-controltiago-pal)
   - [Table of Contents](#table-of-contents)
-  - [Problem Statement](#problem-statement)
-  - [Rationale](#rationale)
-  - [Methodology](#methodology)
-    - [Current Progress](#current-progress)
-  - [Evaluation](#evaluation)
-    - [Evaluation Tasks](#evaluation-tasks)
-      - [Object Location](#object-location)
-      - [Navigation to Point](#navigation-to-point)
-      - [Obstacle Avoidance](#obstacle-avoidance)
-  - [Limitations \& Future Work](#limitations--future-work)
-  - [Requirements](#requirements)
-  - [Architecture](#architecture)
+  - [1. Problem Statement](#1-problem-statement)
+    - [1.1. Research Questions](#11-research-questions)
+  - [2. Rationale](#2-rationale)
+    - [2.1. Hypotheses](#21-hypotheses)
+  - [3. Methodology](#3-methodology)
+    - [3.1 System Architecture](#31-system-architecture)
+    - [3.2 Safety Framework](#32-safety-framework)
+  - [3.3 Evaluation](#33-evaluation)
+    - [3.3.1 Evaluation Tasks](#331-evaluation-tasks)
+  - [4. Limitations \& Future Work](#4-limitations--future-work)
+  - [5. Requirements](#5-requirements)
   - [Installation](#installation)
     - [ROS](#ros)
     - [Tiago and Simulation](#tiago-and-simulation)
@@ -25,79 +24,103 @@
   - [Usage](#usage)
     - [Interacting with the Robot](#interacting-with-the-robot)
 
-## Problem Statement
+## 1. Problem Statement
 
-Given a high level textutal instruction to complete a task in the realworld, how can we get a robot to follow it us
+Given a high level textutal instruction to complete a task, can we use Vision-Language Models (VLMs) to control a robot in a zero-shot setting without motion planning or fine-tuning?
 
-## Rationale
+Current vision-language models show promising capabilities in understanding visual scenes and generating natural language responses. However, their efficacy in direct robot control remains understudied, particularly regarding:
 
-This research explores the feasibility of using existing Vision-Language Models (VLMs) without fine-tuning for robot control in a zero-shot setting. The approach uses a hierarchical system of VLMs to break down high-level instructions into executable robot actions.
+- Spatial reasoning accuracy
+- Safety-critical decision making
+- Hallucination prevalence in control commands
+- Real-world applicability without specialized training
 
-The key hypothesis was that pre-trained VLMs could:
+### 1.1. Research Questions
 
-1. Decompose complex tasks into logical subtasks
-2. Generate appropriate control actions based on visual feedback
-3. Evaluate task progress through visual comparison
+## 2. Rationale
 
-This zero-shot approach aims to reduce the need for task-specific training while leveraging the general capabilities of foundation models.
+Understanding VLM limitations in robotics is crucial for:
 
-## Methodology
+- Establishing baseline performance metrics
+- Identifying key challenges in vision-language-action alignment
+- Informing future architectures for robot control
+- Quantifying safety risks in VLM-based control systems
 
-The system employs three main components:
+### 2.1. Hypotheses
 
-1. Subgoal Generator
-   1. Takes high-level task description and initial scene image
-   2. Outputs ordered sequence of subtasks
-   3. Uses LLaVA model with task decomposition prompt
-2. Control Model
-   1. Receives current subtask and scene images
-   2. Generates discrete robot actions (move forward, turn left/right)
-   3. Considers:
-      1. Initial vs current state comparison
-      2. Previous actions and feedback
-      3. Safety constraints
-3. Feedback Model
-   1. Compares initial, previous and current states
-   2. Evaluates subtask completion
-   3. Provides corrective suggestions
-   4. Uses fixed set of feedback options
+VLMs can effectively control robots in a zero-shot setting, but face challenges in:
 
-### Current Progress
+## 3. Methodology
 
-The system can:
+### 3.1 System Architecture
 
-1. Generate subtasks from natural language commands
-2. Execute basic navigation actions
-3. Provide simple visual feedback
-4. Maintain safety constraints
+- VLM-based controller using LLaVA model
+- Real-time vision feed integration
+- LIDAR-based safety validation
+- ROS-based robot control interface
+- Hierarchical task decomposition:
+  - High-level goal interpretation
+  - Subtask generation
+  - Primitive action execution
 
-## Evaluation
+High-level goal interpretation / Subgoal Generator
 
-the project will be evaluated on the robot's abaility to complete the following tasks:
+- Takes high-level task description and initial scene image
+- Outputs ordered sequence of subtasks
+- Uses LLaVA model with task decomposition prompt
 
-### Evaluation Tasks
+Robot Control Model
 
-#### Object Location
+- Receives current subtask and scene images
+- Generates discrete robot actions (move forward, turn left/right)
+- Considers:
+      - Initial vs current state comparison
+      - Previous actions and feedback
+      - Safety constraints
 
-prompt: find {object} in the center of a room
+Feedback Model
 
-**Metrics**
+- Compares initial, previous and current frames
+- Evaluates subtask completion
+- Provides corrective suggestions
+
+### 3.2 Safety Framework
+
+LIDAR-based collision prevention
+Command validation pipeline
+Real-time safety checks
+performance of LLava:13b vs llava:8b to see if the larger model is better
+Emergency stop capabilities
+
+## 3.3 Evaluation
+
+Command validity rate: determined by the number of valid commands generated by the VLM
+Safety intervention frequency: determined by the number of safety stops triggered by the LIDAR system
+Task completion success: determined by the number of successful task completions vs human observed completions
+Hallucination detection rate: determined by the number of hallucinated commands
+
+### 3.3.1 Evaluation Tasks
+
+Object Location
+
+prompt: find {object} on your {left/right}
+
+Metrics
 
 - Success rate over 10 trials : determined by the number of successful completions (*sucessful completion is dertermined by the robot being able to locate the object in the center of the room*)
-- Number of action reversals
-- Distance traveled/optimal path ratio
+- Hallucination rate: determined by the number of hallucinated commands
 
-#### Navigation to Point
+Navigation to Point
 
-prompt: move to the designated location where {object} is located
+prompt: move to the location where {object} is located
 
-**Metrics**
+Metrics
 
 - Final position error: determeined by the distance between the robot's final position and the target location
 - Path smoothness (direction changes)
 - Collision avoidance success rate : determined using number of robot actions that trigger the lidar collision avoidance system
 
-#### Obstacle Avoidance
+Obstacle Avoidance
 
 prompt: move to a {location} where you see a {object} while avoiding the chairs
 
@@ -105,41 +128,32 @@ Metrics:
 Number of safety stops
 Success rate in different configurations
 
-## Limitations & Future Work
+## 4. Limitations & Future Work
 
 Key challenges identified:
 
-1. Task Completion Detection
-   - System struggles to reliably detect when subtasks are complete.
-   - Adding scene description VLM to improve state understanding
-   - Exploring whole-task context instead of sequential subtasks
-
-2. Action Selection
-   - Limited to 4 basic movements
-   - No path planning capabilities
-   - Feedback Quality
-
+1. Non-realtime control loop
+2. Limited action space: in order to keep the robot safe, the action space is limited to forward, backward, left, right, and stop
 3. Binary completion assessment
-   - Limited spatial reasoning
-   - No quantitative progress metrics
+4. No learning/adaptation mechanism
+5. Simplified spacial representation
+6. Reliance on prompt engineering
 
-## Requirements
+## 5. Requirements
 
-1. Python 3.8
-2. ROS Noetic
-3. Tiago Pal robot
-4. Simulation environment (gazebo)
-5. Flask
-6. Google Cloud credentials for Vertex AI
-7. Ollama and LLaVA model
+Hardware:
 
-## Architecture
+1. Tiago Pal robot
+2. Ros Kientic
+3. Ubuntu 20.04
 
-- User Interface: A web-based interface built with Flask to input commands.
+Software Dependencies:
 
-- VLM Models:
-
-- Robot Control: ROS-based control of the Tiago Pal robot, including movement, arm manipulation, and sensory feedback.
+1. Python 3.8+
+2. ROS Noetic (simulation)
+3. Tiago Pal simulation packages
+4. Flask
+5. Ollama and LLaVA model
 
 ## Installation
 

@@ -216,9 +216,7 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
 
                 if stop_llm:
                     experiment_logger.complete_session(False, time.time()- experiment_logger.session_start_time)
-
                     return False
-
                 rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
 
                 # Get current state images
@@ -365,43 +363,139 @@ def validate_control_response(response):
         "turn right",
         "completed",
     ]
+
+    basic_actions = {
+        "move forward": ("move_forward", None),
+        "move backward": ("move_backward", None),
+        "turn left": ("turn_left", None),
+        "turn right": ("turn_right", None),
+        "completed": ("completed", None)
+    }
     # check whole response if it is in the valid actions
     # return response in valid_actions
-    return response and response.lower() in valid_actions
+    # return response and response.lower() in valid_actions
+    # Check basic commands first
+    response = response.lower().strip()
+    if response in basic_actions:
+        return True
 
-ACTION_TIMEOUT = 10  # seconds
+    # Parse parameterized commands
+    try:
+        parts = response.split()
+        if len(parts) >= 6:  # e.g. "move forward 0.5 meters at 0.3 m/s"
+            action = " ".join(parts[0:2])
+            value = float(parts[2])
+            speed = float(parts[5].rstrip("m/s"))
+
+            if action == "move forward" and "meters" in response:
+                if 0.1 <= value <= 2.0 and 0.1 <= speed <= 0.5:
+                    return True, ("move_forward_by", (value, speed))
+
+            elif (action in ["turn left", "turn right"]) and "degrees" in response:
+                if 1 <= value <= 180 and 0.1 <= speed <= 0.5:
+                    return True, ("turn_by_angle", (value * (1 if action == "turn left" else -1), speed))
+
+    except (ValueError, IndexError):
+        pass
+
+    return False, None
+
+# ACTION_TIMEOUT = 10  # seconds
 def execute_robot_action(action):
     """Execute robot action based on the response"""
     try:
-        start_time = time.time()
-        while time.time() - start_time < ACTION_TIMEOUT:
-            is_safe, warning = lidar_safety.check_direction_safety(action)
+        response = action.lower().strip()
 
-            if not is_safe:
-                rich.print(f"[red]Safety check failed:[/red] {warning}")
-                return False, f"Safety warning: {warning}"
+        # Handle basic commands
+        if response == "move forward":
+            return robot_control.move_forward()
+        elif response == "turn left":
+            return robot_control.turn_left()
+        elif response == "turn right":
+            return robot_control.turn_right()
+        elif response == "completed":
+            return True
 
-            if action == "move forward":
-                return robot_control.move_forward()
-                # return True
+        # Handle parameterized commands
+        parts = response.split()
+        if len(parts) >= 6:
+            action = " ".join(parts[0:2])
+            value = float(parts[2])
+            speed = float(parts[5].rstrip("m/s"))
 
-            elif action == "move backward":
-                return robot_control.move_backward()
-                # return True
+            if action == "move forward" and "meters" in response:
+                return robot_control.move_forward_by(value, speed)
+            elif action == "turn left" and "degrees" in response:
+                return robot_control.turn_by_angle(value, speed)
+            elif action == "turn right" and "degrees" in response:
+                return robot_control.turn_by_angle(-value, speed)
 
-            elif action == "turn left":
-                return robot_control.turn_left()
+        return False, "Invalid command format"
 
-            elif action == "turn right":
-                return robot_control.turn_right()
-            elif action == "completed":
-                return True
-            else:
-                print(f"Invalid action: {action}")
-                return False , "Invalid action"
-        return False, "Action timed out"
     except Exception as e:
         return False, f"Action failed: {str(e)}"
+    # try:
+    #     is_valid, command_data = validate_control_response(action)
+    #     if not is_valid:
+    #         return False, "Invalid command format"
+
+    #     command, params = command_data
+    #     start_time = time.time()
+
+    #     while time.time() - start_time < ACTION_TIMEOUT:
+    #         is_safe, warning = lidar_safety.check_direction_safety(command)
+    #         if not is_safe:
+    #             return False, f"Safety warning: {warning}"
+
+    #         if params is None:  # Basic commands
+    #             if command == "move_forward":
+    #                 return robot_control.move_forward()
+    #             elif command == "turn_left":
+    #                 return robot_control.turn_left()
+    #             elif command == "turn_right":
+    #                 return robot_control.turn_right()
+    #             elif command == "completed":
+    #                 return True, "Task completed"
+    #         else:  # Parameterized commands
+    #             if command == "move_forward_by":
+    #                 distance, speed = params
+    #                 return robot_control.move_forward_by(distance, speed)
+    #             elif command == "turn_by_angle":
+    #                 angle, speed = params
+    #                 return robot_control.turn_by_angle(angle, speed)
+    #     return False, "Action timed out"
+    # except Exception as e:
+    #     return False, f"Action failed: {str(e)}"
+
+    #     start_time = time.time()
+    #     while time.time() - start_time < ACTION_TIMEOUT:
+    #         is_safe, warning = lidar_safety.check_direction_safety(action)
+
+    #         if not is_safe:
+    #             rich.print(f"[red]Safety check failed:[/red] {warning}")
+    #             return False, f"Safety warning: {warning}"
+
+    #         if action == "move forward":
+    #             return robot_control.move_forward()
+    #             # return True
+
+    #         elif action == "move backward":
+    #             return robot_control.move_backward()
+    #             # return True
+
+    #         elif action == "turn left":
+    #             return robot_control.turn_left()
+
+    #         elif action == "turn right":
+    #             return robot_control.turn_right()
+    #         elif action == "completed":
+    #             return True
+    #         else:
+    #             print(f"Invalid action: {action}")
+    #             return False , "Invalid action"
+    #     return False, "Action timed out"
+    # except Exception as e:
+    #     return False, f"Action failed: {str(e)}"
 # endregion
 
 stop_llm = False

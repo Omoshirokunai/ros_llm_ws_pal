@@ -78,13 +78,38 @@ class ExperimentLogger:
         self._save_logs()
 
     def log_action(self, subgoal: str, action: str):
-        """Log a robot control action"""
-        subgoal_data = self._get_current_subgoal(subgoal)
-        subgoal_data["actions"].append({
+        """Log executed action with parameter analysis"""
+        timestamp = time.time() - self.session_start_time
+
+        # Parse if parameterized command
+        is_parameterized = len(action.split()) > 2
+        params = {}
+        if is_parameterized:
+            try:
+                parts = action.split()
+                params = {
+                    "type": "parameterized",
+                    "value": float(parts[2]),
+                    "unit": parts[3],
+                    "speed": float(parts[5].rstrip("m/s"))
+                }
+            except:
+                params = {"type": "basic"}
+
+        self.action_log.append({
+            "timestamp": timestamp,
+            "subgoal": subgoal,
             "action": action,
-            "timestamp": datetime.now().isoformat()
+            "parameters": params
         })
-        self._save_logs()
+    # def log_action(self, subgoal: str, action: str):
+    #     """Log a robot control action"""
+    #     subgoal_data = self._get_current_subgoal(subgoal)
+    #     subgoal_data["actions"].append({
+    #         "action": action,
+    #         "timestamp": datetime.now().isoformat()
+    #     })
+    #     self._save_logs()
 
     def log_scene_description(self, subgoal: str, description: str):
         """Log scene description"""
