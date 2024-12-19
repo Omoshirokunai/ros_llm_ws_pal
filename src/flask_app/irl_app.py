@@ -307,11 +307,10 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                         dst.write(src.read())
 
 
-                success = execute_robot_action(control_response)
+                success = execute_robot_action(control_response, current_subgoal)
                 if success:
                     # evaluator.log_action(control_response)
                     executed_actions.append(control_response)
-                    experiment_logger.log_action(current_subgoal, control_response)
                     rich.print(f"[green]Executed action:[/green] {control_response}")
                     time.sleep(2)  # Allow time for action completion
                 else:
@@ -353,16 +352,16 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                     adjustment = feedback.split(":", 1)[1]
                     last_feedback = f"Previous approach ineffective: {adjustment}"
                     continue
-                elif feedback == "continue":
+                elif feedback == "continue" or "continue" in feedback:
                     continue
-                elif feedback == "subtask complete":
+                elif feedback == "subtask complete" or "subtask complete" in feedback:
                     current_subgoal_index += 1
                     executed_actions = []  # Reset for new subtask
                     last_feedback = None
                     experiment_logger.log_feedback(current_subgoal, "subtask complete")
-                elif feedback == "main goal complete":
+                elif feedback == "main goal complete" or "main goal complete" in feedback:
                     return True
-                elif feedback == "no progress":
+                elif feedback == "no progress" or "no progress" in feedback:
                     last_feedback = f"previous action '{control_response}' has not gotten the robot closer to completing the task yet"
                     continue
                 # elif feedback.startswith("do") or feedback.startswith("based"):
@@ -411,60 +410,80 @@ def validate_control_response(response):
     # Check basic commands first
     response = response.lower().strip()
     if response in basic_actions:
-        return True
+        return True, basic_actions[response]
 
     # Parse parameterized commands
     try:
         parts = response.split()
-        if len(parts) >= 6:  # e.g. "move forward 0.5 meters at 0.3 m/s"
+        if len(parts) >= 7:  # e.g. "move forward 0.5 meters at 0.3 m/s"
             action = " ".join(parts[0:2])
             value = float(parts[2])
             speed = float(parts[5].rstrip("m/s"))
 
             if action == "move forward" and "meters" in response:
-                if 0.1 <= value <= 2.0 and 0.1 <= speed <= 0.5:
+                if 0.1 <= value <= 2.0 and 0.1 <= speed <= 0.6:
                     return True, ("move_forward_by", (value, speed))
+                elif value > 2.0 or speed > 0.5:
+                    return True , ("move_forward_by", (2.0, 0.6))
 
             elif (action in ["turn left", "turn right"]) and "degrees" in response:
-                if 1 <= value <= 180 and 0.1 <= speed <= 0.5:
+                if 1 <= value <= 180 and 0.1 <= speed <= 0.6:
                     return True, ("turn_by_angle", (value * (1 if action == "turn left" else -1), speed))
+                elif value > 180 or speed > 0.5:
+                    return True, ("turn_by_angle", (180 * (1 if action == "turn left" else -1), 0.6))
 
     except (ValueError, IndexError):
-        pass
+        print(f"Validation error: Invalid command format")
 
     return False, None
 
 # ACTION_TIMEOUT = 10  # seconds
-def execute_robot_action(action):
+def execute_robot_action(action, current_subgoal):
     """Execute robot action based on the response"""
     try:
         response = action.lower().strip()
 
         # Handle basic commands
         if response == "move forward":
+            experiment_logger.log_action(current_subgoal, "move forward")
             return robot_control.move_forward()
         elif response == "turn left":
+            experiment_logger.log_action(current_subgoal, "move left")
+
             return robot_control.turn_left()
         elif response == "turn right":
+            experiment_logger.log_action(current_subgoal, "move right")
+
             return robot_control.turn_right()
         elif response == "completed":
+            experiment_logger.log_action(current_subgoal, "completed")
+
             return True
 
-        # Handle parameterized commands
-        parts = response.split()
-        if len(parts) >= 6:
-            action = " ".join(parts[0:2])
-            value = float(parts[2])
-            speed = float(parts[5].rstrip("m/s"))
+        else:
+            # Handle parameterized commands
+            parts = response.split()
+            if len(parts) >= 4:
+                action = " ".join(parts[0:2])
+                value = float(parts[2])
+                speed = float(parts[5].rstrip("m/s"))
 
-            if action == "move forward" and "meters" in response:
-                return robot_control.move_forward_by(value, speed)
-            elif action == "turn left" and "degrees" in response:
-                return robot_control.turn_by_angle(value, speed)
-            elif action == "turn right" and "degrees" in response:
-                return robot_control.turn_by_angle(-value, speed)
 
-        return False, "Invalid command format"
+                if action == "move forward" and "meters" in response:
+                    experiment_logger.log_action(current_subgoal, response)
+
+                    return robot_control.move_forward_by(value, speed)
+                elif action == "turn left" and "degrees" in response:
+                    experiment_logger.log_action(current_subgoal, response)
+
+                    return robot_control.turn_by_angle(value, speed)
+                elif action == "turn right" and "degrees" in response:
+                    experiment_logger.log_action(current_subgoal, response)
+
+                    return robot_control.turn_by_angle(-value, speed)
+                else:
+                    return False
+        # return False, "Invalid command format"
 
     except Exception as e:
         return False, f"Action failed: {str(e)}"

@@ -79,29 +79,44 @@ class ExperimentLogger:
 
     def log_action(self, subgoal: str, action: str):
         """Log executed action with parameter analysis"""
-        timestamp = time.time() - self.session_start_time
+        # timestamp = time.time() - self.session_start_time
 
-        # Parse if parameterized command
-        is_parameterized = len(action.split()) > 2
-        params = {}
-        if is_parameterized:
-            try:
-                parts = action.split()
-                params = {
-                    "type": "parameterized",
-                    "value": float(parts[2]),
-                    "unit": parts[3],
-                    "speed": float(parts[5].rstrip("m/s"))
-                }
-            except:
-                params = {"type": "basic"}
+        try:
+            subgoal_data = self._get_current_subgoal(subgoal)
 
-        self.action_log.append({
-            "timestamp": timestamp,
-            "subgoal": subgoal,
-            "action": action,
-            "parameters": params
-        })
+            # Simple action logging with timestamp
+            action_data = {
+                "action": action,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            subgoal_data["actions"].append(action_data)
+            self._save_logs()
+
+        except Exception as e:
+            print(f"Error logging action: {e}")
+
+        # # Parse if parameterized command
+        # is_parameterized = len(action.split()) > 2
+        # params = {}
+        # if is_parameterized:
+        #     try:
+        #         parts = action.split()
+        #         params = {
+        #             "type": "parameterized",
+        #             "value": float(parts[2]),
+        #             "unit": parts[3],
+        #             "speed": float(parts[5].rstrip("m/s"))
+        #         }
+        #     except:
+        #         params = {"type": "basic"}
+
+        # self.action_log.append({
+        #     "timestamp": timestamp,
+        #     "subgoal": subgoal,
+        #     "action": action,
+        #     "parameters": params
+        # })
     # def log_action(self, subgoal: str, action: str):
     #     """Log a robot control action"""
     #     subgoal_data = self._get_current_subgoal(subgoal)
@@ -160,8 +175,8 @@ class ExperimentLogger:
         trigger_data = {
             "warning": warning,
             "timestamp": datetime.now().isoformat(),
-            "distance": self._extract_distance(warning),
-            "command_type": self._get_command_type(subgoal),
+            # "distance": self._extract_distance(warning),
+            # "command_type": self._get_command_type(subgoal),
             "criticality": "CRITICAL" if "Critical" in warning else "WARNING"
         }
 

@@ -32,7 +32,8 @@ class LLMController:
 
 
         self.scene_cache = {}
-        self.inital_scene_description = None
+        # self.inital_scene_description = None
+        self.initial_scene_description = None
         self.last_scene_description = None
         self.command_lock = threading.Lock()
         self.debug = True  # Enable debug logging
@@ -63,7 +64,7 @@ class LLMController:
         if image_path in self.scene_cache:
             return self.scene_cache[image_path]
 
-        description = self.get_scene_description_from_llm(image_path)
+        description = self.get_scene_description(image_path)
         self.scene_cache[image_path] = description
         return description
 
@@ -162,34 +163,41 @@ class LLMController:
 
     def control_robot(self, subgoal: str, initial_image: str, current_image: str, previous_image: str, map_image:str, executed_actions: list = None, last_feedback:str = None, all_subgoals:list = [], safety_warning:str = None, safety_context:dict = None) -> str:
         self.current_subtask = subgoal
-        # scene_description = self.get_scene_description(current_image)
+        scene_description = self.get_scene_description(current_image)
 
         with self.command_lock:
             try:
 
                 system_prompt_ = f"""
     You are a robot controller that makes valid function calls to a robot.
-    You will respond with exactly one of these command formats:
+    You can only respond with exactly one of these command formats:
 
     Basic Commands:
     - move forward
     - turn left
     - turn right
+    - Complete
 
     Parameterized Commands:
     - move forward X meters at Y m/s (X: 0.1-2.0, Y: 0.1-0.5)
-    - turn left X degrees at Y rad/s (X: 1-180, Y: 0.1-0.5)
-    - turn right X degrees at Y rad/s (X: 1-180, Y: 0.1-0.5)
+    - turn left X degrees at Y rad/s (X: 1-140, Y: 0.1-0.5)
+    - turn right X degrees at Y rad/s (X: 1-140, Y: 0.1-0.5)
 
+    Example valid outputs:
+    - move forward X meters at Y m/s (X: between 0.1 and 2.0 meters, Y: between 0.1 and 0.5)
+    - turn left X degrees at Y rad/s (X: between 1 and 140 degrees, Y: between 0.1 and 0.5)
+    - turn right [angle] degrees at [turn rate] rad/s
+
+    Example invalid outputs:
+    - based on the image provided, ...
 
     Current task: {', '.join(all_subgoals)}.
-    Environment: {self.get_scene_description(current_image)}
+    Environment: {scene_description}
     Previous actions: {executed_actions[-5:] if executed_actions else 'No action'}
     Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
     Safety Status: {safety_warning if safety_warning else 'No safety warnings'}
     Safety Context:
         - Recent Violations: {safety_context['recent_violations']}
-        - Clearance Trend: {safety_context['clearance_trend']:.2f}m
         - High Risk Directions: {safety_context['high_risk_directions']}
 
     Rules:
@@ -199,19 +207,15 @@ class LLMController:
     4. Use parameterized commands for precise movements
     5. Use basic commands for simple adjustments
     6. Avoid high risk directions
+    7. Never explain or justify your decisions
+    8. Output exactly ONE command with no additional text
+
             """
                 message = [
                     {"role": "system", "content": system_prompt_},
                 {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
                 {"role": "user", "content": "Current environment shows this image:", 'images': [current_image]},
-                {"role": "user", "content": f"my next control function = "},
-
-                # {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
-                # {"role": "user", "content": "the intitial environment state vs Current environment shows this image:", 'images': [initial_image, current_image]},
-                # # {"role": "user", "content": "image showing lidar map showing obstacles in the environment", 'images': [map_image]},
-
-                # {"role": "user", "content": f"Based on all image and the feedback on my last action being to: {last_feedback if last_feedback else 'no feedback'},\n my next action = "},
-                # {"role": "system", "content": system_prompt_},
+                {"role": "user", "content": f"Command: "},
             ]
                 response = ollama.chat(
                     # model=self.model_name,
@@ -219,58 +223,33 @@ class LLMController:
                     messages=message,
                     stream=False,
                     options={
-                    "top_p": 0.6,
-                    "min_p": 0.3,
+                    "top_p": 0.4,
+                    "min_p": 0.1,
                     "top_k": 30,
-                    "num_predict": 9,
-                    "temperature": 0.5,
+                    "num_predict": 16,
+                    "temperature": 0.3,
 
                 }
                 )
+
                 if response and response['message']['content']:
                     response = response['message']['content'].strip().lower()
+                    print(f"debug control response: {response}")
                     return response
                     # return response['message']['content'].strip().lower()
             except Exception as e:
                 rich.print(f"[red]Error in control_robot[red]: {e}")
             return "failed to understand"
 
-    # def validate_control_response(response):
-    #     """Extended validation for parameterized commands"""
-    #     try:
-    #         # Parse more complex commands like:
-    #         # "move forward 0.5 meters at 0.3 m/s"
-    #         # "turn left 45 degrees at 0.2 rad/s"
-
-
-
-    #         command_parts = response.lower().split()
-    #         if len(command_parts) >= 4:
-    #             action = " ".join(command_parts[0:2])
-    #             value = float(command_parts[2])
-    #             units = command_parts[3]
-
-    #             if action == "move forward" and units == "meters":
-    #                 return True, ("move_forward", value)
-    #             elif (action == "turn left" or action == "turn right") and units == "degrees":
-    #                 return True, ("turn", value if action == "turn left" else -value)
-
-    #     except:
-    #         pass
-
-    #     return False, None
-    # def get_feedback(self, current_image: bytes, previous_image: bytes) -> str:
-    # def get_feedback(self, current_image: bytes, previous_image: bytes, current_subgoal: str, executed_actions: list, last_feedback: str = None) -> str:
-
-    def get_feedback(self, initial_image: str, current_image: str, previous_image: str, map_image: str, current_subgoal: str, executed_actions: list, last_feedback: str = None, subgoals: list = None, safety_context: dict = None) -> str:
+    def get_feedback(self, initial_image: str, current_image: str, previous_image: str, map_image: str, current_subgoal: str, executed_actions: list, last_feedback: str = None, subgoals: list = None,) -> str:
          # Get fresh images from remote
 
         print("getting feedback")
         # with self.command_lock:
         try:
 
-            if self.initial_scene_description is None:
-                self.initial_scene_description = self.cache_scene_description(initial_image)
+            # if self.initial_scene_description is None:
+            #     self.initial_scene_description = self.cache_scene_description(initial_image)
 
             formatted_prompt = f"""
     I am a robot progress evaluator analyzing task completion through spatial and behavioral metrics.
@@ -281,17 +260,11 @@ class LLMController:
     Current Subtask: {current_subgoal}
 
     SPATIAL ANALYSIS:
-    Initial Scene: {self.initial_scene_description}
     Current Scene: {self.get_scene_description(current_image)}
 
     EXECUTION HISTORY:
     Actions: [{', '.join(executed_actions if executed_actions else 'None')}]
     Last Feedback: {last_feedback if last_feedback else 'No feedback'}
-
-    SAFETY METRICS:
-    - Recent Safety Violations: {safety_context['recent_violations']}
-    - Current Clearance: {safety_context['clearance_trend']:.2f}m
-    - Risky Directions: {safety_context['high_risk_directions']}
 
 
     EVALUATION CRITERIA:
@@ -310,10 +283,6 @@ class LLMController:
        - Command precision
        - Resource usage
 
-    4. Safety Performance:
-       - Clearance maintenance
-       - Violation avoidance
-       - Recovery effectiveness
 
     RESPONSE OPTIONS (select exactly one):
     1. continue (progress detected, continue current approach)
@@ -328,12 +297,9 @@ class LLMController:
             message = [
             {"role": "system", "content": formatted_prompt},
             {"role": "user", "content": "Initial image before executing any action shows:", 'images': [initial_image]},
-            {"role": "user", "content": "Previous scene image before the actionwas executed:", 'images': [previous_image]},
+            {"role": "user", "content": "Previous scene image before the action was executed:", 'images': [previous_image]},
             {"role": "user", "content": "Current scene image after executing the action:", 'images': [current_image]},
-            # {"role": "user", "content": f"Progress after completing: {executed_actions if executed_actions else 'No action'} "}
-
-            # {"role": "user", "content": base64.b64encode(map_image).decode('utf-8'), "is_image": True},
-            # {"role": "user", "content": "Map:"},
+            {"role": "user", "content": "what is the feedback?"}
         ]
 
             if self.debug:
@@ -349,40 +315,36 @@ class LLMController:
                 options={
                 "top_p": 0.3,
                 "top_k": 10,
-                "num_predict": 5,
+                "num_predict": 40,
                 "max_tokens" : 10,
-                "temperature": 0.4,
+                "temperature": 0.3,
             }
             )
 
-            #check if repsonse if valid else reprompt the model and ask for feedback again
-            valid_responses = ["continue", "subtask complete", "main goal complete", "no progress"]
-            if response and response['message']['content']:
-                response = response['message']['content'].strip().lower()
-                if response in valid_responses:
-                    return response
-                else:
-                    response = ollama.chat(
-                        messages=message + [{"role": "system", "content": f"{response} is not a valid response, please respond with one of the following: continue, subtask complete, main goal complete, no progress"}],
-                            model= self.model_name,
-                        stream=False,
-                        options={
-                        "top_p": 0.2,
-                        "top_k": 10,
-                        "num_predict": 6,
-                        "max_output_tokens": 20,  # Restrict to short responses
-                        "max_tokens" : 10,
-                        "temperature": 0.3,
-                    }
-                    )
+            # #check if repsonse if valid else reprompt the model and ask for feedback again
+            # valid_responses = ["continue", "subtask complete", "main goal complete", "no progress"]
+            # if response and response['message']['content']:
+            #     response = response['message']['content'].strip().lower()
+            #     if response in valid_responses:
+            #         return response
+            #     elif response.startswith("adjust:"):
+            #         return response
+            #     else:
+            #         response = 'continue'
+            #         return response
 
-                    if response == 'Main goal complete':
-                        self.clear_cache()
-                        return response['message']['content'].strip().lower()
-                return response['message']['content'].strip().lower()
+                # if response == 'Main goal complete':
+                #     self.clear_cache()
+                #     return response['message']['content'].strip().lower()
+            if response and response['message']['content']:
+                    response = response['message']['content'].strip().lower()
+                    print(f"debug feedback response: {response}")
+                    return response
+                    # return response['message']['content'].strip().lower()
+            return response['message']['content'].strip().lower()
         except Exception as e:
             rich.print(f"[red]Error in get_feedback[red]: {e}")
-        return "failed to understand"
+            return "failed to understand"
 
     def clear_cache(self):
         """Clear scene description cache"""

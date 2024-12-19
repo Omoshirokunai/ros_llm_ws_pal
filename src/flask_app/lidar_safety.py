@@ -9,11 +9,11 @@ import numpy as np
 class LidarSafety:
     def __init__(self):
 
-        self.SAFE_DISTANCE = 0.5  # meters
-        self.WARNING_DISTANCE = 0.75  # meters
-        self.CRITICAL_DISTANCE = 0.3  # meters
+        self.SAFE_DISTANCE = 0.01  # meters
+        self.WARNING_DISTANCE = 0.001  # meters
+        self.CRITICAL_DISTANCE = 0.001  # meters
 
-        self.safety_threshold = 0.09  # 50cm minimum safe distance
+        self.safety_threshold = 0.0021  # 50cm minimum safe distance
         self.field_of_view = 180  # degrees
         self.lidar_path = os.path.join('src/flask_app/static/images/lidar_data.json')
         # Add metric tracking
@@ -21,7 +21,7 @@ class LidarSafety:
         self.safety_history = {
             "last_violations": [],
             "recovery_actions": [],
-            "clearance_trends": []
+
         }
         self.min_distances = []
 
@@ -72,8 +72,12 @@ class LidarSafety:
 
         # Calculate safety metrics
         sector_ranges = ranges[sector[0]:sector[1]]
-        min_distance = np.min(sector_ranges)
-        mean_distance = np.mean(sector_ranges)
+        # min_distance = np.min(sector_ranges)
+        # mean_distance = np.mean(sector_ranges)
+        # Calculate metrics with nan handling
+        min_distance = np.nan_to_num(np.min(sector_ranges), nan=float('inf'))
+        mean_distance = np.nan_to_num(np.mean(sector_ranges), nan=float('inf'))
+
 
         # Log metrics
         self.safety_metrics["min_distances"].append({
@@ -86,87 +90,26 @@ class LidarSafety:
         # Safety checks
         if min_distance < self.CRITICAL_DISTANCE:
             self.safety_metrics["violations"][direction] += 1
-            return False, f"CRITICAL: Obstacle at {min_distance:.2f}m in {direction} direction"
+            return False, f"CRITICAL: Obstacle at {min_distance:.4f}m in {direction} direction"
 
         elif min_distance < self.WARNING_DISTANCE:
             self.safety_metrics["close_calls"][direction] += 1
-            return False, f"WARNING: Limited clearance of {min_distance:.2f}m in {direction} direction"
+            return False, f"WARNING: Limited clearance of {min_distance:.4f}m in {direction} direction"
 
          # Check peripheral safety for forward motion
         if "forward" in action:
             peripheral_ranges = ranges[self.sectors["periphery"][0]:self.sectors["periphery"][1]]
             if np.min(peripheral_ranges) < self.WARNING_DISTANCE:
-                return False, f"CAUTION: Tight passage, {np.min(peripheral_ranges):.2f}m clearance"
+                return False, f"CAUTION: Tight passage, {np.min(peripheral_ranges):.4f}m clearance"
 
-        return True, f"Safe to proceed, {min_distance:.2f}m clearance"
+        return True, f"Safe to proceed, {min_distance:.4f}m clearance"
 
     def get_safety_context(self):
         """Return safety context for decision making"""
         return {
             "recent_violations": self.safety_history["last_violations"][-5:],
-            "clearance_trend": np.mean(self.safety_metrics["min_distances"][-5:]),
             "high_risk_directions": [
                 dir for dir, count in self.safety_metrics["violations"].items()
                 if count > 0
             ]
         }
-
-
-
-
-
-    # def check_direction_safety(self, action):
-    #     """Check if action is safe based on LIDAR data"""
-    #     self.collision_checks += 1
-    #     ranges = self.load_lidar_data()
-    #     if not ranges:
-    #         return False, "LIDAR data unavailable"
-
-    #     # Convert ranges to numpy array
-    #     ranges = np.array(ranges)
-
-    #     # Define direction sectors (assuming 180 degree FOV with readings every 1 degree)
-    #     sectors = {
-    #         "forward": (80, 100),  # Center 20 degrees
-    #         "left": (150, 170),    # Leftmost 20 degrees
-    #         "right": (10, 30),     # Rightmost 20 degrees
-    #     }
-
-    #      # Track minimum distances for each check
-    #     for direction, sector in sectors.items():
-    #         sector_ranges = ranges[sector[0]:sector[1]]
-    #         min_dist = np.min(sector_ranges)
-    #         self.min_distances.append({
-    #             "timestamp": time.time(),
-    #             "direction": direction,
-    #             "distance": min_dist
-    #         })
-
-    #     if action == "move forward":
-    #         sector = sectors["forward"]
-    #         sector_ranges = ranges[sector[0]:sector[1]]
-    #         min_distance = np.min(sector_ranges)
-
-    #         if min_distance < self.safety_threshold:
-    #             self.safety_violations["forward"] += 1
-    #             return False, f"Obstacle detected {min_distance:.4f}m ahead"
-
-    #     elif action == "turn left":
-    #         sector = sectors["left"]
-    #         sector_ranges = ranges[sector[0]:sector[1]]
-    #         min_distance = np.min(sector_ranges)
-
-    #         if min_distance < self.safety_threshold:
-    #             self.safety_violations["left"] += 1
-    #             return False, f"Obstacle detected {min_distance:.4f}m to the left"
-
-    #     elif action == "turn right":
-    #         sector = sectors["right"]
-    #         sector_ranges = ranges[sector[0]:sector[1]]
-    #         min_distance = np.min(sector_ranges)
-
-    #         if min_distance < self.safety_threshold:
-    #             self.safety_violations["right"] += 1
-    #             return False, f"Obstacle detected {min_distance:.4f}m to the right"
-
-    #     return True, None

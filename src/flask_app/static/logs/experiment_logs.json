@@ -1,88 +1,6 @@
 {
   "sessions": [
     {
-      "session_id": "82c780c3-e9b9-4470-9b40-e436192dd119",
-      "timestamp": "2024-12-18T12:23:37.614435",
-      "prompt": "there are some tables on your left, there is black bag on it turn to the bag and stop",
-      "model": "llava:13b",
-      "subgoals": [
-        {
-          "subgoal": "look for black bag on left",
-          "actions": [
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T12:24:12.698259"
-            }
-          ],
-          "scene_descriptions": [],
-          "feedbacks": [
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T12:24:33.873938",
-              "ground_truth_correct": null
-            }
-          ],
-          "invalid_controls": [
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T12:24:49.911905"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T12:25:05.025158"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T12:25:17.525044"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T12:25:30.661216"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T12:25:49.847973"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T12:26:03.088535"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T12:26:15.612333"
-            }
-          ],
-          "safety_triggers": [],
-          "completion_status": false,
-          "ground_truth_completion": null
-        },
-        {
-          "subgoal": "move close to the desk",
-          "actions": [],
-          "scene_descriptions": [],
-          "feedbacks": [],
-          "invalid_controls": [],
-          "safety_triggers": [],
-          "completion_status": false,
-          "ground_truth_completion": null
-        },
-        {
-          "subgoal": "stop",
-          "actions": [],
-          "scene_descriptions": [],
-          "feedbacks": [],
-          "invalid_controls": [],
-          "safety_triggers": [],
-          "completion_status": false,
-          "ground_truth_completion": null
-        }
-      ],
-      "subgoal_generation_time": 10.933780431747437,
-      "total_duration": null,
-      "task_success": false,
-      "ground_truth_success": null
-    },
-    {
       "session_id": "e8f49562-6a70-4eb9-b3c8-f11e8e8fa615",
       "timestamp": "2024-12-18T12:37:34.640464",
       "prompt": "there are some tables on your left, there is black bag on it turn to the bag and stop",
@@ -754,352 +672,6 @@
       "description": "collision"
     },
     {
-      "session_id": "08987510-e88f-4dac-9870-8f51b2ff4879",
-      "timestamp": "2024-12-18T13:35:07.934308",
-      "prompt": "there are some tables on your left, there is black bag on it turn to the bag and stop",
-      "model": "llava:13b",
-      "subgoals": [
-        {
-          "subgoal": "look for black bag on left",
-          "actions": [
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:35:39.248332"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:36:27.903644"
-            },
-            {
-              "action": "turn left",
-              "timestamp": "2024-12-18T13:37:09.456441"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:37:49.941385"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:38:26.274847"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:39:03.374080"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:39:40.151721"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:40:39.706543"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:41:18.548508"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:41:58.026278"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:42:36.870640"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:43:16.977853"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:43:52.964689"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:44:29.131344"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:45:06.056776"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:45:46.322359"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:46:24.342447"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:47:05.716513"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:47:44.920305"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:48:27.715493"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:49:09.329493"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:49:48.268440"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:50:37.008490"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:51:56.640731"
-            },
-            {
-              "action": "completed",
-              "timestamp": "2024-12-18T13:52:31.047187"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:53:10.898217"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:53:50.209551"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:54:29.144317"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:55:08.708028"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T13:56:23.952318"
-            }
-          ],
-          "scene_descriptions": [],
-          "feedbacks": [
-            {
-              "feedback": "no progress",
-              "timestamp": "2024-12-18T13:35:57.758740",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "no progress",
-              "timestamp": "2024-12-18T13:36:46.485134",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:37:29.085472",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:38:08.260687",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:38:44.183471",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:39:21.919201",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:39:57.985954",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:40:58.504608",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:41:38.177508",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:42:17.673959",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:42:56.225987",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:43:35.254378",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:44:11.560018",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:44:47.417887",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:45:26.828677",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:46:04.688917",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:46:44.053702",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:47:26.029365",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:48:06.111834",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:48:48.732615",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:49:28.734482",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:50:06.661201",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:50:55.383818",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:52:17.517157",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:52:51.271786",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:53:31.463641",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:54:10.424550",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:54:48.625586",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T13:55:30.107844",
-              "ground_truth_correct": null
-            }
-          ],
-          "invalid_controls": [
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T13:36:09.936329"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T13:40:09.701798"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T13:40:21.650910"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T13:50:18.958833"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T13:51:08.297328"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T13:51:22.181191"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T13:51:35.655913"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T13:55:44.501100"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T13:56:00.570462"
-            }
-          ],
-          "safety_triggers": [],
-          "completion_status": false,
-          "ground_truth_completion": null
-        },
-        {
-          "subgoal": "move close to the bag",
-          "actions": [],
-          "scene_descriptions": [],
-          "feedbacks": [],
-          "invalid_controls": [],
-          "safety_triggers": [],
-          "completion_status": false,
-          "ground_truth_completion": null
-        },
-        {
-          "subgoal": "stop",
-          "actions": [],
-          "scene_descriptions": [],
-          "feedbacks": [],
-          "invalid_controls": [],
-          "safety_triggers": [],
-          "completion_status": false,
-          "ground_truth_completion": null
-        }
-      ],
-      "subgoal_generation_time": 12.595206260681152,
-      "total_duration": 1274.6392862796783,
-      "task_success": false,
-      "ground_truth_success": null
-    },
-    {
       "session_id": "fc7d034d-4683-41fc-b7d2-da35e635a0f9",
       "timestamp": "2024-12-18T14:05:54.682890",
       "prompt": "find the black bag on the table to your left and stop",
@@ -1683,22 +1255,6 @@
             {
               "warning": "Obstacle detected 0.0020m ahead",
               "timestamp": "2024-12-18T14:42:48.960364"
-            },
-            {
-              "warning": "Obstacle detected 0.0020m ahead",
-              "timestamp": "2024-12-18T14:43:02.240168"
-            },
-            {
-              "warning": "Obstacle detected 0.0020m ahead",
-              "timestamp": "2024-12-18T14:43:15.728933"
-            },
-            {
-              "warning": "Obstacle detected 0.0020m ahead",
-              "timestamp": "2024-12-18T14:43:30.256099"
-            },
-            {
-              "warning": "Obstacle detected 0.0020m ahead",
-              "timestamp": "2024-12-18T14:43:44.699460"
             }
           ],
           "completion_status": false,
@@ -1731,461 +1287,185 @@
       "ground_truth_success": null
     },
     {
-      "session_id": "15e7f6da-4dc9-4779-a497-a383282ffb48",
-      "timestamp": "2024-12-18T14:45:55.808146",
-      "prompt": "find the black bag on the table to your left and stop",
+      "session_id": "81cf3222-470e-4240-a591-59f4d9624809",
+      "timestamp": "2024-12-19T14:37:11.945807",
+      "prompt": "there are some white tables on your left, there is a black bag on the table, find the bag and stop\r\n",
       "model": "llava:13b",
       "subgoals": [
         {
-          "subgoal": "look for black bag on table to left",
+          "subgoal": "look for black bag on left table",
           "actions": [
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:46:25.195440"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:37:59.335611"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:47:01.354384"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:38:57.233891"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:47:40.463553"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:39:41.220929"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:48:19.352333"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:40:48.176843"
             },
             {
-              "action": "turn left",
-              "timestamp": "2024-12-18T14:48:58.529518"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:42:07.797513"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:50:07.207986"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:43:23.581163"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:50:45.310480"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:44:16.371061"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:51:27.078748"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:45:11.124126"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:52:09.654558"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:45:50.354415"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:53:04.483786"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:46:37.581583"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:53:47.306416"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:47:23.320652"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:54:28.138279"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:48:05.735966"
             },
             {
-              "action": "turn left",
-              "timestamp": "2024-12-18T14:55:07.287344"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:48:46.537579"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:56:02.621600"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:49:35.497238"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:56:42.824318"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:50:15.084268"
             },
             {
-              "action": "turn left",
-              "timestamp": "2024-12-18T14:57:48.389920"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:50:55.866014"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:58:30.462465"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:51:34.952734"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T14:59:12.916243"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:52:18.817561"
             },
             {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:00:04.188913"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:00:42.601447"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:01:20.914309"
-            },
-            {
-              "action": "completed",
-              "timestamp": "2024-12-18T15:01:52.663203"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:02:47.308189"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:03:29.128619"
-            },
-            {
-              "action": "turn left",
-              "timestamp": "2024-12-18T15:04:26.333818"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:05:08.018027"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:05:47.948604"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:06:28.427321"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:07:07.907446"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:07:50.162661"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:09:18.875847"
-            },
-            {
-              "action": "turn left",
-              "timestamp": "2024-12-18T15:10:07.411835"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:10:47.906947"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:11:43.774606"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:12:22.679565"
-            },
-            {
-              "action": "turn left",
-              "timestamp": "2024-12-18T15:13:33.447193"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:14:16.051343"
-            },
-            {
-              "action": "turn left",
-              "timestamp": "2024-12-18T15:14:58.055024"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:16:04.535766"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:16:45.279921"
-            },
-            {
-              "action": "move forward",
-              "timestamp": "2024-12-18T15:17:36.535250"
+              "action": "move forward 1.5 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T14:53:13.958471"
             }
           ],
           "scene_descriptions": [],
           "feedbacks": [
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:46:42.433064",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:38:29.801587",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:47:20.239797",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:39:21.160891",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:47:59.280448",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:40:04.530284",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:48:39.413400",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:41:48.449391",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:49:18.539080",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:42:34.815033",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:50:27.094628",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:43:56.107609",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:51:05.289747",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:44:54.050500",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:51:48.687504",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:45:33.183721",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:52:29.945867",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:46:11.926406",
               "ground_truth_correct": null
             },
             {
-              "feedback": "the image provided shows a",
-              "timestamp": "2024-12-18T14:53:25.362012",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:46:58.910470",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:54:07.805926",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:47:48.253524",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:54:48.457272",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:48:29.074678",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:55:26.983150",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:49:11.189975",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:56:22.500742",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:49:57.935954",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:57:02.253064",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:50:37.013850",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:58:09.423536",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:51:17.318697",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:58:50.686959",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:51:57.612667",
               "ground_truth_correct": null
             },
             {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T14:59:32.078200",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:00:24.617036",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:01:02.400907",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:01:38.949770",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:02:13.410557",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:03:09.212926",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:03:50.095181",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:04:47.655678",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:05:27.641872",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:06:08.400867",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:06:47.997722",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:07:29.152819",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:08:11.684281",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:09:40.115015",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:10:27.038699",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "the image shows an empty",
-              "timestamp": "2024-12-18T15:11:08.493969",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:12:03.317533",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:12:42.370015",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:13:54.707386",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:14:37.936916",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:15:18.890978",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:16:24.309794",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:17:04.676148",
-              "ground_truth_correct": null
-            },
-            {
-              "feedback": "continue",
-              "timestamp": "2024-12-18T15:17:58.415144",
+              "feedback": "the feedback provided in the image is \"no progress.\" this indicates that there has been no change in distance to the goal or alignment with the subtask requirements.",
+              "timestamp": "2024-12-19T14:52:46.703993",
               "ground_truth_correct": null
             }
           ],
-          "invalid_controls": [
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T14:49:31.523646"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T14:49:44.644656"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T14:52:43.575687"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T14:55:39.609449"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T14:57:15.370256"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T14:57:28.331873"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T14:59:45.311198"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:02:27.412149"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:04:04.916855"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:08:25.315032"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:08:39.862585"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:08:53.102693"
-            },
-            {
-              "action": "based on the",
-              "timestamp": "2024-12-18T15:11:22.153592"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:12:57.024986"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:13:12.591836"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:15:30.832703"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:15:44.137806"
-            },
-            {
-              "action": "the image shows",
-              "timestamp": "2024-12-18T15:17:17.379573"
-            }
-          ],
+          "invalid_controls": [],
           "safety_triggers": [],
           "completion_status": false,
           "ground_truth_completion": null
@@ -2201,7 +1481,7 @@
           "ground_truth_completion": null
         },
         {
-          "subgoal": "stop",
+          "subgoal": "stop when you see it",
           "actions": [],
           "scene_descriptions": [],
           "feedbacks": [],
@@ -2211,10 +1491,11 @@
           "ground_truth_completion": null
         }
       ],
-      "subgoal_generation_time": 11.14038610458374,
-      "total_duration": 1922.6114308834076,
+      "subgoal_generation_time": 14.85061764717102,
+      "total_duration": null,
       "task_success": false,
-      "ground_truth_success": null
+      "ground_truth_success": false,
+      "description": "collision"
     }
   ]
 }

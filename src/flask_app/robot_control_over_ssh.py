@@ -1,3 +1,4 @@
+import json
 import threading
 import time
 from dataclasses import dataclass
@@ -18,7 +19,7 @@ class MovementParameters:
         # Safety constraints
         self.linear_velocity = max(min(self.linear_velocity, 0.5), -0.5)
         self.angular_velocity = max(min(self.angular_velocity, 0.5), -0.5)
-        self.duration = max(min(self.duration, 5.0), 0.1)
+        self.duration = max(min(self.duration, 4.0), 0.1)
 
 class MovementType(Enum):
     FORWARD = "forward"
@@ -39,7 +40,7 @@ class RobotControl:
         self.is_executing = False
         self.stop_flag = False
         self.current_movement = None
-        self.collision_threshold = 0.3 # 30 cm
+        self.collision_threshold = 0.03 # 30 cm
 
         # Start movement execution thread
         self.execution_thread = threading.Thread(target=self._movement_executor)
@@ -52,12 +53,57 @@ class RobotControl:
         lidar_command = "rostopic echo -n1 /scan"
         result = self.ssh_client.execute_command(lidar_command)
 
-        # Parse LIDAR data and check collision potential
-        if movement.movement_type == MovementType.FORWARD:
-            # Check forward obstacles
-            if min(result.ranges[330:30]) < self.collision_threshold:
-                return True
-        return False
+        try:
+            # Get laser scan data via SSH
+            cmd = "rostopic echo -n1 /scan"
+            result = self.ssh_client.execute_command(cmd)
+
+            # Parse the string output into usable data
+            if isinstance(result, str):
+                # Split the output into lines and find ranges line
+                lines = result.split('\n')
+                ranges_line = None
+                for line in lines:
+                    if 'ranges:' in line:
+                        ranges_line = line.replace('ranges:', '').strip()
+                        break
+
+                if ranges_line:
+                    # Convert string of ranges to float list
+                    ranges = [float(x) for x in ranges_line.strip('[]').split(',') if x.strip()]
+
+                    # Check for obstacles within safety threshold
+                    MIN_DISTANCE = 0.5  # meters
+                    if any(r < MIN_DISTANCE for r in ranges if r > 0.0):
+                        return True  # Collision risk detected
+
+                return False  # No collision risk
+
+        except Exception as e:
+            print(f"Error checking collisions: {e}")
+            return True  # Return True as safety measure
+        # try:
+        #     # with open("src/flask_app/static/images/lidar_data.json", "r") as f:
+        #     #     result = json.loads(f.read())
+
+        #     ranges = result[0].ranges
+
+        #     # Parse LIDAR data and check collision potential
+        #     if movement.movement_type == MovementType.FORWARD:
+        #         # Check forward obstacles
+        #         center_idx = len(ranges) // 2  # 90° position
+        #         cone_width = len(ranges) // 12  # ±15° on each side
+        #         forward_ranges = ranges[center_idx - cone_width : center_idx + cone_width]
+
+        #         if min(forward_ranges) < self.collision_threshold:
+        #             return True
+        #         return False
+        # except (FileNotFoundError, json.JSONDecodeError, KeyError, ValueError) as e:
+        #     print(f"Failed to read LIDAR data: {e}")
+        #     return True  # Fail safe
+        #     if min(result.ranges[180:30]) < self.collision_threshold:
+        #         return True
+        # return False
 
 
     def execute_movement(self, movement: SafeMovement):
@@ -101,16 +147,27 @@ class RobotControl:
 
     def move_forward_by(self, distance: float, speed: float = 0.3):
         """Move forward by specified distance"""
-        duration = abs(distance / speed)
-        movement = SafeMovement(
-            movement_type=MovementType.FORWARD,
-            params=MovementParameters(
-                linear_velocity=speed,
-                angular_velocity=0.0,
-                duration=duration
+        try:
+            distance  = distance / 10
+            distance = max(min(distance, 2.0), -2.0)
+            speed = max(min(speed, 0.5), -0.5)
+            duration = abs(distance / speed)
+
+            print(distance, speed, duration)
+
+            movement = SafeMovement(
+                movement_type=MovementType.FORWARD,
+                params=MovementParameters(
+                    linear_velocity=speed,
+                    angular_velocity=0.0,
+                    duration=duration
+                )
             )
-        )
-        self.queue_movement(movement)
+            self.queue_movement(movement)
+        except Exception as e:
+            print(f"Failed to move forward: {e}")
+            return False
+        return True
 
     def turn_by_angle(self, angle: float, speed: float = 0.3):
         """Turn by specified angle in radians"""
@@ -124,6 +181,8 @@ class RobotControl:
             )
         )
         self.queue_movement(movement)
+        return True
+
 
         # self.current_torso_height = 0.0
     def robot_set_home(self):
@@ -137,14 +196,6 @@ class RobotControl:
         self.ssh_client.execute_command(command)
         return True
 
-    # def _execute_timed_command(self, command, duration=2):
-    #     try:
-    #         self.ssh_client.execute_command(command)
-    #         time.sleep(duration)
-    #         self.stop_robot()  # Stop after duration
-    #     except Exception as e:
-    #         print(f"Failed to execute command: {e}")
-    #         raise e
 
     def move_forward(self):
         print("[green] excuting move forward [/green]")
@@ -152,14 +203,7 @@ class RobotControl:
         self.ssh_client.execute_command(command)
         time.sleep(1)
         return True
-        # try:
-        #     self.ssh_client.execute_command(command)
-        #     time.sleep(4)
 
-        # except Exception as e:
-        #     print(f"Failed to connect to SSH: {e}")
-        #     raise e
-        # return True
 
     def turn_right(self):
         print("[green] excuting turn right [/green]")

@@ -40,7 +40,7 @@ class SingleCommandSSHClient:
         # print(f"{full_command} executed")
         output = ssh_stdout.read().decode()
         error = ssh_stderr.read().decode()
-        print(output)
+        # print(output)
         ssh_client.close()
         return output, error
 
