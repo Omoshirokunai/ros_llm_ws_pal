@@ -1,10 +1,10 @@
-# VLMs for Robots:  Analyzing Limitations of Zero-Shot VLM-Based Robot Control*(Tiago Pal)*
+# VLMs for Robots:  Analyzing Limitations of Zero-Shot VLM-Based Robot Control on a Tiago Pal robot
 
 [![YouTube Video](https://img.youtube.com/vi/oC8lpK0tnGA/0.jpg)](https://www.youtube.com/watch?v=oC8lpK0tnGA "Gemini, LLMs for Robots")
 
 ## Table of Contents
 
-- [VLMs for Robots:  Analyzing Limitations of Zero-Shot VLM-Based Robot Control\*(Tiago Pal)\*](#vlms-for-robots--analyzing-limitations-of-zero-shot-vlm-based-robot-controltiago-pal)
+- [VLMs for Robots:  Analyzing Limitations of Zero-Shot VLM-Based Robot Control on aTiago Pal robot](#vlms-for-robots--analyzing-limitations-of-zero-shot-vlm-based-robot-control-on-a-tiago-pal-robot)
   - [Table of Contents](#table-of-contents)
   - [1. Problem Statement](#1-problem-statement)
     - [1.1. Research Questions](#11-research-questions)
