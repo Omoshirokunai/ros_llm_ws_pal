@@ -257,9 +257,6 @@ def process_subgoals(prompt, subgoals, robot_control, llm_controller):
                     all_subgoals = subgoals,
                     safety_warning=None,
                     safety_context=safety_context
-                    all_subgoals = subgoals,
-                    safety_warning=None,
-                    safety_context=safety_context
                 )
 
                 # handle invalid control response
