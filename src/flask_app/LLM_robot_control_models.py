@@ -128,9 +128,9 @@ class LLMController:
     - Dynamic elements (if any)
 
     Format your response as:
-    FORWARD: {Yes/No} obstacle
-    LEFT: {Yes/No} obstacle
-    RIGHT: {Yes/No} obstacle
+    FORWARD: {Yes/No} there is {an/no} obstacle
+    LEFT: {Yes/No} there is {an/no} obstacle
+    RIGHT: {Yes/No} there is {an/no} obstacle
     NEAREST_OBSTACLE: {direction}
     SAFE_ACTIONS: {suggested best actions to take to avoid obstacles}
             Be brief and precise.
@@ -226,14 +226,10 @@ class LLMController:
     Example invalid outputs:
     - based on the image provided, ...
 
-    Current task: {', '.join(all_subgoals)}.
+    Current goal: {subgoal}
     Environment: {scene_description}
-    Previous actions: {executed_actions[-5:] if executed_actions else 'No action'}
     Last feedback: {last_feedback if last_feedback else 'No feedback yet'}
     Safety Status: {safety_warning if safety_warning else 'No safety warnings'}
-    Safety Context:
-        - Recent Violations: {safety_context['recent_violations']}
-        - High Risk Directions: {safety_context['high_risk_directions']}
 
     Rules:
     1. Response must match exactly one valid action format
@@ -250,7 +246,7 @@ class LLMController:
                     {"role": "system", "content": system_prompt_},
                 {"role": "user", "content": "Initial state when task started:", 'images': [initial_image]},
                 {"role": "user", "content": "Current environment shows this image:", 'images': [current_image]},
-                {"role": "user", "content": "lidar map of the environment white circles showing obstacles:", 'images': [map_image]},
+                # {"role": "user", "content": "lidar map of the environment white circles showing obstacles:", 'images': [map_image]},
                 {"role": "user", "content": f"Command: "},
             ]
                 response = ollama.chat(
@@ -259,9 +255,9 @@ class LLMController:
                     messages=message,
                     stream=False,
                     options={
-                    "top_p": 0.4,
+                    "top_p": 0.3,
                     "min_p": 0.1,
-                    "top_k": 30,
+                    "top_k": 10,
                     "num_predict": 16,
                     "temperature": 0.3,
 
@@ -321,11 +317,18 @@ class LLMController:
 
 
     RESPONSE OPTIONS (select exactly one):
-    1. continue (progress detected, continue current approach)
-    2. subtask complete (current subtask requirements met)
-    3. main goal complete (overall goal achieved)
-    4. no progress (no improvement toward goal)
-    5. adjust:<specific_suggestion> (e.g. "adjust:try smaller turns" or "adjust:back up and reorient")
+    - continue
+    - subtask complete
+    - main goal complete
+    - no progress
+    - adjust:<specific_suggestion>
+
+    Where:
+    - continue (progress detected, continue current approach)
+    - subtask complete (current subtask requirements met)
+    - main goal complete (overall goal achieved)
+    - no progress (no improvement toward goal)
+    - adjust:<specific_suggestion> (e.g. "adjust:try turning [suggested direction]" or "adjust:try going forward")
 
 
     Rules:
@@ -353,29 +356,14 @@ class LLMController:
                 model= self.model_name,
                 stream=False,
                 options={
-                "top_p": 0.4,
+                "top_p": 0.3,
                     "min_p": 0.1,
-                    "top_k": 30,
+                    "top_k": 10,
                     "num_predict": 16,
                     "temperature": 0.3,
             }
             )
 
-            # #check if repsonse if valid else reprompt the model and ask for feedback again
-            # valid_responses = ["continue", "subtask complete", "main goal complete", "no progress"]
-            # if response and response['message']['content']:
-            #     response = response['message']['content'].strip().lower()
-            #     if response in valid_responses:
-            #         return response
-            #     elif response.startswith("adjust:"):
-            #         return response
-            #     else:
-            #         response = 'continue'
-            #         return response
-
-                # if response == 'Main goal complete':
-                #     self.clear_cache()
-                #     return response['message']['content'].strip().lower()
             if response and response['message']['content']:
                     response = response['message']['content'].strip().lower()
                     print(f"debug feedback response: {response}")

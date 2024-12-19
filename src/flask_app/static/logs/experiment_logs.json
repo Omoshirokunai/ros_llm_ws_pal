@@ -1901,6 +1901,199 @@
       "task_success": false,
       "ground_truth_success": false,
       "description": "collision with table"
+    },
+    {
+      "session_id": "6612839a-ac0b-4576-b10e-6ff1492e4922",
+      "timestamp": "2024-12-19T16:22:34.185664",
+      "prompt": "avoid the chairs to your left, there is a black bag on the table in front of you, go to the bag and stop\r\n",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table in front of you",
+          "actions": [
+            {
+              "action": "move forward 0.1 meters at 0.5 m/s",
+              "timestamp": "2024-12-19T16:23:11.125065"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "2. subtask complete (current subtask requirements met)",
+              "timestamp": "2024-12-19T16:23:25.649788",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "subtask complete",
+              "timestamp": "2024-12-19T16:23:25.652837",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move close to the table",
+          "actions": [
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:23:43.364632"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 14.88796854019165,
+      "total_duration": null,
+      "task_success": false,
+      "ground_truth_success": null
+    },
+    {
+      "session_id": "8f418881-dcc2-48b5-a73e-aed9127cab76",
+      "timestamp": "2024-12-19T16:27:33.564726",
+      "prompt": "avoid the chairs to your left, there is a black bag on the table in front of you, go to the bag and stop\r\n",
+      "model": "llava:13b",
+      "subgoals": [
+        {
+          "subgoal": "look for black bag on table in front of you",
+          "actions": [
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:28:26.936766"
+            },
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:29:00.802607"
+            },
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:29:29.249738"
+            },
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:29:59.150165"
+            },
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:30:31.624108"
+            },
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:31:06.974538"
+            },
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:31:44.022718"
+            },
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:32:19.603433"
+            },
+            {
+              "action": "move forward 0.5 meters at 1 m/s",
+              "timestamp": "2024-12-19T16:32:57.213785"
+            }
+          ],
+          "scene_descriptions": [],
+          "feedbacks": [
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:28:47.249367",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:29:13.911822",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:29:44.550166",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:30:13.127079",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:30:50.324410",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:31:21.980048",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:31:59.789595",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:32:38.057682",
+              "ground_truth_correct": null
+            },
+            {
+              "feedback": "adjust:try smaller turns",
+              "timestamp": "2024-12-19T16:33:14.362798",
+              "ground_truth_correct": null
+            }
+          ],
+          "invalid_controls": [
+            {
+              "action": "move forward 1 meter at 0.5 m/s",
+              "timestamp": "2024-12-19T16:28:07.773617"
+            }
+          ],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "move forward with caution, maintaining a safe distance from the nearest obstacle (table)",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        },
+        {
+          "subgoal": "stop when you reach the black bag",
+          "actions": [],
+          "scene_descriptions": [],
+          "feedbacks": [],
+          "invalid_controls": [],
+          "safety_triggers": [],
+          "completion_status": false,
+          "ground_truth_completion": null
+        }
+      ],
+      "subgoal_generation_time": 16.083580017089844,
+      "total_duration": 342.6971652507782,
+      "task_success": false,
+      "ground_truth_success": null
     }
   ]
 }
