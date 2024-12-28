@@ -15,12 +15,12 @@ import cv2
 import rich
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
-from evaluation_metrics import TaskEvaluator
+from evaluation_metrics import ExperimentLogger
 from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
 from lidar_safety import LidarSafety
 from LLM_robot_control_models import LLMController
 from sensor_msgs.msg import Image, LaserScan
-from sim_robot_control import move_robot
+from sim_robot_control import move_forward_by, move_robot, turn_by_angle
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -29,6 +29,7 @@ app = Flask(__name__)
 llm_controller = LLMController()
 bridge = CvBridge()
 lidar_safety = LidarSafety()
+experiment_logger = ExperimentLogger()
 # evaluator = TaskEvaluator()
 
 # Thread management
@@ -128,6 +129,25 @@ def execute_robot_action(action):
         return move_robot('left')
     elif action == "turn right":
         return move_robot('right')
+
+    # # Handle parameterized commands
+    # parts = action.split()
+    # if len(parts) >= 6:
+    #     action = " ".join(parts[0:2])
+    #     value = float(parts[2])
+    #     speed = float(parts[5].rstrip("m/s"))
+
+    #     if action == "move forward" and "meters" in response:
+    #         return move_forward_by(value, speed)
+    #     elif action == "turn left" and "degrees" in response:
+    #         return turn_by_angle(value, speed)
+    #     elif action == "turn right" and "degrees" in response:
+    #         return turn_by_angle(-value, speed)
+
+    # return False, "Invalid command format"
+
+    # except Exception as e:
+    #     return False, f"Action failed: {str(e)}"
     return False
 
 
@@ -263,8 +283,8 @@ def process_subgoals(prompt, subgoals):
     global stop_llm
     stop_llm = False
 
-    # Start evaluation
-    evaluator.start_task(prompt, subgoals)
+
+
     try:
         # Get initial state
         images = load_images()
@@ -400,15 +420,43 @@ def process_subgoals(prompt, subgoals):
 
 def validate_control_response(response):
     """Validate control response"""
-    valid_actions = ["move forward", "move backward", "turn left", "turn right", "completed"]
-    return response and response.lower() in valid_actions
+    # valid_actions = ["move forward", "move backward", "turn left", "turn right", "completed"]
+    # return response and response.lower() in valid_actions
+    basic_actions = {
+        "move forward": True,
+        "move backward": True,
+        "turn left": True,
+        "turn right": True,
+        "completed": True
+    }
+
+    response = response.lower().strip()
+    if response in basic_actions:
+        return True
+
+    # Parse parameterized commands
+    try:
+        parts = response.split()
+        if len(parts) >= 6:
+            action = " ".join(parts[0:2])
+            value = float(parts[2])
+            speed = float(parts[5].rstrip("m/s"))
+
+            if action == "move forward" and "meters" in response:
+                if 0.1 <= value <= 2.0 and 0.1 <= speed <= 0.5:
+                    return True
+    except:
+        pass
+
+    return False
 
 def execute_robot_action(action):
     """Execute robot action in simulation"""
     try:
 
+        response = action.lower().strip()
          # Check safety first
-        is_safe, warning = lidar_safety.check_direction_safety(action)
+        is_safe, warning = lidar_safety.check_direction_safety(response)
         if not is_safe:
             return False
 
@@ -425,8 +473,25 @@ def execute_robot_action(action):
         else:
             return False
 
-        rospy.sleep(0.1)  # Allow time for action
-        return True
+        # rospy.sleep(0.1)  # Allow time for action
+        # return True
+
+        # Parameterized commands
+        parts = response.split()
+        if len(parts) >= 6:
+            action = " ".join(parts[0:2])
+            value = float(parts[2])
+            speed = float(parts[5].rstrip("m/s"))
+
+            if action == "move forward" and "meters" in response:
+                return move_forward_by(value, speed)
+            elif action == "turn left" and "degrees" in response:
+                return turn_by_angle(value, speed)
+            elif action == "turn right" and "degrees" in response:
+                return turn_by_angle(-value, speed)
+
+        return False
+
     except Exception as e:
         rich.print(f"[red]Action failed:[/red] {str(e)}")
         return False
@@ -437,16 +502,7 @@ rospy.Subscriber("/xtion/rgb/image_raw", Image, image_callback)
 
 
 
-def signal_handler(sig, frame):
-    """Ensure evaluation is saved on exit"""
-    if evaluator.current_task:
-        evaluator.complete_task(False)
-        evaluator.generate_report("src/flask_app/static/evaluation_results")
-    rich.print("[yellow]Shutting down...[/yellow]")
-    sys.exit(0)
-
 # signal.signal(signal.SIGINT, signal_handler)
-
 
 @app.route('/stop_llm', methods=['POST'])
 def stop_llm_control():
@@ -454,22 +510,7 @@ def stop_llm_control():
     global stop_llm
     stop_llm = True
 
-    # Generate report if task in progress
-    if evaluator.current_task:
-        evaluator.complete_task(False)
-        evaluator.generate_report("static/evaluation_results")
-        rich.print("[yellow]LLM control stopped, evaluation saved[/yellow]")
-
     return redirect(url_for('index'))
-
-# Update error handlers
-@app.errorhandler(Exception)
-def handle_error(e):
-    if evaluator.current_task:
-        evaluator.complete_task(False)
-        evaluator.generate_report("src/flask_app/static/evaluation_results")
-    return render_template('sim_index.html',
-                         error=f"An error occurred: {str(e)}")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

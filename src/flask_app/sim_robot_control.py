@@ -58,6 +58,46 @@ def move_robot(direction:str)->str:
 
     return f"Moved {direction}"
 
+
+def move_robot_by(direction, value, speed):
+    """Execute parameterized movement"""
+    twist = Twist()
+
+    if direction == 'forward':
+        twist.linear.x = min(speed, 0.5)  # Cap speed at 0.5
+        duration = value / speed
+    elif direction == 'left':
+        twist.angular.z = min(speed, 0.5)
+        duration = value / speed
+    elif direction == 'right':
+        twist.angular.z = -min(speed, 0.5)
+        duration = value / speed
+
+    start_time = rospy.Time.now()
+    while (rospy.Time.now() - start_time).to_sec() < duration:
+        cmd_vel_publisher.publish(twist)
+        rospy.sleep(0.1)
+
+    start_time = rospy.Time.now()
+    while (rospy.Time.now() - start_time).to_sec() < duration:
+        cmd_vel_publisher.publish(twist)
+        rospy.sleep(0.1)
+
+    # Stop robot
+    twist = Twist()
+    cmd_vel_publisher.publish(twist)
+    return True
+
+def move_forward_by(distance, speed=0.3):
+    """Move forward by specified distance"""
+    return move_robot_by('forward', distance, speed)
+
+def turn_by_angle(angle, speed=0.3):
+    """Turn by specified angle"""
+    if angle > 0:
+        return move_robot_by('left', angle, speed)
+    else:
+        return move_robot_by('right', -angle, speed)
 # endregion Movement
 
 
