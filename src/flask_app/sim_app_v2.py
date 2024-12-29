@@ -275,148 +275,98 @@ def load_images():
         return None
 
 def process_subgoals(prompt, subgoals):
-    """Process subgoals for simulation robot"""
+    """Process subgoals for simulation"""
     current_subgoal_index = 0
     executed_actions = []
     last_feedback = None
     initial_image = IMAGE_PATHS['initial']
+
     global stop_llm
     stop_llm = False
 
-
-
     try:
-        # Get initial state
-        images = load_images()
-        if not images:
-            raise Exception("Failed to load initial images")
-
-        # Save initial state
-        # with open(IMAGE_PATHS['current'], 'rb') as src:
-        #     with open(initial_image, 'wb') as dst:
-        #         dst.write(src.read())
-        if not os.path.exists(IMAGE_PATHS['initial']):
-            with open(IMAGE_PATHS['current'], 'rb') as src:
-                with open(IMAGE_PATHS['initial'], 'wb') as dst:
-                    dst.write(src.read())
-
-        rich.print(f"[blue]Processing {len(subgoals)} subgoals for goal:[/blue] {prompt}")
+        # Start logging session
+        session_id = experiment_logger.start_session(prompt, llm_controller.model_name)
+        experiment_logger.log_subgoals(subgoals, time.time() - experiment_logger.session_start_time)
 
         while current_subgoal_index < len(subgoals):
-            current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]
-
-            # if current_subgoal.startswith("stop"):
-            #     rich.print(f"[green]Task completed successfully[/green]")
-            #     return True
-
-
             if stop_llm:
-                evaluator.complete_task(False)
-                evaluator.generate_report("static/evaluation_results")
+                experiment_logger.complete_session(False, time.time() - experiment_logger.session_start_time)
                 return False
 
-            if current_subgoal.startswith("stop"):
-                rich.print(f"[red]Stopping task:[/red] {current_subgoal}")
-                evaluator.generate_report("src/flask_app/static/evaluation_results")
-                return True
+            current_subgoal = subgoals[current_subgoal_index].split(" ", 1)[1]
 
-            rich.print(f"\n[cyan]Current subgoal ({current_subgoal_index + 1}/{len(subgoals)}):[/cyan] {current_subgoal}")
-
-            # Get fresh images
-            images = load_images()
-            if not images:
-                continue
+            # Get safety context
+            safety_context = lidar_safety.get_safety_context()
 
             # Get control action
             control_response = llm_controller.control_robot(
                 subgoal=current_subgoal,
-                initial_image=images['initial'],
-                current_image=images['current'],
-                previous_image=images['previous'],
-                map_image=images['map'],
+                initial_image=initial_image,
+                current_image=IMAGE_PATHS['current'],
+                previous_image=IMAGE_PATHS['previous'],
+                map_image=IMAGE_PATHS['map'],
                 executed_actions=executed_actions,
                 last_feedback=last_feedback,
-                all_subgoals=subgoals
+                all_subgoals=subgoals,
+                safety_warning=None,
+                safety_context=safety_context
             )
 
+            # Validate and execute control response
             if not validate_control_response(control_response):
-                rich.print(f"[red]Invalid control response:[/red] {control_response}")
+                experiment_logger.log_invalid_control(current_subgoal, control_response)
+                last_feedback = f"{control_response} is an invalid action"
                 continue
 
-            # Save current as previous before executing action
-            with open(IMAGE_PATHS['current'], 'rb') as src:
-                with open(IMAGE_PATHS['previous'], 'wb') as dst:
-                    dst.write(src.read())
-
-            # Check safety before execution
+            # Check safety
             is_safe, warning = lidar_safety.check_direction_safety(control_response)
-            evaluator.log_safety_event(True, not is_safe)
-
             if not is_safe:
-                rich.print(f"[red]Safety check failed:[/red] {warning}")
+                experiment_logger.log_safety_trigger(current_subgoal, warning)
                 last_feedback = f"Safety warning: {warning}"
                 continue
 
-            # Execute action
-            if execute_robot_action(control_response):
-                evaluator.log_action(control_response) #evaluator log action
+            # Execute action and log
+            success = execute_robot_action(control_response, current_subgoal)
+            if success:
                 executed_actions.append(control_response)
-                rich.print(f"[green]Executed action:[/green] {control_response}")
-                time.sleep(0.1)
+                experiment_logger.log_action(current_subgoal, control_response)
             else:
-                rich.print("[red]Failed to execute robot action[/red]")
-                continue
-
-            # Get fresh images for feedback
-            images = load_images()
-            if not images:
+                experiment_logger.log_invalid_control(current_subgoal, control_response)
+                last_feedback = "Failed to execute action"
                 continue
 
             # Get feedback
             feedback = llm_controller.get_feedback(
-                initial_image=images['initial'],
-                current_image=images['current'],
-                previous_image=images['previous'],
-                map_image=images['map'],
+                initial_image=initial_image,
+                current_image=IMAGE_PATHS['current'],
+                previous_image=IMAGE_PATHS['previous'],
+                map_image=IMAGE_PATHS['map'],
                 current_subgoal=current_subgoal,
                 executed_actions=executed_actions,
                 last_feedback=last_feedback,
                 subgoals=subgoals
             )
 
-            rich.print(f"[purple]Feedback received:[/purple] {feedback}")
+            experiment_logger.log_feedback(current_subgoal, feedback)
+            last_feedback = feedback
 
             # Process feedback
-            if feedback == "continue":
-                continue
-            elif feedback == "subtask complete":
+            if "subtask complete" in feedback:
                 current_subgoal_index += 1
                 executed_actions = []
                 last_feedback = None
-            elif feedback == "main goal complete":
+            elif "main goal complete" in feedback:
+                experiment_logger.complete_session(True, time.time() - experiment_logger.session_start_time)
                 return True
-            elif feedback == "no progress":
-                last_feedback = "Previous action made no progress, try a different approach"
-                continue
-            elif feedback.startswith("do"):
-                last_feedback = feedback
-                continue
 
-        # return current_subgoal_index >= len(subgoals)
-        # Task completed
         success = current_subgoal_index >= len(subgoals)
-        evaluator.complete_task(success)
-        evaluator.generate_report("src/flask_app/static/evaluation_results")
+        experiment_logger.complete_session(success, time.time() - experiment_logger.session_start_time)
         return success
 
     except Exception as e:
-         # Ensure evaluation is saved even on error
-        evaluator.complete_task(False)
-        evaluator.generate_report("src/flask_app/static/evaluation_results")
-
-        rich.print(f"[red]Error in process_subgoals:[/red] {str(e)}")
+        print(f"Error in process_subgoals: {str(e)}")
         return False
-
 
 def validate_control_response(response):
     """Validate control response"""
